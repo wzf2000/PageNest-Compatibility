@@ -1,7 +1,8 @@
 <?php
 /** Reply notifications live in the compatibility plugin, independently of the theme. */
 defined('ABSPATH') || exit();
-function wzfj_reply_mail_plan($comment, $parent, $post)
+require_once __DIR__ . '/legacy-migration.php';
+function pagenest_reply_mail_plan($comment, $parent, $post)
 {
     if (
         !$comment ||
@@ -59,7 +60,7 @@ function wzfj_reply_mail_plan($comment, $parent, $post)
             '\n\n此邮件由网站自动发送，请勿直接回复。',
     ];
 }
-function wzfj_author_mail_plan($comment, $post, $author, $core_enabled)
+function pagenest_author_mail_plan($comment, $post, $author, $core_enabled)
 {
     if (
         $core_enabled ||
@@ -101,7 +102,7 @@ function wzfj_author_mail_plan($comment, $post, $author, $core_enabled)
             "\n\n此邮件由网站自动发送，请勿直接回复。",
     ];
 }
-function wzfj_notify_comment_mail($comment_id)
+function pagenest_notify_comment_mail($comment_id)
 {
     $comment = get_comment($comment_id);
     if (!$comment) {
@@ -114,8 +115,8 @@ function wzfj_notify_comment_mail($comment_id)
     }
     $author = get_userdata($post->post_author);
     $mail = $parent
-        ? wzfj_reply_mail_plan($comment, $parent, $post)
-        : wzfj_author_mail_plan($comment, $post, $author, (bool) get_option('comments_notify'));
+        ? pagenest_reply_mail_plan($comment, $parent, $post)
+        : pagenest_author_mail_plan($comment, $post, $author, (bool) get_option('comments_notify'));
     if (!$mail) {
         return;
     }
@@ -130,38 +131,41 @@ function wzfj_notify_comment_mail($comment_id)
     ) {
         return;
     }
-    $sent_key = '_wzfj_comment_mail_sent';
+    $sent_key = '_pagenest_comment_mail_sent';
     $recipient_key = hash('sha256', strtolower($mail['to']));
-    $sent = (array) get_comment_meta($comment_id, $sent_key, true);
+    $sent = pagenest_comment_sent_records($comment_id);
     if (isset($sent[$recipient_key])) {
         return;
     }
-    $lock = 'wzfj_comment_mail_lock_' . (int) $comment_id;
+    if (pagenest_legacy_mail_locked($comment_id)) {
+        return;
+    }
+    $lock = 'pagenest_comment_mail_lock_' . (int) $comment_id;
     if (!add_option($lock, time(), '', false)) {
         return;
     }
     try {
-        $sent = (array) get_comment_meta($comment_id, $sent_key, true);
+        $sent = pagenest_comment_sent_records($comment_id);
         if (isset($sent[$recipient_key])) {
             return;
         }
         if (wp_mail($mail['to'], $mail['subject'], str_replace('\\n', "\n", $mail['message']))) {
             $sent[$recipient_key] = gmdate('c');
             update_comment_meta($comment_id, $sent_key, $sent);
-            delete_comment_meta($comment_id, '_wzfj_comment_mail_failed');
+            delete_comment_meta($comment_id, '_pagenest_comment_mail_failed');
         } else {
-            update_comment_meta($comment_id, '_wzfj_comment_mail_failed', gmdate('c'));
+            update_comment_meta($comment_id, '_pagenest_comment_mail_failed', gmdate('c'));
         }
     } finally {
         delete_option($lock);
     }
 }
-add_action('comment_post', 'wzfj_notify_comment_mail', 30);
+add_action('comment_post', 'pagenest_notify_comment_mail', 30);
 add_action(
     'transition_comment_status',
     static function ($new, $old, $comment) {
         if ($new === 'approved' && $old !== 'approved') {
-            wzfj_notify_comment_mail($comment->comment_ID);
+            pagenest_notify_comment_mail($comment->comment_ID);
         }
     },
     30,

@@ -30,7 +30,7 @@ async function format() {
     .split('\0')
     .filter((file) => file && fs.existsSync(path.join(root, file)));
   const web = files.filter(
-    (file) => /\.(php|js|cjs|css|json)$/.test(file) && !generated.test(file),
+    (file) => /\.(php|js|cjs|css|json|md)$/.test(file) && !generated.test(file),
   );
   const python = files.filter((file) => file.endsWith('.py'));
   const changed = [];
@@ -43,7 +43,8 @@ async function format() {
     for (let pass = 0; pass < 8; pass++) {
       const html =
         file.endsWith('.php') && result.includes('?>') ? beautify(result, htmlOptions) : result;
-      const next = (await prettier.format(html, options)).replace(/\n+$/, '\n');
+      const spaced = file.endsWith('.md') ? await require('./format-markdown.cjs')(html) : html;
+      const next = (await prettier.format(spaced, options)).replace(/\n+$/, '\n');
       if (next === result) break;
       result = next;
       if (pass === 7) throw new Error(`Formatting did not stabilize: ${file}`);

@@ -16,6 +16,13 @@
         "braceStyle": "per-cs",
         "trailingCommaPHP": true
       }
+    },
+    {
+      "files": "*.md",
+      "options": {
+        "proseWrap": "preserve",
+        "embeddedLanguageFormatting": "off"
+      }
     }
   ]
 }

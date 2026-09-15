@@ -2,9 +2,9 @@
 /**
  * Plugin Name: PageNest Compatibility
  * Description: 为栖页主题提供评论邮件通知、Markdown 编辑兼容、数学公式与代码高亮支持，并衔接站点原有功能。
- * Version: 0.4.0
+ * Version: 0.5.0
  * Plugin URI: https://github.com/wzf2000/PageNest-Compatibility
- * Author: wzf2000
+ * Author: PageNest Contributors
  * License: GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Requires at least: 6.0
@@ -27,11 +27,11 @@ add_filter(
 );
 add_action('add_meta_boxes_post', static function ($post) {
     add_meta_box(
-        'wzfj-editor-choice',
+        'pagenest-editor-choice',
         '使用的编辑器',
         static function ($post) {
-            wp_nonce_field('wzfj-editor-choice', 'wzfj-editor-nonce');
-            echo '<label><input type="checkbox" name="wzfj-block-editor" value="1" ' .
+            wp_nonce_field('pagenest-editor-choice', 'pagenest-editor-nonce');
+            echo '<label><input type="checkbox" name="pagenest-block-editor" value="1" ' .
                 checked(get_post_meta($post->ID, 'use_block_editor', true), 'true', false) .
                 '> 使用块编辑器（保存后重新打开）</label>';
         },
@@ -44,10 +44,10 @@ add_action('save_post_post', static function ($id) {
         wp_is_post_revision($id) ||
         wp_is_post_autosave($id) ||
         !current_user_can('edit_post', $id) ||
-        !isset($_POST['wzfj-editor-nonce']) ||
+        !isset($_POST['pagenest-editor-nonce']) ||
         !wp_verify_nonce(
-            sanitize_text_field(wp_unslash($_POST['wzfj-editor-nonce'])),
-            'wzfj-editor-choice',
+            sanitize_text_field(wp_unslash($_POST['pagenest-editor-nonce'])),
+            'pagenest-editor-choice',
         )
     ) {
         return;
@@ -55,30 +55,30 @@ add_action('save_post_post', static function ($id) {
     update_post_meta(
         $id,
         'use_block_editor',
-        isset($_POST['wzfj-block-editor']) ? 'true' : 'false',
+        isset($_POST['pagenest-block-editor']) ? 'true' : 'false',
     );
 });
 add_action(
     'wp_enqueue_scripts',
     static function () {
-        if (!current_theme_supports('wzf-independent-layout')) {
+        if (!current_theme_supports('pagenest-independent-layout')) {
             return;
         }
         if (is_singular(['post', 'page']) && !wp_script_is('mbb-math', 'enqueued')) {
             // Same renderer and delimiters as the current site; one owner, no parent header.
             wp_register_script(
-                'wzfj-mathjax',
+                'pagenest-mathjax',
                 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS_HTML',
                 [],
                 null,
                 true,
             );
             wp_add_inline_script(
-                'wzfj-mathjax',
+                'pagenest-mathjax',
                 'window.MathJax={showProcessingMessages:false,tex2jax:{inlineMath:[["$","$"],["\\\\(","\\\\)"]],displayMath:[["$$","$$"],["\\\\[","\\\\]"]],processEscapes:true,skipTags:["script","noscript","style","textarea","pre","code"]},menuSettings:{zoom:"Hover"}};',
                 'before',
             );
-            wp_enqueue_script('wzfj-mathjax');
+            wp_enqueue_script('pagenest-mathjax');
         }
         global $wp_filter;
         $hook = $wp_filter['wp_print_footer_scripts'] ?? null;
@@ -124,14 +124,14 @@ add_shortcode(
         : '<p><a href="' . esc_url(wp_login_url(get_permalink())) . '">登录</a>后可记录成绩。</p>',
 );
 // Stable compatibility names consumed by the existing resource-scope adapter.
-if (!function_exists('wzfl_active')) {
-    function wzfl_active()
+if (!function_exists('pagenest_active')) {
+    function pagenest_active()
     {
-        return !is_admin() && !is_feed() && current_theme_supports('wzf-independent-layout');
+        return !is_admin() && !is_feed() && current_theme_supports('pagenest-independent-layout');
     }
 }
-if (!function_exists('wzfl_template_scope')) {
-    function wzfl_template_scope()
+if (!function_exists('pagenest_template_scope')) {
+    function pagenest_template_scope()
     {
         return is_front_page() ||
             is_home() ||
@@ -146,7 +146,7 @@ if (!function_exists('wzfl_template_scope')) {
 add_action(
     'customize_register',
     static function () {
-        if (!current_theme_supports('wzf-independent-layout')) {
+        if (!current_theme_supports('pagenest-independent-layout')) {
             return;
         }
         global $wp_filter;
