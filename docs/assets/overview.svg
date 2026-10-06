@@ -1,58 +1,39 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="610" viewBox="0 0 1200 610" role="img" aria-labelledby="title desc">
-  <title id="title">PageNest Compatibility 功能示意</title>
-  <desc id="desc">三个功能分支：评论通知通过 WordPress 邮件服务发送；Markdown 保留公式并支持文章编辑器选择；支持对应特性的主题启用 MathJax 远端加载和 Prism 路径适配。</desc>
-  <defs>
-    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#f2f7f5"/>
-      <stop offset="1" stop-color="#e9eff6"/>
-    </linearGradient>
-  </defs>
-  <rect width="1200" height="610" rx="24" fill="url(#background)"/>
-  <g font-family="system-ui, -apple-system, 'Segoe UI', 'Noto Sans CJK SC', sans-serif">
-    <text x="64" y="64" fill="#56746b" font-size="14" letter-spacing="3">PAGENEST · COMPATIBILITY</text>
-    <text x="64" y="112" fill="#1f3d35" font-size="32" font-weight="650">衔接内容、阅读与讨论</text>
-    <text x="64" y="149" fill="#62736e" font-size="17">独立插件，让站点功能与主题外观各自独立</text>
-    <g fill="#ffffff" stroke="#d7e3de">
-      <rect x="64" y="196" width="344" height="318" rx="18"/>
-      <rect x="428" y="196" width="344" height="318" rx="18"/>
-      <rect x="792" y="196" width="344" height="318" rx="18"/>
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="960"
+  height="440"
+  viewBox="0 0 960 440"
+  role="img"
+  aria-labelledby="title description"
+>
+  <title id="title">PageNest Companion 阅读与互动</title>
+  <desc id="description">
+    后台逐篇启用，读者在权限检查后使用段落评论、章节导航和点赞。私人记录保持作者可见，展示由主题负责。
+  </desc>
+  <rect width="960" height="440" rx="24" fill="#f5f7f3" />
+  <g font-family="sans-serif" fill="#25382f">
+    <text x="40" y="54" font-size="28">PageNest Companion</text>
+    <text x="40" y="88" font-size="17">后台明确启用 · 服务端校验权限 · 保留既有记录</text>
+    <rect x="40" y="122" width="270" height="184" rx="16" fill="#e3eee5" />
+    <rect x="345" y="122" width="270" height="184" rx="16" fill="#e3eee5" />
+    <rect x="650" y="122" width="270" height="184" rx="16" fill="#e3eee5" />
+    <g font-size="23">
+      <text x="66" y="162">段落评论</text>
+      <text x="371" y="162">章节导航</text>
+      <text x="676" y="162">文章点赞</text>
     </g>
-    <g fill="#eaf2ee">
-      <rect x="88" y="220" width="48" height="48" rx="12"/>
-      <rect x="452" y="220" width="48" height="48" rx="12"/>
-      <rect x="816" y="220" width="48" height="48" rx="12"/>
+    <g font-size="17">
+      <text x="66" y="201">登录后明确公开发布</text>
+      <text x="66" y="235">本人编辑 · 冲突保护</text>
+      <text x="66" y="269">私人记录仅作者可见</text>
+      <text x="371" y="201">同名系列与章节顺序</text>
+      <text x="371" y="235">目标文章阅读权限</text>
+      <text x="371" y="269">只转换渲染链接</text>
+      <text x="676" y="201">公开可读 · 本人禁止</text>
+      <text x="676" y="235">历史与并发请求去重</text>
+      <text x="676" y="269">可选经验事件订阅</text>
     </g>
-    <g stroke="#486d5e" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-      <rect x="99" y="235" width="26" height="18" rx="3"/>
-      <path d="m100 237 12 9 12-9"/>
-      <path d="M465 232h18l5 5v19h-23z M483 232v6h5 M470 244h12 M470 249h8"/>
-      <path d="m830 236-6 8 6 8 m20-16 6 8-6 8 m-8-20-4 24"/>
-    </g>
-    <g fill="#1f3d35" font-size="23" font-weight="650">
-      <text x="88" y="307">评论通知</text>
-      <text x="452" y="307">Markdown 兼容</text>
-      <text x="816" y="307">公式与高亮</text>
-    </g>
-    <g fill="#62736e" font-size="17">
-      <text x="88" y="342">审核通过的新留言与回复</text>
-      <text x="452" y="342">保留旧公式保护规则</text>
-      <text x="816" y="342">支持对应特性的主题启用</text>
-    </g>
-    <g stroke="#cfddd6" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M112 367v34m-5-5 5 5 5-5"/>
-      <path d="M476 367v34m-5-5 5 5 5-5"/>
-      <path d="M840 367v34m-5-5 5 5 5-5"/>
-    </g>
-    <g fill="#334d44" font-size="18">
-      <text x="88" y="435">WordPress 邮件服务</text>
-      <text x="452" y="435">每篇文章的编辑器选择</text>
-      <text x="816" y="435">MathJax · Prism 适配</text>
-    </g>
-    <g fill="#62736e" font-size="15">
-      <text x="88" y="474">权限检查 · 通知去重</text>
-      <text x="452" y="474">沿用现有编辑器提供方</text>
-      <text x="816" y="474">远端公式资源 · 组件路径</text>
-    </g>
-    <text x="64" y="563" fill="#62736e" font-size="15">功能示意 · 不包含 SMTP 配置、编辑器本体或站点数据迁移</text>
+    <text x="40" y="355" font-size="19">普通评论邮件通知 · 编辑器兼容 · 公式与高亮适配</text>
+    <text x="40" y="391" font-size="17">主题负责外观和动作位置；其他主题使用独立评论抽屉。</text>
   </g>
 </svg>

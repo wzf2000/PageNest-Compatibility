@@ -1,14 +1,15 @@
-# 使用 PageNest Compatibility
+# 使用 PageNest Companion
 
 ## 安装与启用
 
 要求 WordPress 6.0+、PHP 8.0+。
 
-1. 在 [GitHub Releases](https://github.com/wzf2000/PageNest-Compatibility/releases) 下载发行附件中的 `pagenest-compatibility-版本号.zip`，选择安装包，而非自动生成的 Source code ZIP。
+1. 在 [GitHub Releases](RELEASING.md) 下载发行附件中的 `pagenest-compatibility-版本号.zip`，选择安装包，而非自动生成的 Source code ZIP。
 2. 在后台打开 “插件 → 安装插件 → 上传插件”，上传 ZIP，安装并启用。
-3. 按本站现有主题、编辑器和邮件服务检查所需功能。功能按现有文章元数据和主题特性生效，无需复制数据库。
+3. 打开 “设置 → PageNest Companion”，选择所需功能。段落评论还需要逐篇文章明确启用；新文章默认关闭。
+4. 用不同账号验证公开评论、作者操作、点赞，以及站点现有邮件服务。无需复制数据库。
 
-推荐配合 [PageNest · 栖页](https://github.com/wzf2000/PageNest) 使用。评论通知不依赖 PageNest；MathJax、Prism 前端适配和 Materialis Companion 防冲突处理则仅在主题支持 `pagenest-independent-layout` 特性时启用。插件没有 SMTP 配置页面。
+推荐配合 PageNest · 栖页 使用。评论通知不依赖 PageNest；MathJax、Prism 前端适配和 Materialis Companion 防冲突处理则仅在主题支持 `pagenest-independent-layout` 特性时启用。插件没有 SMTP 配置页面。
 
 ## 评论通知与邮件服务
 
@@ -32,8 +33,32 @@
 
 升级前备份文件和数据库。从 0.4 升级时先停用旧版，再安装并启用目录 `pagenest-compatibility` 中的 `pagenest-compatibility.php`，不要同时启用两份插件。0.5 之后保持该目录和入口名称。
 
-`legacy-migration.php` 兼容读取旧 `_wzfj_comment_mail_sent` 记录及旧 `wzfj_comment_mail_lock_` 锁；旧记录与当前记录合并，同一收件人以当前记录为准，避免改名后重复发送。无需清空旧记录或手工迁移通知数据。
+兼容配置的 `mail.sent_meta_keys` 和 `mail.lock_option_prefixes` 只读既有通知标记和锁，合并当前标记以避免重复发送。不清空旧记录。
 
-插件保留 2048 登录提示短代码、旧资源范围函数及 Materialis Companion 迁移期间的防冲突处理，不包含积分规则、OAuth、私人笔记或数据库迁移。短代码只输出登录提示，不提供成绩记录功能。
+插件保留 2048 登录提示短代码、旧资源范围函数及 Materialis Companion 迁移期间的防冲突处理，不包含积分规则、OAuth 或数据库重算。它保护既有私人笔记并提供公开段落评论。短代码只输出登录提示，不提供成绩记录功能。
 
 > [扩展接口](EXTENDING.md) · [贡献指南](../CONTRIBUTING.md) · [发行指南](RELEASING.md) · [返回项目首页](../README.md)
+
+## 章节、段落评论和点赞
+
+编辑文章，在 “PageNest 阅读功能” 中选择 “启用” 段落评论并保存，保存动作只为这篇文章创建段落注册表；前台仅读取，不自动为未保存段落生成身份。公开发布须明确确认；旧私人接口要求登录、文章阅读权限与作者身份，未知可见性保持私人。编辑和删除须提供当前 opaque `version`，冲突不会覆盖。公开投影不含私人正文、数量、UUID、源指纹和历史引用；匿名只读。没有 PageNest 主题时使用独立抽屉。
+
+在文章的 “PageNest 阅读功能” 中填写同名系列和非负整数章节顺序。没有排序值时沿用文档顺序；旧站的显式文档列表可保留原有顺序。相对 Markdown 链接由 `link_map` 明确映射至现有文章，只有可读取、未锁定文章才转换；只改渲染 HTML。点赞要求登录、公开可读文章且不是作者本人，按文章串行锁与 InnoDB 事务写记录和计数。历史 provider 只读事件账本；历史读取或事务能力失败时拒绝写入。经验扩展监听 `pagenest_like_recorded($user_id, $post_id, $count)`，点赞不依赖经验插件。
+
+## 显式兼容配置
+
+在服务器 `wp-config.php` 定义 `PAGENEST_COMPATIBILITY_PROFILE_FILE` 指向 Web 根之外的 JSON 文件，限制文件读取权限。插件不搜索上传目录或 URL，不在加载时复制设置。无法读取、未知字段、格式或标识错误会禁用功能并显示管理员提示。
+
+完整 schema 见 [扩展接口](EXTENDING.md)。默认中性键用于新安装；已有数据须先填写旧存储键、路由、主题别名和历史 provider，不清空或重编号记录。
+
+## 后台阅读设置
+
+“设置 → PageNest Companion” 仅站点管理员可修改。段落评论、章节导航与链接、点赞可以分别停用；关闭只暂停展示/API，不删除记录，也不会停止普通 WordPress 评论通知。
+
+文章作者或有编辑权限的用户可在 “PageNest 阅读功能” 中设置本篇文章：
+
+- **保持现有**保留原先的启用状态；只有选择 “启用” 或 “停用” 才保存新的状态。启用并保存会刷新本篇段落注册表，不会扫描其他文章。
+- **系列名称**把同名文章归为一组，最多 100 个字符；主动清空可退出旧系列。
+- **章节顺序**为 0 至 1000000 的整数，留空使用文档顺序。非法输入会拒绝整个配置更新。
+
+修订、自动保存和未通过 nonce/编辑权限检查的请求不会保存阅读设置。正文修改可能改变段落身份；已有引用快照和私人可见性继续保留。旧兼容键只读，新设置优先，因此可安全保留旧值与显式空值。

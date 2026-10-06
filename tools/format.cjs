@@ -72,10 +72,9 @@ async function format() {
     ),
   );
   for (const [key, name] of Object.entries({
-    css: 'layout.css',
-    js: 'navigation.js',
-    reading: 'reading.js',
-    login: 'login.css',
+    comments_js: 'paragraph-comments.js',
+    comments_css: 'paragraph-comments.css',
+    likes_js: 'likes.js',
   })) {
     const content = fs.readFileSync(path.join(assets, name));
     const hash = crypto.createHash('sha256').update(content).digest('hex').slice(0, 12);

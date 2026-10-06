@@ -168,14 +168,21 @@ $options['comments_notify'] = false;
 $legacy = clone $c;
 $legacy->comment_ID = 17;
 $comments[17] = $legacy;
-$meta[17]['_wzfj_comment_mail_sent'] = [hash('sha256', 'author@example.invalid') => '2026-01-01'];
+$GLOBALS['pagenest_companion_profile'] = pagenest_companion_validate([
+    'schema_version' => 1,
+    'mail' => [
+        'sent_meta_keys' => ['_fixture_mail_sent'],
+        'lock_option_prefixes' => ['fixture_mail_lock_'],
+    ],
+]);
+$meta[17]['_fixture_mail_sent'] = [hash('sha256', 'author@example.invalid') => '2026-01-01'];
 $n = count($mails);
 pagenest_notify_comment_mail(17);
 $check('legacy_sent_marker_prevents_resend', count($mails) === $n);
 $locked = clone $c;
 $locked->comment_ID = 18;
 $comments[18] = $locked;
-$options['wzfj_comment_mail_lock_18'] = time();
+$options['fixture_mail_lock_18'] = time();
 pagenest_notify_comment_mail(18);
 $check('legacy_lock_prevents_concurrent_send', count($mails) === $n);
 echo json_encode($out, JSON_PRETTY_PRINT);
