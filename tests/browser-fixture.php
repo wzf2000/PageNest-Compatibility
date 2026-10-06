@@ -60,6 +60,14 @@ function wp_json_encode($value)
 {
     return json_encode($value);
 }
+function get_option($key, $default = false)
+{
+    return $default;
+}
+function metadata_exists(...$args)
+{
+    return false;
+}
 function get_queried_object_id()
 {
     return 0;

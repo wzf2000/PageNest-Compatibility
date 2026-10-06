@@ -41,3 +41,11 @@ JSON 顶层必须含 `schema_version: 1`，其他节可按需指定，未知键�
 扩展可直接调用 `pagenest_companion_like($user_id, $post_id)` 复用完整检查；必须为当前登录者。`pagenest_like_recorded` 在持久化成功并释放锁后发布，提供用户 ID、文章 ID、最新计数；订阅方自行保证事件幂等。
 
 `experience` 是可选 Reader Experience 扩展配置节，包含 `table_suffix`、`live_option`、`rank_option`、`week_option`、`event_lock`、`weekly_lock`、`rest_namespace`、`rest_aliases`、`shortcodes`、非负整数 `panel_page_id` 和 `weekly_hook`。Companion 仅校验配置，不安装账本、重算余额或定义经验规则。
+
+## 后台写入与功能开关
+
+`pagenest_companion_features` option 包含 `comments`、`chapters`、`likes` 的 0/1 值；无 option 时保持三个模块可用。存在但格式错误的 option 停用功能，不回落到宽松状态。评论仍须逐篇启用。
+
+后台只写 `_pagenest_comments_enabled`、`_pagenest_series`、`_pagenest_chapter_order`。这些键存在时优先于 profile 的旧存储键，包括显式空值与停用值。nonce、编辑权限、修订/自动保存及整份输入验证通过后才保存；显式启用只刷新对应文章注册表。
+
+Reader Experience 的 `weekly_lock` 必须为不超过 64 字节的标识，按原值取得数据库锁以与其他周结算组件共用；`event_lock` 继续按数据库作用域隔离。

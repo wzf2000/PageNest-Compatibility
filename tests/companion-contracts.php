@@ -66,6 +66,11 @@ function post_password_required($p)
 {
     return $p->post_password !== '';
 }
+function metadata_exists($type, $id, $key)
+{
+    global $meta;
+    return array_key_exists($key, $meta[$id] ?? []);
+}
 function get_post_meta($id, $key, $single = true)
 {
     global $meta;
@@ -75,13 +80,26 @@ function get_posts($args)
 {
     global $posts;
     return array_values(
-        array_filter(
-            $posts,
-            static fn($p) => $p->post_type === $args['post_type'] &&
-                (!isset($args['meta_key']) || get_post_meta($p->ID, $args['meta_key']) !== ''),
-        ),
+        array_filter($posts, static function ($p) use ($args) {
+            if ($p->post_type !== $args['post_type']) {
+                return false;
+            }
+            if (isset($args['meta_key']) && get_post_meta($p->ID, $args['meta_key']) === '') {
+                return false;
+            }
+            if (isset($args['meta_query'])) {
+                foreach ($args['meta_query'] as $query) {
+                    if (is_array($query) && metadata_exists('post', $p->ID, $query['key'])) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            return true;
+        }),
     );
 }
+
 function clean_post_cache($id) {}
 function add_post_meta($id, $key, $value, $unique = false)
 {
@@ -180,6 +198,7 @@ class DatabaseFixture
 }
 $wpdb = new DatabaseFixture();
 require dirname(__DIR__) . '/config.php';
+require dirname(__DIR__) . '/modules/settings.php';
 require dirname(__DIR__) . '/modules/theme-compatibility.php';
 require dirname(__DIR__) . '/modules/paragraph-comments.php';
 require dirname(__DIR__) . '/modules/chapters.php';
@@ -436,4 +455,67 @@ $localized = [];
 $GLOBALS['pagenest_companion_profile'] = pagenest_companion_defaults();
 pagenest_companion_content_aliases();
 check('empty aliases do not inject configuration', $localized === []);
+function wp_is_post_revision($id)
+{
+    return false;
+}
+function wp_is_post_autosave($id)
+{
+    return false;
+}
+function wp_verify_nonce($nonce, $action)
+{
+    return $nonce === 'synthetic-valid';
+}
+function wp_unslash($value)
+{
+    return $value;
+}
+function sanitize_text_field($value)
+{
+    return strip_tags($value);
+}
+check(
+    'settings sanitizer rejects malformed shape',
+    pagenest_companion_sanitize_features('invalid') === [
+        'comments' => 0,
+        'chapters' => 0,
+        'likes' => 0,
+    ],
+);
+$allowed = [10];
+$meta[10]['_pagenest_series'] = '';
+$meta[10]['_pagenest_chapter_order'] = '';
+$before = $meta;
+$_POST = [
+    'pagenest-reading-options-nonce' => 'bad',
+    'pagenest-reading-comments' => '0',
+    'pagenest-reading-series' => 'A',
+    'pagenest-reading-order' => '1',
+];
+pagenest_companion_save_post_options(10);
+check('invalid nonce leaves metadata unchanged', $meta === $before);
+$_POST['pagenest-reading-options-nonce'] = 'synthetic-valid';
+$_POST['pagenest-reading-order'] = '1.5';
+pagenest_companion_save_post_options(10);
+check('invalid order rejects entire update', $meta === $before);
+$_POST['pagenest-reading-order'] = '1';
+$allowed = [];
+pagenest_companion_save_post_options(10);
+check('unauthorized author cannot change options', $meta === $before);
+$allowed = [10];
+pagenest_companion_save_post_options(10);
+check(
+    'explicit disable writes neutral marker',
+    $meta[10]['_pagenest_comments_enabled'] === '0' && !pagenest_pc_enabled(10),
+);
+check(
+    'new series and numeric order stored',
+    $meta[10]['_pagenest_series'] === 'A' && $meta[10]['_pagenest_chapter_order'] === '1',
+);
+$meta[10]['_pagenest_series'] = '';
+check(
+    'explicit empty neutral series stays authoritative',
+    pagenest_companion_post_setting(10, 'series') === '',
+);
 echo "$checks Companion contract checks passed\n";

@@ -6,6 +6,9 @@ if (!defined('ABSPATH')) {
 
 function pagenest_pc_enabled($id)
 {
+    if (metadata_exists('post', $id, '_pagenest_comments_enabled')) {
+        return get_post_meta($id, '_pagenest_comments_enabled', true) === '1';
+    }
     return (bool) get_post_meta(
         $id,
         pagenest_companion_config('paragraphs', 'document_meta'),
@@ -16,7 +19,8 @@ function pagenest_pc_enabled($id)
 function pagenest_pc_readable($id)
 {
     $p = get_post($id);
-    return $p &&
+    return pagenest_companion_feature('comments') &&
+        $p &&
         pagenest_pc_enabled($id) &&
         !post_password_required($p) &&
         ($p->post_status === 'publish' || current_user_can('read_post', $id));
@@ -155,7 +159,7 @@ add_filter(
 );
 function pagenest_pc_refresh($id)
 {
-    if (!pagenest_pc_enabled($id)) {
+    if (!pagenest_companion_feature('comments') || !pagenest_pc_enabled($id)) {
         return;
     }
     $previous = $GLOBALS['post'] ?? null;
@@ -219,6 +223,9 @@ function pagenest_pc_data($note)
 
 function pagenest_pc_permission()
 {
+    if (!pagenest_companion_feature('comments')) {
+        return new WP_Error('comments_disabled', '段落评论已停用。', ['status' => 503]);
+    }
     return is_user_logged_in()
         ? true
         : new WP_Error('login_required', '请先登录。', ['status' => 401]);

@@ -10,8 +10,11 @@ function pagenest_companion_can_read($post)
 }
 function pagenest_companion_series($id)
 {
+    if (!pagenest_companion_feature('chapters')) {
+        return [];
+    }
     $config = pagenest_companion_config('chapters');
-    $series = get_post_meta($id, $config['series_meta'], true);
+    $series = pagenest_companion_post_setting($id, 'series');
     $document = get_post_meta($id, $config['document_meta'], true);
     if ($series === '' && $document === '') {
         return [];
@@ -20,7 +23,14 @@ function pagenest_companion_series($id)
         'post_type' => 'post',
         'post_status' => ['publish', 'private'],
         'posts_per_page' => -1,
-        'meta_key' => $series !== '' ? $config['series_meta'] : $config['document_meta'],
+        'meta_query' =>
+            $series !== ''
+                ? [
+                    'relation' => 'OR',
+                    ['key' => '_pagenest_series', 'compare' => 'EXISTS'],
+                    ['key' => $config['series_meta'], 'compare' => 'EXISTS'],
+                ]
+                : [['key' => $config['document_meta'], 'compare' => 'EXISTS']],
         'orderby' => 'meta_value',
         'order' => 'ASC',
     ]);
@@ -28,7 +38,7 @@ function pagenest_companion_series($id)
         array_filter(
             $all,
             static fn($p) => pagenest_companion_can_read($p) &&
-                ($series === '' || get_post_meta($p->ID, $config['series_meta'], true) === $series),
+                ($series === '' || pagenest_companion_post_setting($p->ID, 'series') === $series),
         ),
     );
     $rank = array_flip($config['series_order']);
@@ -40,8 +50,8 @@ function pagenest_companion_series($id)
         if ($ar !== $br) {
             return $ar <=> $br;
         }
-        $ao = get_post_meta($a->ID, $config['order_meta'], true);
-        $bo = get_post_meta($b->ID, $config['order_meta'], true);
+        $ao = pagenest_companion_post_setting($a->ID, 'order');
+        $bo = pagenest_companion_post_setting($b->ID, 'order');
         if (is_numeric($ao) && is_numeric($bo) && $ao != $bo) {
             return (float) $ao <=> (float) $bo;
         }
@@ -80,6 +90,9 @@ add_filter(
 add_filter(
     'the_content',
     static function ($html) {
+        if (!pagenest_companion_feature('chapters')) {
+            return $html;
+        }
         $map = pagenest_companion_config('chapters', 'link_map');
         if (!$map || !class_exists('WP_HTML_Tag_Processor')) {
             return $html;

@@ -42,6 +42,10 @@ jobs:
       # Check committed generated assets before any command can rebuild them.
       - name: Check formatting and generated resource hashes
         run: npm run format:check
+      - name: Scan externally configured identity rules
+        env:
+          IDENTITY_RULES: ${{ vars.IDENTITY_RULES || secrets.IDENTITY_RULES }}
+        run: npm run identity:check
       - name: Check PHP syntax
         run: git ls-files '*.php' -z | xargs -0 -n1 php -l
       - name: Run basic feature fixtures
@@ -79,3 +83,51 @@ jobs:
             dist/release-notes.md
             dist/release-validation.json
           if-no-files-found: error
+  wordpress:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.0', '8.2']
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: synthetic-ci-password
+          MYSQL_ROOT_HOST: '%'
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -psynthetic-ci-password"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha || github.sha }}
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mysqli, mbstring, dom
+          coverage: none
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download pinned WP-CLI
+        run: curl --fail --location --output /tmp/wp-cli.phar https://github.com/wp-cli/wp-cli/releases/download/v2.12.0/wp-cli-2.12.0.phar
+      - name: Run synthetic WordPress, database, nonce and concurrency regressions
+        env:
+          COMPANION_TEST_DATABASE: pagenest_companion_ci
+          COMPANION_TEST_DB_HOST: 127.0.0.1:3306
+          COMPANION_TEST_DB_USER: root
+          COMPANION_TEST_DB_PASSWORD: synthetic-ci-password
+        run: python3 tools/wp-integration.py --wp-cli /tmp/wp-cli.phar --lab /tmp/pagenest-companion-ci
+      - name: Preserve synthetic test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: companion-wordpress-${{ matrix.php }}
+          path: |
+            /tmp/pagenest-companion-ci/results.json
+            /tmp/pagenest-companion-ci/concurrency-results.json
+          if-no-files-found: ignore

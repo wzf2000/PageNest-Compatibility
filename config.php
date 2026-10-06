@@ -115,6 +115,9 @@ function pagenest_companion_validate($input)
             throw new InvalidArgumentException('Invalid experience identifier.');
         }
     }
+    if (strlen($defaults['experience']['weekly_lock']) > 64) {
+        throw new InvalidArgumentException('Weekly lock exceeds database limit.');
+    }
     if (!preg_match('/^[a-zA-Z0-9_]+$/D', $defaults['experience']['table_suffix'])) {
         throw new InvalidArgumentException('Invalid experience table.');
     }

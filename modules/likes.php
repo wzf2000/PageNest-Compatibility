@@ -39,6 +39,9 @@ function pagenest_companion_legacy_like($user_id, $post_id)
 }
 function pagenest_companion_like($user_id, $post_id)
 {
+    if (!pagenest_companion_feature('likes')) {
+        return new WP_Error('likes_disabled', '文章点赞已停用。', ['status' => 503]);
+    }
     global $wpdb;
     $user_id = (int) $user_id;
     $post_id = (int) $post_id;
@@ -148,6 +151,9 @@ function pagenest_companion_like($user_id, $post_id)
 }
 function pagenest_companion_like_button($id)
 {
+    if (!pagenest_companion_feature('likes')) {
+        return;
+    }
     $post = get_post($id);
     if (
         !$post ||

@@ -75,7 +75,7 @@ add_action('wp_enqueue_scripts', static function () {
         'pagenest-anchor-aliases',
         plugins_url('../assets/anchor-aliases.js', __FILE__),
         [],
-        '0.6.0-rc.1',
+        '0.6.0',
         true,
     );
     wp_localize_script('pagenest-anchor-aliases', 'PageNestAnchorAliases', $aliases);
