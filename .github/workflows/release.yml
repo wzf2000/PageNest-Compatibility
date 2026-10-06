@@ -70,6 +70,8 @@ jobs:
     with:
       source_sha: ${{ needs.resolve.outputs.sha }}
       release_version: ${{ inputs.version }}
+    secrets:
+      IDENTITY_RULES: ${{ secrets.IDENTITY_RULES }}
 
   publish:
     name: Publish verified bundle
