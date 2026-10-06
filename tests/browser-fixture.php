@@ -60,6 +60,35 @@ function wp_json_encode($value)
 {
     return json_encode($value);
 }
+function get_queried_object_id()
+{
+    return 0;
+}
+function get_post($id)
+{
+    return false;
+}
+function plugins_url($path, $file)
+{
+    return $path;
+}
+function wp_localize_script(...$args) {}
+function is_user_logged_in()
+{
+    return false;
+}
+function rest_url($path)
+{
+    return '/api/' . $path;
+}
+function wp_login_url($url)
+{
+    return '/login';
+}
+function get_permalink()
+{
+    return '/article';
+}
 require dirname(__DIR__) . '/pagenest-compatibility.php';
 $out = dirname(__DIR__) . '/.runtime/frontend';
 @mkdir($out . '/prism', 0777, true);
@@ -110,3 +139,12 @@ foreach ([false, true] as $existing) {
     file_put_contents($out . '/' . ($existing ? 'existing' : 'standalone') . '.html', $html);
 }
 echo "Browser fixture: MathJax ownership checks passed\n";
+$manifest = require dirname(__DIR__) . '/assets/manifest.php';
+copy_tree(dirname(__DIR__) . '/assets', $out . '/assets');
+$paragraph_html =
+    '<!doctype html><html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/assets/' .
+    $manifest['comments_css'] .
+    '"><body><main class="pagenest-comments-body"><h1>Synthetic ordinary article</h1><p data-pagenest-block="b-neutral" id="b-neutral">A stable synthetic paragraph.</p></main><script>window.PageNestComments={post:10,api:"/api/",nonce:"",user:0,loginUrl:"/login",displayName:"",avatarUrl:""};</script><script src="/assets/' .
+    $manifest['comments_js'] .
+    '"></script></body></html>';
+file_put_contents($out . '/paragraph.html', $paragraph_html);

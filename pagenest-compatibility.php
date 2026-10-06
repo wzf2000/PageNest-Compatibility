@@ -1,9 +1,8 @@
 <?php
 /**
- * Plugin Name: PageNest Compatibility
- * Description: 为栖页主题提供评论邮件通知、Markdown 编辑兼容、数学公式与代码高亮支持，并衔接站点原有功能。
- * Version: 0.5.1
- * Plugin URI: https://github.com/wzf2000/PageNest-Compatibility
+ * Plugin Name: PageNest Companion
+ * Description: 为栖页主题提供评论邮件通知、Markdown 编辑兼容、数学公式与代码高亮支持，并提供章节链接、段落评论和点赞。
+ * Version: 0.6.0-rc.1
  * Author: PageNest Contributors
  * License: GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -11,7 +10,23 @@
  * Requires PHP: 8.0
  */
 defined('ABSPATH') || exit();
+require_once __DIR__ . '/config.php';
+try {
+    $GLOBALS['pagenest_companion_profile'] = defined('PAGENEST_COMPATIBILITY_PROFILE_FILE')
+        ? pagenest_companion_load_profile(PAGENEST_COMPATIBILITY_PROFILE_FILE, ABSPATH)
+        : pagenest_companion_defaults();
+} catch (Throwable $error) {
+    add_action('admin_notices', static function () {
+        echo '<div class="notice notice-error"><p>PageNest Companion compatibility profile is invalid; features are disabled.</p></div>';
+    });
+    return;
+}
 require_once __DIR__ . '/prism-compatibility.php';
+require_once __DIR__ . '/modules/resource-scope.php';
+require_once __DIR__ . '/modules/theme-compatibility.php';
+require_once __DIR__ . '/modules/chapters.php';
+require_once __DIR__ . '/modules/paragraph-comments.php';
+require_once __DIR__ . '/modules/likes.php';
 // Keep only the old Markdown preservation contract, never old reward/like handlers.
 add_filter('jetpack_markdown_preserve_pattern', static function ($patterns) {
     $patterns[] = '/(\$)([^\n\r\$]+?)(\$)/s';

@@ -27,3 +27,17 @@
 - Materialis Companion 兼容：在支持该主题特性时，移除来自其 `src/Companion.php` 的自定义器闭包回调，避免独立主题缺少 Kirki 类时的冲突；不负责停用插件。
 
 > [使用指南](USAGE.md) · [贡献指南](../CONTRIBUTING.md) · [返回项目首页](../README.md)
+
+## 兼容 profile schema 1
+
+JSON 顶层必须含 `schema_version: 1`，其他节可按需指定，未知键拒绝。默认值见 `config.php` 的 `pagenest_companion_defaults()`。
+
+- `theme`：`legacy_stylesheet`、`setting_prefix`、`menu_locations`、`anchor_prefixes`、`class_aliases`。后三项为旧名到新名映射；设置迁移仅在主题切换时补缺，不覆盖已配置的空值。
+- `mail`：`sent_meta_keys`、`lock_option_prefixes` 字符串列表；只读旧标记和锁。
+- `paragraphs`：`post_type`、`data_meta`、`uuid_meta`、`document_meta`、`registry_meta`、`library_meta`、`enabled_meta`、`rest_namespace`、`rest_aliases`、`shortcodes`。旧记录无需重写；所有兼容 namespace 使用相同权限和缓存策略。
+- `chapters`：`series_meta`、`order_meta`、`document_meta`、`link_map`（Markdown 文件名到现有整数文章 ID）、`series_order`（稳定文档 ID 列表）。没有系列元数据时，已标记文档组成一个系列。
+- `likes`：`counter_meta`、`record_meta`、`legacy_provider`。provider 含 `table_suffix`（加 WordPress 表前缀）、`user_column`、`post_column`、`event_column`、`event_value`、`record_column`、`record_prefix`。非空 post/event/record 条件同时成立；record 值为 `record_prefix + user_id + ':' + post_id`。表名和列名仅允许 ASCII 字母、数字、下划线，值通过 SQL 参数绑定。表不可读时拒绝新点赞。
+
+扩展可直接调用 `pagenest_companion_like($user_id, $post_id)` 复用完整检查；必须为当前登录者。`pagenest_like_recorded` 在持久化成功并释放锁后发布，提供用户 ID、文章 ID、最新计数；订阅方自行保证事件幂等。
+
+`experience` 是可选 Reader Experience 扩展配置节，包含 `table_suffix`、`live_option`、`rank_option`、`week_option`、`event_lock`、`weekly_lock`、`rest_namespace`、`rest_aliases`、`shortcodes`、非负整数 `panel_page_id` 和 `weekly_hook`。Companion 仅校验配置，不安装账本、重算余额或定义经验规则。

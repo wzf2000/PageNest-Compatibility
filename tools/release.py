@@ -16,6 +16,17 @@ HEADER = "style.css" if SLUG == "pagenest" else "pagenest-compatibility.php"
 VERSION_RE = r"(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-(?:alpha|beta|rc)\.[1-9]\d*)?"
 
 
+def repository_from_remote():
+    try:
+        remote = subprocess.check_output(
+            ["git", "remote", "get-url", "origin"], cwd=ROOT, text=True
+        ).strip()
+    except subprocess.CalledProcessError:
+        return None
+    match = re.search(r"github[.]com[:/]([^/]+/[^/]+?)(?:[.]git)?$", remote)
+    return match.group(1) if match else None
+
+
 def digest(data):
     return hashlib.sha256(data).hexdigest()
 
@@ -42,23 +53,32 @@ def source_files():
     # Installation allowlist excludes development tools, tests and dependencies.
     names = {p.name for p in ROOT.glob("*.php")}
     names |= {"README.md", "LICENSE", "CHANGELOG.md"}
+    if (ROOT / "CONTRIBUTING.md").is_file():
+        names.add("CONTRIBUTING.md")
+    names |= {
+        p.relative_to(ROOT).as_posix()
+        for directory in ["docs", "assets", "modules"]
+        for p in (ROOT / directory).rglob("*")
+        if p.is_file() and installation_name(p.relative_to(ROOT).as_posix())
+    }
     if SLUG == "pagenest":
         names |= {"style.css", "theme.json", "screenshot.png"}
-        names |= {
-            p.relative_to(ROOT).as_posix() for p in (ROOT / "assets").rglob("*") if p.is_file()
-        }
     assert all(not (ROOT / name).is_symlink() for name in names), "Symlink in package"
     return sorted(names)
 
 
 def installation_name(name):
     path = Path(name)
+    if len(path.parts) == 1:
+        return (
+            path.suffix == ".php"
+            or name in {"README.md", "LICENSE", "CHANGELOG.md", "CONTRIBUTING.md"}
+            or (SLUG == "pagenest" and name in {"style.css", "theme.json", "screenshot.png"})
+        )
     return (
-        len(path.parts) == 1
-        and (path.suffix == ".php" or name in {"README.md", "LICENSE", "CHANGELOG.md"})
-    ) or (
-        SLUG == "pagenest"
-        and (name in {"style.css", "theme.json", "screenshot.png"} or name.startswith("assets/"))
+        (path.parts[0] == "modules" and path.suffix == ".php")
+        or (path.parts[0] == "assets" and path.suffix in {".php", ".js", ".css", ".json", ".svg"})
+        or (path.parts[0] == "docs" and path.suffix in {".md", ".svg"})
     )
 
 
@@ -77,7 +97,7 @@ def committed_sources(sha):
 def build(version, sha, repository):
     identity(version, sha)
     committed_sources(sha)
-    assert re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository), "Invalid repository"
+    assert re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository or ""), "Invalid repository"
     changelog = (ROOT / "CHANGELOG.md").read_text()
     section = re.search(r"^## ([^\n]+)\n(.*?)(?=^## |\Z)", changelog, re.M | re.S)
     assert section and section[1] == version, "Requested version is not current changelog section"
@@ -174,10 +194,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--repository",
-        default=os.environ.get(
-            "REPOSITORY",
-            "wzf2000/PageNest" if SLUG == "pagenest" else "wzf2000/PageNest-Compatibility",
-        ),
+        default=os.environ.get("REPOSITORY") or repository_from_remote(),
     )
     parser.add_argument("--identity-only", action="store_true")
     parser.add_argument("--check-package", action="store_true")

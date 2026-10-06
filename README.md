@@ -1,4 +1,4 @@
-# PageNest Compatibility
+# PageNest Companion
 
 为栖页补上评论邮件通知、旧 Markdown 编辑兼容与公式、高亮适配，让站点功能与主题外观各自独立。
 
@@ -6,11 +6,15 @@ Companion plugin for PageNest: comment notifications, Markdown compatibility, an
 
 ![WordPress 6.0+](https://img.shields.io/badge/WordPress-6.0%2B-21759b?style=flat-square) ![PHP 8.0+](https://img.shields.io/badge/PHP-8.0%2B-777bb4?style=flat-square) ![GPL-2.0-or-later](https://img.shields.io/badge/License-GPL--2.0--or--later-52796f?style=flat-square)
 
-[下载插件](https://github.com/wzf2000/PageNest-Compatibility/releases) · [更新记录](CHANGELOG.md) · [问题反馈](https://github.com/wzf2000/PageNest-Compatibility/issues)
+[下载插件](docs/RELEASING.md) · [更新记录](CHANGELOG.md) · [问题反馈](docs/RELEASING.md)
 
-![功能示意：评论通知、Markdown 兼容与公式及高亮适配](https://raw.githubusercontent.com/wzf2000/PageNest-Compatibility/main/docs/assets/overview.svg)
+![功能示意：评论通知、Markdown 兼容与公式及高亮适配](docs/assets/overview.svg)
 
 _功能示意图；邮件服务、编辑器及远端公式资源由各自提供方负责。_
+
+## 0.6.0 候选
+
+目录仍为 `pagenest-compatibility`。章节、段落评论和点赞由本插件完整拥有，主题负责展示。通用文章须显式设置 `_pagenest_comments_enabled=1`；未标记文章不会注册段落或暴露评论。旧站标识和记录通过 Web 根之外的显式 JSON 配置接入，不重写旧数据。
 
 ## 功能
 
@@ -21,15 +25,15 @@ _功能示意图；邮件服务、编辑器及远端公式资源由各自提供�
 
 ## 开始使用
 
-需要 **WordPress 6.0+、PHP 8.0+**，推荐配合 [PageNest · 栖页](https://github.com/wzf2000/PageNest) 使用。
+需要 **WordPress 6.0+、PHP 8.0+**，推荐配合 PageNest · 栖页 使用。
 
-1. 从 [GitHub Releases](https://github.com/wzf2000/PageNest-Compatibility/releases) 下载发行附件中的 `pagenest-compatibility-版本号.zip`。
+1. 从 [GitHub Releases](docs/RELEASING.md) 下载发行附件中的 `pagenest-compatibility-版本号.zip`。
 2. 在后台 “插件 → 安装插件 → 上传插件” 上传 ZIP，安装并启用。
 3. 按现有邮件服务、编辑器和主题检查评论通知、公式与代码高亮。
 
 选择发行安装包，避免使用 Source code ZIP。从旧版升级时先停用旧插件，避免同时启用两份；现有通知记录继续用于去重，无需复制数据库。
 
-> [完整安装、使用与旧版升级指南](https://github.com/wzf2000/PageNest-Compatibility/blob/main/docs/USAGE.md)
+> [完整安装、使用与旧版升级指南](docs/USAGE.md)
 
 ## 使用前须知
 
@@ -39,17 +43,17 @@ _功能示意图；邮件服务、编辑器及远端公式资源由各自提供�
 
 插件不包含积分规则、社交登录、私人笔记或数据迁移。
 
-> [邮件权限、远端资源与编辑器说明](https://github.com/wzf2000/PageNest-Compatibility/blob/main/docs/USAGE.md)
+> [邮件权限、远端资源与编辑器说明](docs/USAGE.md)
 
 ## 更多文档
 
-> [使用指南](https://github.com/wzf2000/PageNest-Compatibility/blob/main/docs/USAGE.md) — 安装、通知、编辑器与升级。
+> [使用指南](docs/USAGE.md) — 安装、通知、编辑器与升级。
 >
-> [扩展接口](https://github.com/wzf2000/PageNest-Compatibility/blob/main/docs/EXTENDING.md) — Prism 路径钩子、主题特性与旧站接入。
+> [扩展接口](docs/EXTENDING.md) — Prism 路径钩子、主题特性与旧站接入。
 >
-> [贡献指南](https://github.com/wzf2000/PageNest-Compatibility/blob/main/CONTRIBUTING.md) — 开发环境、格式与检查范围。
+> [贡献指南](CONTRIBUTING.md) — 开发环境、格式与检查范围。
 >
-> [发行指南](https://github.com/wzf2000/PageNest-Compatibility/blob/main/docs/RELEASING.md) — CI、打包与 GitHub Release。
+> [发行指南](docs/RELEASING.md) — CI、打包与 GitHub Release。
 
 ## 许可证
 
