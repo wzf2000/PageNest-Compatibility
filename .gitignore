@@ -6,3 +6,6 @@ dist/
 .env
 *.sql
 *.log
+.runtime/
+test-results/
+playwright-report/

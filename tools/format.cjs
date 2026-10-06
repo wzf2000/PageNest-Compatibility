@@ -30,7 +30,7 @@ async function format() {
     .split('\0')
     .filter((file) => file && fs.existsSync(path.join(root, file)));
   const web = files.filter(
-    (file) => /\.(php|js|cjs|css|json|md)$/.test(file) && !generated.test(file),
+    (file) => /\.(php|js|cjs|css|json|md|ya?ml)$/.test(file) && !generated.test(file),
   );
   const python = files.filter((file) => file.endsWith('.py'));
   const changed = [];
@@ -55,7 +55,8 @@ async function format() {
     }
   }
   if (!write && changed.length) throw new Error(`Run npm run format for:\n${changed.join('\n')}`);
-  run('python3', ['-m', 'black', ...(write ? [] : ['--check']), ...python]);
+  for (const file of python)
+    run('python3', ['-m', 'black', '--workers', '1', ...(write ? [] : ['--check']), file]);
   if (write && fs.existsSync(path.join(root, 'build-assets.py')))
     run('python3', ['build-assets.py']);
   if (!fs.existsSync(path.join(root, 'assets/manifest.php'))) {
