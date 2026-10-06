@@ -395,4 +395,45 @@ check(
     'own queued bundle permits scoping',
     !pagenest_prism_has_external_dependency($registry, ['prism-core-js']),
 );
+$queued = [];
+$localized = [];
+function wp_script_is($handle, $state)
+{
+    global $queued;
+    return in_array($handle, $queued, true);
+}
+function wp_localize_script($handle, $object, $value)
+{
+    global $localized;
+    $localized[] = [$handle, $object, $value];
+}
+$GLOBALS['pagenest_companion_profile'] = pagenest_companion_validate([
+    'schema_version' => 1,
+    'theme' => ['class_aliases' => ['fixture-hint' => 'pagenest-exercise-hint']],
+]);
+pagenest_companion_content_aliases();
+check('unqueued assets receive no aliases', $localized === []);
+$queued = ['pagenest-content-preview'];
+pagenest_companion_content_aliases();
+check(
+    'preview aliases use neutral shared object',
+    $localized === [
+        [
+            'pagenest-content-preview',
+            'PageNestContentAliases',
+            ['fixture-hint' => 'pagenest-exercise-hint'],
+        ],
+    ],
+);
+$localized = [];
+$queued = ['pagenest-content'];
+pagenest_companion_content_aliases();
+check(
+    'frontend aliases injected only on active theme handle',
+    $localized[0][0] === 'pagenest-content' && count($localized) === 1,
+);
+$localized = [];
+$GLOBALS['pagenest_companion_profile'] = pagenest_companion_defaults();
+pagenest_companion_content_aliases();
+check('empty aliases do not inject configuration', $localized === []);
 echo "$checks Companion contract checks passed\n";

@@ -80,3 +80,19 @@ add_action('wp_enqueue_scripts', static function () {
     );
     wp_localize_script('pagenest-anchor-aliases', 'PageNestAnchorAliases', $aliases);
 });
+
+/** The editor preview bypasses the_content; share aliases only with active theme assets. */
+function pagenest_companion_content_aliases()
+{
+    $aliases = pagenest_companion_config('theme', 'class_aliases');
+    if (!$aliases) {
+        return;
+    }
+    foreach (['pagenest-content', 'pagenest-content-preview'] as $handle) {
+        if (wp_script_is($handle, 'enqueued')) {
+            wp_localize_script($handle, 'PageNestContentAliases', $aliases);
+        }
+    }
+}
+add_action('wp_enqueue_scripts', 'pagenest_companion_content_aliases', 1000);
+add_action('admin_enqueue_scripts', 'pagenest_companion_content_aliases', 1000);
