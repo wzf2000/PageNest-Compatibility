@@ -2,7 +2,7 @@
 /**
  * Plugin Name: PageNest Compatibility
  * Description: 为栖页主题提供评论邮件通知、Markdown 编辑兼容、数学公式与代码高亮支持，并衔接站点原有功能。
- * Version: 0.5.0
+ * Version: 0.5.1
  * Plugin URI: https://github.com/wzf2000/PageNest-Compatibility
  * Author: PageNest Contributors
  * License: GPL-2.0-or-later
@@ -11,6 +11,7 @@
  * Requires PHP: 8.0
  */
 defined('ABSPATH') || exit();
+require_once __DIR__ . '/prism-compatibility.php';
 // Keep only the old Markdown preservation contract, never old reward/like handlers.
 add_filter('jetpack_markdown_preserve_pattern', static function ($patterns) {
     $patterns[] = '/(\$)([^\n\r\$]+?)(\$)/s';
@@ -97,22 +98,7 @@ add_action(
                 }
             }
         }
-        wp_add_inline_script(
-            'prism-core-js',
-            'Prism.languages.text = Prism.languages.plaintext = Prism.languages.plain = {};',
-            'after',
-        );
-        $scripts = wp_scripts();
-        if (isset($scripts->registered['prism-plugin-autoloader'])) {
-            $scripts->registered['prism-plugin-autoloader']->deps[] = 'prism-core-js';
-            wp_add_inline_script(
-                'prism-plugin-autoloader',
-                'Prism.plugins.autoloader.languages_path = ' .
-                    wp_json_encode(plugins_url('wp-editormd/assets/Prism.js/components/')) .
-                    ';',
-                'after',
-            );
-        }
+        pagenest_configure_prism(wp_scripts());
     },
     120,
 );
