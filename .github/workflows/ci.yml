@@ -10,6 +10,10 @@ on:
       release_version:
         type: string
         required: true
+    secrets:
+      IDENTITY_RULES:
+        description: 'Externally configured source identity audit rules'
+        required: false
 permissions:
   contents: read
 jobs:
