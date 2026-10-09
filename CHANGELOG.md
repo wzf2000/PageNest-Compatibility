@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.2
+
+- 新增默认关闭的轻量浏览计数、统计人群与纯文本模板；无页面缓存时统计公开文章和页面，缓存启用时停计并提示。
+- 计数锁保护并发和旧值惰性承接；显式旧负责人配置避免并存重复，历史读取不触发迁移或经验奖励。
+- Add opt-in view counters with plain-text display, explicit legacy fallback and per-post database locking. Page caches are unsupported; counters never award experience.
+
 ## 0.6.1
 
 - 展开段落评论时保持正文宽度、标题换行和阅读位置不变；面板利用右侧空余空间，按视口宽度调整，最大 350px。

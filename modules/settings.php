@@ -68,6 +68,32 @@ function pagenest_companion_settings_page()
             esc_html($label) .
             '</label></p>';
     }
+    $views = pagenest_companion_views_settings();
+    echo '<h2>浏览计数</h2><p>默认关闭。仅统计公开文章和页面的页面加载，不发经验；不支持页面缓存。</p>';
+    foreach (['enabled' => '启用浏览计数', 'exclude_bots' => '排除已知机器人'] as $key => $label) {
+        echo '<input type="hidden" name="pagenest_companion_views_settings[' .
+            esc_attr($key) .
+            ']" value="0"><p><label><input type="checkbox" name="pagenest_companion_views_settings[' .
+            esc_attr($key) .
+            ']" value="1" ' .
+            checked($views[$key], 1, false) .
+            '> ' .
+            esc_html($label) .
+            '</label></p>';
+    }
+    echo '<p><label>统计人群 <select name="pagenest_companion_views_settings[count]">';
+    foreach ([0 => '所有人', 1 => '访客', 2 => '登录用户'] as $value => $label) {
+        echo '<option value="' .
+            esc_attr($value) .
+            '" ' .
+            selected($views['count'], $value, false) .
+            '>' .
+            esc_html($label) .
+            '</option>';
+    }
+    echo '</select></label></p><p><label>显示文字 <input type="text" class="regular-text" name="pagenest_companion_views_settings[template]" value="' .
+        esc_attr($views['template']) .
+        '"></label></p><p>使用 %VIEW_COUNT% 显示次数；只支持纯文本。停用保留计数，启用不扫描或迁移旧文章。</p>';
     submit_button();
     echo '</form><p>旧站兼容配置由服务器管理员维护。这里的选择不会公开旧私人笔记或迁移数据库。</p></div>';
 }

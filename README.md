@@ -4,7 +4,7 @@
 
 Companion plugin for PageNest: paragraph comments, chapter navigation, likes, notifications and Markdown compatibility.
 
-需要 **WordPress 6.0+、PHP 8.0+**。当前版本 **0.6.0**，安装目录保持 `pagenest-compatibility`。
+需要 **WordPress 6.0+、PHP 8.0+**。当前版本 **0.6.2**，安装目录保持 `pagenest-compatibility`。
 
 [安装与使用](docs/USAGE.md) · [更新记录](CHANGELOG.md) · [发行说明](docs/RELEASING.md)
 
@@ -12,7 +12,7 @@ Companion plugin for PageNest: paragraph comments, chapter navigation, likes, no
 
 ## 开始使用
 
-1. 下载发行附件 `pagenest-compatibility-0.6.0.zip`，在 WordPress 后台 “插件 → 安装插件 → 上传插件” 安装并启用。
+1. 下载发行附件 `pagenest-compatibility-0.6.2.zip`，在 WordPress 后台 “插件 → 安装插件 → 上传插件” 安装并启用。
 2. 打开 “设置 → PageNest Companion”，选择段落评论、章节导航和点赞。
 3. 编辑一篇文章，在 “PageNest 阅读功能” 中明确启用段落评论，填写系列名称及章节顺序，然后保存。
 4. 用两个不同账号检查评论和点赞；退出登录确认访客只能阅读公开内容。
@@ -26,6 +26,12 @@ Companion plugin for PageNest: paragraph comments, chapter navigation, likes, no
 - **文章点赞**：登录后可给公开可读文章点赞，作者不能给自己点赞。重复请求和历史点赞不会重复计数；经验插件可以订阅事件，停用经验插件不影响点赞。
 - **评论邮件**：审核通过的普通 WordPress 留言通知作者，回复通知原评论者，避免本人通知、重复投递和原生通知重复。使用站点现有邮件服务，不提供 SMTP 设置或历史通知补发。
 - **编辑兼容**：保留逐篇编辑器选择及 Markdown 公式保护；配合支持的主题适配 Prism 和 MathJax。
+
+## 浏览计数
+
+浏览计数默认关闭；在设置页明确启用后，每次公开文章或页面加载计数一次，显示在 PageNest 文章底栏。可选所有人、访客或登录用户，以及已知机器人排除；`%VIEW_COUNT%` 模板只支持纯文本。读取或重复渲染不计数，计数不参与经验奖励。
+
+仅支持无页面缓存的 PHP 渲染。`WP_CACHE=true` 时停止计数并提示管理员，已有计数保留；没有 AJAX、REST、排行榜、小工具或短代码。启用不扫描或迁移旧文章。其他主题可通过 `pagenest_article_actions` 显示，扩展读取接口见扩展指南。
 
 ## 旧站升级
 

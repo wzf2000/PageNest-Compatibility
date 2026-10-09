@@ -62,3 +62,11 @@
 - **章节顺序**为 0 至 1000000 的整数，留空使用文档顺序。非法输入会拒绝整个配置更新。
 
 修订、自动保存和未通过 nonce/编辑权限检查的请求不会保存阅读设置。正文修改可能改变段落身份；已有引用快照和私人可见性继续保留。旧兼容键只读，新设置优先，因此可安全保留旧值与显式空值。
+
+## 浏览计数
+
+“设置 → PageNest Companion” 可明确启用默认关闭的浏览计数，选择统计人群、机器人排除及纯文本显示模板。`%VIEW_COUNT%` 替换为格式化的次数；HTML 不会作为标记输出。重复页面加载会再次计数，读取计数不会计数。预览、后台、私人文章和密码锁定文章不计数；解锁后的公开文章可计数。
+
+仅支持 `WP_CACHE=false` 的 PHP 页面渲染，缓存启用时停计并在后台提示，不提供 AJAX 或 REST 替代路径。停用保留数据，启用不会扫描历史文章、发布内容或发放经验。
+
+Optional view counting is disabled by default. Enable it explicitly in Companion settings, select everyone, guests or signed-in users, and optionally exclude known bots. The plain-text template replaces `%VIEW_COUNT%` with the formatted count. Reads never increment, and counters do not award experience. Only publicly viewable posts and pages are counted; previews, admin requests and password-locked content are excluded. Page caches are unsupported: `WP_CACHE=true` stops counting and shows an administrator notice. Existing data is retained.

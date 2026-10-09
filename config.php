@@ -45,6 +45,7 @@ function pagenest_companion_defaults()
             'link_map' => [],
             'series_order' => [],
         ],
+        'views' => ['legacy_meta' => '', 'legacy_owner_function' => ''],
         'likes' => [
             'counter_meta' => 'bigfa_ding',
             'record_meta' => '_pagenest_like_users',
@@ -229,6 +230,18 @@ function pagenest_companion_validate($input)
         if (!is_string($id) || $id === '') {
             throw new InvalidArgumentException('Invalid chapter order.');
         }
+    }
+    foreach ($defaults['views'] as $key => $value) {
+        $pattern =
+            $key === 'legacy_owner_function'
+                ? '/^[a-zA-Z_][a-zA-Z0-9_]*$/D'
+                : '/^[a-zA-Z0-9_-]+$/D';
+        if ($value !== '' && !preg_match($pattern, $value)) {
+            throw new InvalidArgumentException('Invalid views compatibility identifier.');
+        }
+    }
+    if ($defaults['views']['legacy_meta'] === '_pagenest_companion_views') {
+        throw new InvalidArgumentException('Views fallback must use a separate key.');
     }
     $provider = $defaults['likes']['legacy_provider'];
     $base = pagenest_companion_defaults()['likes']['legacy_provider'];

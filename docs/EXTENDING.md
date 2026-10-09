@@ -36,6 +36,7 @@ JSON 顶层必须含 `schema_version: 1`，其他节可按需指定，未知键�
 - `mail`：`sent_meta_keys`、`lock_option_prefixes` 字符串列表；只读旧标记和锁。
 - `paragraphs`：`post_type`、`data_meta`、`uuid_meta`、`document_meta`、`registry_meta`、`library_meta`、`enabled_meta`、`rest_namespace`、`rest_aliases`、`shortcodes`。旧记录无需重写；所有兼容 namespace 使用相同权限和缓存策略。
 - `chapters`：`series_meta`、`order_meta`、`document_meta`、`link_map`（Markdown 文件名到现有整数文章 ID）、`series_order`（稳定文档 ID 列表）。没有系列元数据时，已标记文档组成一个系列。
+- `views`：可省略，默认 `legacy_meta=""`、`legacy_owner_function=""`。旧键仅在新键缺失时只读回退；旧负责人函数存在时停止计数与底栏展示。字段使用显式 ASCII 标识，不自动发现旧插件。回退键不得等于新存储键。
 - `likes`：`counter_meta`、`record_meta`、`legacy_provider`。provider 含 `table_suffix`（加 WordPress 表前缀）、`user_column`、`post_column`、`event_column`、`event_value`、`record_column`、`record_prefix`。非空 post/event/record 条件同时成立；record 值为 `record_prefix + user_id + ':' + post_id`。表名和列名仅允许 ASCII 字母、数字、下划线，值通过 SQL 参数绑定。表不可读时拒绝新点赞。
 
 扩展可直接调用 `pagenest_companion_like($user_id, $post_id)` 复用完整检查；必须为当前登录者。`pagenest_like_recorded` 在持久化成功并释放锁后发布，提供用户 ID、文章 ID、最新计数；订阅方自行保证事件幂等。
@@ -49,3 +50,11 @@ JSON 顶层必须含 `schema_version: 1`，其他节可按需指定，未知键�
 后台只写 `_pagenest_comments_enabled`、`_pagenest_series`、`_pagenest_chapter_order`。这些键存在时优先于 profile 的旧存储键，包括显式空值与停用值。nonce、编辑权限、修订/自动保存及整份输入验证通过后才保存；显式启用只刷新对应文章注册表。
 
 Reader Experience 的 `weekly_lock` 必须为不超过 64 字节的标识，按原值取得数据库锁以与其他周结算组件共用；`event_lock` 继续按数据库作用域隔离。
+
+## 浏览计数接口
+
+`pagenest_companion_views_settings` 是独立 option，包含 `enabled`（默认 0）、`count`（0 所有人、1 访客、2 登录用户）、`exclude_bots`（0/1）和 `template`（最多 500 字节的纯文本）。不加入既有三项功能开关，不改其缺省语义。计数存于 `_pagenest_companion_views`。
+
+`pagenest_companion_views_get($post_id)` 优先读取新键，缺失时回退到明确配置的旧键，返回整数；重复／无效／超界原始行抛出异常。`pagenest_companion_views_increment($post_id)` 返回新次数或 `WP_Error`，仍检查启用、公开可读文章类型、人群、缓存与旧负责人，且不会调用经验事件。首次计数在每文章数据库锁内承接旧计数，后续原子增量；整数溢出或数据库失败拒绝写入。`pagenest_article_actions` 上的展示只读，不提供旧全局函数或短代码。
+
+The optional `views` profile section accepts explicit `legacy_meta` and `legacy_owner_function` identifiers. Omitted fields stay empty. Reads prefer the new key and only fall back when absent; an existing legacy owner function disables counting and footer output. The new independent settings option defaults to disabled, and `_pagenest_companion_views` holds counts. The read API throws on malformed or duplicate metadata; increment returns an integer or `WP_Error`, serializes initialization and increments with a per-post database lock, and never emits experience events. Page caching is unsupported.
