@@ -395,6 +395,63 @@ try {
         'reauth callback rejects another session of same user',
     );
     delete_transient($state_key);
+
+    // Reproduce normal WordPress user deletion, which leaves the option index.
+    $login(0);
+    $deleted_config = $config;
+    $deleted_config['client_id'] = $prefix . '_deleted';
+    $deleted_identity = ['subject' => 'deleted-login', 'name' => 'Synthetic deleted account'];
+    $deleted = pagenest_social_login_identity('qq', $deleted_config, $deleted_identity, true);
+    $created[] = $deleted;
+    $deleted_key = pagenest_social_identity_key(
+        'qq',
+        $deleted_config['client_id'],
+        'deleted-login',
+    );
+    $deleted_bind_key = pagenest_social_identity_key(
+        'baidu',
+        $deleted_config['client_id'],
+        'deleted-bind',
+    );
+    pagenest_social_bind($deleted, 'baidu', $deleted_config['client_id'], 'deleted-bind');
+    require_once ABSPATH . 'wp-admin/includes/user.php';
+    $assert(wp_delete_user($deleted), 'delete synthetic WordPress account');
+    $assert(
+        get_option($deleted_key) === ['user_id' => $deleted],
+        'normal deletion leaves social owner',
+    );
+    $assert(
+        pagenest_social_login_identity('qq', $deleted_config, $deleted_identity) === 0,
+        'deleted identity reaches explicit registration choice',
+    );
+    $assert(get_option($deleted_key, null) === null, 'verified missing user releases owner');
+    $replacement = pagenest_social_login_identity('qq', $deleted_config, $deleted_identity, true);
+    $created[] = $replacement;
+    $assert(
+        $replacement !== $deleted && get_userdata($replacement)->roles === ['subscriber'],
+        'explicit registration creates new account',
+    );
+    $assert(
+        get_option($deleted_key) === ['user_id' => $replacement],
+        'replacement owns only confirmed identity',
+    );
+    $assert(
+        pagenest_social_bind($one, 'baidu', $deleted_config['client_id'], 'deleted-bind') === $one,
+        'existing account may bind identity whose old user was deleted',
+    );
+    $assert(
+        get_option($deleted_bind_key) === ['user_id' => $one],
+        'binding replaces deleted owner',
+    );
+    $reject(
+        static fn() => pagenest_social_bind(
+            $two,
+            'qq',
+            $deleted_config['client_id'],
+            'deleted-login',
+        ),
+        'replacement live owner still rejects another account',
+    );
     echo wp_json_encode([
         'checks' => $checks,
         'mail' => 'captured only',

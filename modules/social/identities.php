@@ -37,7 +37,7 @@ function pagenest_social_bind($user_id, $provider, $app, $subject, $migration = 
             $key,
             $migration,
         ) {
-            $owner = pagenest_social_owner($key);
+            $owner = pagenest_social_available_owner($key);
             if ($migration && is_array($owner) && (int) $owner['user_id'] === 0) {
                 if ((int) ($owner['unbound_from'] ?? 0) !== (int) $user_id) {
                     throw new RuntimeException('Migration identity conflict.');
@@ -168,7 +168,7 @@ function pagenest_social_login_identity($provider, $config, $identity, $confirme
         $config,
         $confirmed,
     ) {
-        $owner = pagenest_social_owner($key);
+        $owner = pagenest_social_available_owner($key);
         if (is_array($owner) && $owner['user_id']) {
             if ($confirmed) {
                 throw new RuntimeException('Identity already registered.');
@@ -300,4 +300,34 @@ function pagenest_social_owner($key)
         throw new RuntimeException('Invalid identity index.');
     }
     return $owner;
+}
+
+/** Called only while holding this identity's lock, before login or binding. */
+function pagenest_social_available_owner($key)
+{
+    global $wpdb;
+    $owner = pagenest_social_owner($key);
+    if ($owner === null || $owner['user_id'] === 0) {
+        return $owner;
+    }
+    // User deletion removes metadata but not our option index. Read the primary
+    // user table directly: a stale object cache or failed lookup is not proof
+    // that an account was deleted. Tombstones retain their legacy override.
+    $existing = $wpdb->get_var(
+        $wpdb->prepare("SELECT ID FROM {$wpdb->users} WHERE ID = %d", $owner['user_id']),
+    );
+    if ($wpdb->last_error !== '') {
+        throw new RuntimeException('Unable to verify identity owner.');
+    }
+    if ($existing !== null) {
+        if ((int) $existing !== $owner['user_id']) {
+            throw new RuntimeException('Invalid identity owner lookup.');
+        }
+        return $owner;
+    }
+    delete_option($key);
+    if (get_option($key, null) !== null) {
+        throw new RuntimeException('Unable to release deleted identity owner.');
+    }
+    return null;
 }

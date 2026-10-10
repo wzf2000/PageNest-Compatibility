@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.0-rc.2
+
+- 删除 WordPress 用户后，登录／绑定在身份锁内核实原用户确已不存在，再释放残留归属记录，允许明确重新注册或绑定；存活账号冲突、解绑标记和旧身份规则保持。
+- Recover orphaned social identity owners after user deletion; database lookup failures remain fail-closed.
+
 ## 0.8.0-rc.1
 
 - 绑定、解绑及恢复邮箱验证要求当前会话十分钟内重新确认身份，支持密码与已绑定供应商；密码确认及发信限流。

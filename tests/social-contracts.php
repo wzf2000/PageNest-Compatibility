@@ -5,6 +5,19 @@ $GLOBALS['options'] = [];
 $GLOBALS['meta'] = [];
 $GLOBALS['users'] = [];
 $GLOBALS['current'] = 0;
+$GLOBALS['wpdb'] = new class {
+    public $users = 'synthetic_users';
+    public $last_error = '';
+    public function prepare($query, $id)
+    {
+        return $id;
+    }
+    public function get_var($id)
+    {
+        $this->last_error = !empty($GLOBALS['fail_owner_lookup']) ? 'synthetic failure' : '';
+        return $this->last_error === '' && isset($GLOBALS['users'][$id]) ? (string) $id : null;
+    }
+};
 $GLOBALS['config'] = [
     'enabled' => true,
     'providers' => [],
@@ -53,6 +66,9 @@ function update_option($key, $value, $autoload = false)
 }
 function delete_option($key)
 {
+    if ($key === ($GLOBALS['fail_owner_delete'] ?? null)) {
+        return false;
+    }
     if (!array_key_exists($key, $GLOBALS['options'])) {
         return false;
     }
@@ -605,4 +621,85 @@ check(
     'GET client secret is encoded exactly once',
 );
 check($parsed['code'] === 'code&synthetic', 'authorization code is encoded exactly once');
+
+$deleted_config = $provider_config;
+$deleted_config['client_id'] = 'deleted-account-app';
+$deleted_identity = ['subject' => 'deleted-account-subject', 'name' => 'Synthetic'];
+$deleted_key = pagenest_social_identity_key(
+    'qq',
+    $deleted_config['client_id'],
+    $deleted_identity['subject'],
+);
+$deleted_owner = ['user_id' => 99999];
+add_option($deleted_key, $deleted_owner);
+$GLOBALS['fail_owner_lookup'] = true;
+rejects(
+    static fn() => pagenest_social_login_identity('qq', $deleted_config, $deleted_identity),
+    'owner lookup failure never releases identity',
+);
+check(get_option($deleted_key) === $deleted_owner, 'lookup failure preserves owner');
+$GLOBALS['fail_owner_lookup'] = false;
+$GLOBALS['fail_owner_delete'] = $deleted_key;
+rejects(
+    static fn() => pagenest_social_login_identity('qq', $deleted_config, $deleted_identity),
+    'failed stale owner deletion refuses login',
+);
+$GLOBALS['fail_owner_delete'] = null;
+check(
+    pagenest_social_login_identity('qq', $deleted_config, $deleted_identity) === 0,
+    'deleted owner returns first-login choice instead of deleted user',
+);
+check(get_option($deleted_key, null) === null, 'deleted owner is removed');
+$GLOBALS['config']['allow_registration'] = true;
+$new_owner = pagenest_social_login_identity('qq', $deleted_config, $deleted_identity, true);
+check(
+    get_option($deleted_key) === ['user_id' => $new_owner],
+    'confirmed registration claims released identity',
+);
+rejects(
+    static fn() => pagenest_social_bind(
+        1,
+        'qq',
+        $deleted_config['client_id'],
+        $deleted_identity['subject'],
+    ),
+    'live owner still prevents another account binding',
+);
+check(
+    get_option($deleted_key) === ['user_id' => $new_owner],
+    'live owner survives binding conflict',
+);
+rejects(
+    static fn() => pagenest_social_login_identity('qq', $deleted_config, $deleted_identity, true),
+    'live owner still prevents duplicate registration',
+);
+
+$bind_key = pagenest_social_identity_key('qq', 'deleted-bind-app', 'deleted-bind-subject');
+add_option($bind_key, $deleted_owner);
+check(
+    pagenest_social_bind(1, 'qq', 'deleted-bind-app', 'deleted-bind-subject') === 1,
+    'binding reclaims only deleted owner',
+);
+check(get_option($bind_key) === ['user_id' => 1], 'new binding records its live owner');
+
+$GLOBALS['config']['legacy_apps']['qq'] = $deleted_config['client_id'];
+$legacy_subject = 'deleted-owner-with-live-legacy';
+$legacy_key = pagenest_social_identity_key('qq', $deleted_config['client_id'], $legacy_subject);
+add_option($legacy_key, $deleted_owner);
+update_user_meta(1, 'open_type_qq', $legacy_subject);
+rejects(
+    static fn() => pagenest_social_bind(2, 'qq', $deleted_config['client_id'], $legacy_subject),
+    'released owner still checks live legacy conflict',
+);
+check(
+    pagenest_social_login_identity('qq', $deleted_config, ['subject' => $legacy_subject]) === 1,
+    'released owner still resolves exact scoped live legacy identity',
+);
+$tombstone = ['user_id' => 0, 'unbound_from' => 99999];
+update_option($legacy_key, $tombstone);
+check(
+    pagenest_social_login_identity('qq', $deleted_config, ['subject' => $legacy_subject]) === 0,
+    'deleted account tombstone continues suppressing legacy identity',
+);
+check(get_option($legacy_key) === $tombstone, 'tombstone is not discarded');
 echo "Social contracts: $checks checks passed; mock HTTP only.\n";
