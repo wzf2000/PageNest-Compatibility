@@ -1,6 +1,7 @@
 <?php
 /** PKCE and Google OIDC validation. No provider token is persisted. */
 defined('ABSPATH') || exit();
+require_once __DIR__ . '/google-proxy.php';
 function pagenest_social_base64url($bytes)
 {
     return rtrim(strtr(base64_encode($bytes), '+/', '-_'), '=');
@@ -28,7 +29,7 @@ function pagenest_social_pkce_authorize($provider, $record)
 }
 function pagenest_social_json_request($url, $body = null, $headers = [])
 {
-    $response = wp_remote_request($url, [
+    $response = pagenest_social_google_proxy_request($url, [
         'method' => $body === null ? 'GET' : 'POST',
         'body' => $body,
         'headers' => $headers + ['Accept' => 'application/json'],

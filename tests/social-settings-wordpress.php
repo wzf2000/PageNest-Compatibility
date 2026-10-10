@@ -75,6 +75,10 @@ try {
         'social' => [
             'enabled' => true,
             'allow_registration' => false,
+            'google_proxy' => [
+                'enabled' => true,
+                'unix_socket' => '/tmp/synthetic-google-proxy.sock',
+            ],
             'legacy_apps' => ['github' => 'historic-scope'],
             'providers' => [
                 'qq' => [
@@ -160,6 +164,11 @@ try {
     $assert(
         !isset($GLOBALS['pagenest_companion_services_profile']['social']['providers']['wechat']),
         'WeChat is not installed or enabled by saving other providers',
+    );
+    $assert(
+        $GLOBALS['pagenest_companion_services_profile']['social']['google_proxy'] ===
+            $source['social']['google_proxy'],
+        'administrator provider overrides preserve server-only Google proxy',
     );
     $reject(
         static fn() => pagenest_social_settings_update(
@@ -295,6 +304,17 @@ try {
         file_put_contents($real . '/provider-settings.html', $page);
     }
     $valid_override = pagenest_social_settings_option();
+    update_option(
+        'pagenest_social_settings',
+        $valid_override + ['google_proxy' => ['enabled' => false]],
+        false,
+    );
+    $GLOBALS['pagenest_companion_services_profile'] = $source;
+    pagenest_social_settings_bootstrap();
+    $assert(
+        $GLOBALS['pagenest_companion_services_profile']['social']['enabled'] === false,
+        'database cannot inject or disable server-only proxy settings',
+    );
     update_option(
         'pagenest_social_settings',
         ['schema_version' => 1, 'switches' => [], 'providers' => [], 'mail' => ['enabled' => true]],

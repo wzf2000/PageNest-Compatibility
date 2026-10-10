@@ -36,6 +36,7 @@ function pagenest_companion_service_defaults()
             ],
             'providers' => [],
             'legacy_apps' => [],
+            'google_proxy' => ['enabled' => false, 'unix_socket' => ''],
         ],
         'output' => ['enabled' => false, 'html_whitespace' => false],
     ];
@@ -122,6 +123,20 @@ function pagenest_companion_validate_services($input)
         throw new InvalidArgumentException('Incomplete mail service.');
     }
     $social = &$defaults['social'];
+    $social['google_proxy'] = pagenest_companion_service_values(
+        $social['google_proxy'],
+        pagenest_companion_service_defaults()['social']['google_proxy'],
+    );
+    $socket = $social['google_proxy']['unix_socket'];
+    if (
+        ($socket !== '' &&
+            (!preg_match('#^/[A-Za-z0-9_./-]+$#D', $socket) ||
+                strlen($socket) > 107 ||
+                preg_match('#(?:^|/)\.\.(?:/|$)#', $socket))) ||
+        ($social['google_proxy']['enabled'] && $socket === '')
+    ) {
+        throw new InvalidArgumentException('Invalid Google proxy socket configuration.');
+    }
     $social['share'] = pagenest_companion_service_values(
         $social['share'],
         pagenest_companion_service_defaults()['social']['share'],

@@ -33,6 +33,34 @@ check(invalid(['mail' => ['provider' => 'smtp']]));
 check(invalid(['turnstile' => ['enabled' => true]]));
 check(invalid(['turnstile' => ['scopes' => ['rest' => true]]]));
 check(invalid(['social' => ['enabled' => true]]));
+check(
+    pagenest_companion_service_defaults()['social']['google_proxy'] === [
+        'enabled' => false,
+        'unix_socket' => '',
+    ],
+);
+foreach (
+    [
+        ['enabled' => true],
+        ['enabled' => 1],
+        ['unix_socket' => 'relative.sock'],
+        ['unix_socket' => '/tmp/../proxy.sock'],
+        ['unix_socket' => '/tmp/proxy.sock?override=1'],
+        ['url' => 'http://arbitrary.example'],
+    ]
+    as $proxy
+) {
+    check(invalid(['social' => ['google_proxy' => $proxy]]));
+}
+$proxy_config = pagenest_companion_validate_services([
+    'social' => [
+        'google_proxy' => ['enabled' => true, 'unix_socket' => '/tmp/synthetic-proxy.sock'],
+    ],
+]);
+check(
+    $proxy_config['social']['google_proxy']['enabled'] === true &&
+        $proxy_config['social']['enabled'] === false,
+);
 check(invalid(['social' => ['providers' => ['arbitrary' => []]]]));
 check(
     invalid([

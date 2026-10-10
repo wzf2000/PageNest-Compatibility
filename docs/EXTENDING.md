@@ -91,3 +91,11 @@ GitHub 和 Google 使用每次授权独立的 S256 PKCE；Google 同时绑定 no
 `pagenest_social_settings` option 使用 `schema_version: 1`，仅包含 `switches`（`enabled`、`allow_registration`）和 `providers`（提供者到 `enabled`、`client_id`、`client_secret`、`redirect_uri` 的映射）。未指定项继承服务器服务 profile；没有服务器文件时继承默认关闭值。后台不提供修改 `legacy_apps`、`legacy_app_id`、邮件、验证码、分享或输出节的入口。服务器 profile 无效时所有可选服务继续关闭，数据库覆盖不能绕过；后台覆盖损坏时仅关闭社交模块。
 
 该 option 不注册 REST 设置，不自动加载，不在首次访问页面时复制服务器密钥。管理员写入走独立 POST／nonce，供应商逐个保存且完整验证最终配置；任何失败保持已存配置。密码字段从不回填原密钥，空值保留当前有效密钥，清除须明确提交且停用提供者；更换 Client ID 必须同时更换密钥或禁用清除。恢复继承会重新采用服务器当时的开关与凭据。后台覆盖随 WordPress 数据库备份，不能视为与数据库隔离的秘密存储。
+
+### Google 服务端临时出口
+
+`social.google_proxy` 仅由服务器服务 profile 配置，默认 `{"enabled":false,"unix_socket":""}`，后台数据库覆盖不接受此字段。显式启用时，`unix_socket` 指向 PHP 进程可访问的绝对 Unix socket 路径（最长 107 字节，仅字母、数字、`_`、`.`、`/`、`-`，不允许 `..` 路径段）。服务器须自行提供受限 SOCKS5 relay；relay 仅允许 `oauth2.googleapis.com:443` 和 `www.googleapis.com:443`，可再连接管理员配置的上游 HTTP CONNECT 出口。插件不创建隧道或管理上游代理。
+
+该出口只覆盖精确的 Google token 与证书 URL，不影响其他供应商、邮件、验证码或一般 WordPress HTTP。要求 PHP cURL、Unix socket 支持和 libcurl 7.84.0+，通过 `socks5h://localhost/绝对路径` 连接 relay；不能用 `CURLOPT_UNIX_SOCKET_PATH` 叠加 HTTP proxy，因为该选项会忽略代理而直接发送 TLS。插件每次请求临时强制 cURL，清除全局代理认证和绕过规则，保持 TLS 证书／主机名验证、禁止重定向，并在成功或异常后移除所有临时钩子。缺少 socket、能力不支持或未实际使用指定传输时直接失败，不回退直连。停用后恢复普通 WordPress HTTP 路径。
+
+本地回归：`php tests/social-google-proxy.php /path/to/wordpress` 使用真实 WordPress 钩子和 cURL，仅向测试自行创建的 Unix socket 发送 SOCKS5 握手，不访问 Google。协议依据：[libcurl SOCKS Unix socket](https://curl.se/libcurl/c/CURLOPT_PROXY.html)、[7.84.0 发行变更](https://curl.se/ch/7.84.0.html)。

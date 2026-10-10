@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.0-rc.3
+
+- 新增默认关闭、仅服务器可配置的 Google Unix SOCKS 出口，仅覆盖固定令牌与证书接口。
+- 保持 TLS 和身份校验，代理不可用时明确失败，不影响其他提供者或邮件请求。
+- Add an opt-in Google-only Unix SOCKS transport with strict TLS verification and scoped request hooks.
+
 ## 0.9.0-rc.2
 
 - 新增管理员社交登录设置，逐家管理应用参数、密钥和启用状态，支持恢复服务器默认配置。
