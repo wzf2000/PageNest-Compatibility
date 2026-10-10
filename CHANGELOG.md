@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.0-rc.4
+
+- 个人资料采用安全确认、恢复邮箱和带品牌图标的登录方式卡片，已连接的当前应用不再重复显示连接按钮。
+- 历史连接单独标明不可用于当前登录，保留安全解绑；前台与后台支持移动布局、键盘操作和独立表单。
+- 身份确认、连接、解绑与邮箱验证新增短期、会话绑定、一次性服务端反馈，不以 URL 参数决定成功状态。
+- Improve social account management cards and accessible, session-bound operation feedback.
+
 ## 0.9.0-rc.3
 
 - 新增默认关闭、仅服务器可配置的 Google Unix SOCKS 出口，仅覆盖固定令牌与证书接口。

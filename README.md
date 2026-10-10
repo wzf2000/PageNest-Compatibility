@@ -4,7 +4,7 @@
 
 Companion plugin for PageNest: paragraph comments, chapter navigation, likes, notifications and Markdown compatibility.
 
-需要 **WordPress 6.0+、PHP 8.0+**。当前源码候选版本 **0.9.0-rc.3**，安装目录保持 `pagenest-compatibility`。
+需要 **WordPress 6.0+、PHP 8.0+**。当前源码候选版本 **0.9.0-rc.4**，安装目录保持 `pagenest-compatibility`。
 
 [安装与使用](docs/USAGE.md) · [更新记录](CHANGELOG.md) · [发行说明](docs/RELEASING.md)
 
@@ -37,7 +37,7 @@ Companion plugin for PageNest: paragraph comments, chapter navigation, likes, no
 
 服务器管理员可在受限、Web 根之外的显式配置中分别启用 Brevo 邮件、Turnstile 原生表单验证、QQ／微博／百度登录，以及 QQ／微博／QQ 空间／本地微信二维码分享。默认全部关闭，不在后台展示或编辑 API key、应用密钥和验证码 secret。阅读功能与服务模块的开关互相独立。
 
-旧邮件或验证码负责人仍加载、旧社交插件仍启用时，新模块不接管对应功能。迁移需先保存旧配置和身份数据，核对唯一映射，再切换负责人；不能按邮箱合并或删除账号。社交绑定／解绑需要登录、nonce 和当前会话近期身份确认；最后一个绑定只有在存在经过验证的恢复邮箱时才能解除。未知社交身份会先选择创建新账号或登录已有账号后绑定；新建时填写必需的用户名／邮箱和可选昵称，不自动合并。验证码只保护原生登录、注册、请求重置密码与普通评论，不自动保护 REST、XML-RPC 或 OAuth。
+旧邮件或验证码负责人仍加载、旧社交插件仍启用时，新模块不接管对应功能。迁移需先保存旧配置和身份数据，核对唯一映射，再切换负责人；不能按邮箱合并或删除账号。社交绑定／解绑需要登录、nonce 和当前会话近期身份确认；最后一个绑定只有在存在经过验证的恢复邮箱时才能解除。个人资料以安全确认、恢复邮箱和品牌登录卡片集中管理，并显示当前会话的一次性操作结果。未知社交身份会先选择创建新账号或登录已有账号后绑定；新建时填写必需的用户名／邮箱和可选昵称，不自动合并。验证码只保护原生登录、注册、请求重置密码与普通评论，不自动保护 REST、XML-RPC 或 OAuth。
 
 邮件成功只代表 Brevo 接收请求，不等于送达；该 API 不支持 CID 内嵌资源，遇到此类邮件明确失败。可选输出处理默认关闭，保留资源版本参数，不提供页面缓存、数据库自动清理或定时任务。具体配置和限制见[扩展接口](docs/EXTENDING.md)。
 

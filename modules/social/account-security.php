@@ -193,6 +193,7 @@ function pagenest_social_security_route()
         ) {
             throw new RuntimeException('Invalid form.');
         }
+        $trusted = true;
         $id = get_current_user_id();
         if ($action === 'pagenest_social_password') {
             pagenest_social_verify_password($id, wp_unslash($_POST['password'] ?? ''));
@@ -203,9 +204,11 @@ function pagenest_social_security_route()
         } else {
             throw new RuntimeException('Invalid action.');
         }
-        wp_safe_redirect(get_edit_profile_url($id));
-        exit();
+        pagenest_social_profile_result(substr($action, strlen('pagenest_social_')) . '_ok');
     } catch (Throwable $error) {
+        if (!empty($trusted)) {
+            pagenest_social_profile_result(substr($action, strlen('pagenest_social_')) . '_error');
+        }
         wp_die('操作无法完成。请返回个人资料，确认身份、邮箱或稍后重试。', '账号安全', [
             'response' => 400,
         ]);

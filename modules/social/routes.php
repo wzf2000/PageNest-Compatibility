@@ -141,6 +141,7 @@ function pagenest_social_start()
         ) {
             throw new RuntimeException('Binding requires a valid signed form.');
         }
+        $trusted = $mode !== 'login';
         if ($mode === 'bind') {
             pagenest_social_require_recent(get_current_user_id());
         }
@@ -155,6 +156,9 @@ function pagenest_social_start()
         wp_redirect(pagenest_social_authorize_url($provider, $config, $state, $record));
         exit();
     } catch (Throwable $error) {
+        if (!empty($trusted)) {
+            pagenest_social_profile_result($mode . '_error');
+        }
         wp_die(
             '社交账号请求无法完成。管理绑定时，请先返回个人资料确认身份，并确保解除连接后仍有可用的登录方式或已验证邮箱；登录失败请重新开始。',
             'Social login',
@@ -216,8 +220,7 @@ function pagenest_social_callback()
                 $config['client_id'],
                 $identity['subject'],
             );
-            wp_safe_redirect($record['return']);
-            exit();
+            pagenest_social_profile_result('reauth_ok');
         }
         if ($record['mode'] === 'bind') {
             pagenest_social_require_recent($record['user_id']);
@@ -249,10 +252,16 @@ function pagenest_social_callback()
         if ($identity['avatar']) {
             update_user_meta($user_id, '_pagenest_social_avatar', $identity['avatar']);
         }
+        if ($record['mode'] === 'bind') {
+            pagenest_social_profile_result('bind_ok');
+        }
         nocache_headers();
         wp_safe_redirect($record['return']);
         exit();
     } catch (Throwable $error) {
+        if (isset($record) && in_array($record['mode'], ['bind', 'reauth'], true)) {
+            pagenest_social_profile_result($record['mode'] . '_error');
+        }
         wp_die(
             '社交账号请求无法完成。管理绑定时，请先返回个人资料确认身份，并确保解除连接后仍有可用的登录方式或已验证邮箱；登录失败请重新开始。',
             'Social login',
@@ -271,14 +280,17 @@ function pagenest_social_unbind_route()
         ) {
             throw new RuntimeException('Invalid disconnect request.');
         }
+        $trusted = true;
         pagenest_social_require_recent(get_current_user_id());
         pagenest_social_unbind(
             get_current_user_id(),
             sanitize_key(wp_unslash($_POST['identity'] ?? '')),
         );
-        wp_safe_redirect(get_edit_profile_url(get_current_user_id()));
-        exit();
+        pagenest_social_profile_result('unbind_ok');
     } catch (Throwable $error) {
+        if (!empty($trusted)) {
+            pagenest_social_profile_result('unbind_error');
+        }
         wp_die(
             '社交账号请求无法完成。管理绑定时，请先返回个人资料确认身份，并确保解除连接后仍有可用的登录方式或已验证邮箱；登录失败请重新开始。',
             'Social login',

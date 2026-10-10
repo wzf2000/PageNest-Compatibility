@@ -6,5 +6,5 @@ return [
     'services_turnstile_js' => 'services-turnstile-9ae4b1cca1ca.js',
     'social_qrcode_js' => 'social-qrcode-7b17a98ef360.js',
     'social_share_js' => 'social-share-c78a9aa1e506.js',
-    'social_ui_css' => 'social-ui-504249460d8d.css',
+    'social_ui_css' => 'social-ui-eb67fbc9b00c.css',
 ];

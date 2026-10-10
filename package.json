@@ -22,6 +22,6 @@
     "@playwright/test": "1.55.1",
     "prismjs": "1.30.0"
   },
-  "version": "0.9.0-rc.3",
+  "version": "0.9.0-rc.4",
   "license": "GPL-2.0-or-later"
 }

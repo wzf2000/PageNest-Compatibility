@@ -5,6 +5,7 @@ require_once __DIR__ . '/providers.php';
 require_once __DIR__ . '/identities.php';
 require_once __DIR__ . '/routes.php';
 require_once __DIR__ . '/account-security.php';
+require_once __DIR__ . '/flash.php';
 require_once __DIR__ . '/pending-registration.php';
 add_action('set_auth_cookie', 'pagenest_social_pending_clear_browser');
 add_action('clear_auth_cookie', 'pagenest_social_pending_clear_browser');
@@ -45,3 +46,10 @@ require_once __DIR__ . '/placeholder-mail.php';
 
 add_action('login_enqueue_scripts', 'pagenest_social_ui_assets');
 add_action('wp_enqueue_scripts', 'pagenest_social_ui_assets');
+
+add_action('wp_footer', 'pagenest_social_profile_forms');
+add_action('admin_enqueue_scripts', static function ($hook) {
+    if (in_array($hook, ['profile.php', 'user-edit.php'], true)) {
+        pagenest_social_ui_assets();
+    }
+});

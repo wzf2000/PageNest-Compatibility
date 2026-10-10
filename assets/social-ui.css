@@ -121,3 +121,171 @@
 .pagenest-social-provider--wechat .pagenest-social-icon {
   color: #07a854;
 }
+
+.pagenest-social-account {
+  max-width: 1000px;
+  margin: 28px 0;
+  color: #1e293b;
+}
+.pagenest-social-account * {
+  box-sizing: border-box;
+}
+.pagenest-social-account h2 {
+  margin-bottom: 8px;
+}
+.pagenest-social-account h3,
+.pagenest-social-account h4 {
+  margin: 0;
+  font-size: 16px;
+  color: inherit;
+}
+.pagenest-social-account .pn-social-intro,
+.pagenest-social-account .pn-social-help {
+  color: #526174;
+  line-height: 1.7;
+}
+.pn-social-security-grid,
+.pn-social-provider-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.pn-social-card {
+  padding: 20px;
+  border: 1px solid #dce3ec;
+  border-radius: 12px;
+  background: #fff;
+  min-width: 0;
+}
+.pagenest-social-account .pn-social-status {
+  font-weight: 600;
+  margin: 12px 0 0;
+}
+.pagenest-social-account .pn-social-section-title {
+  margin: 24px 0 12px;
+}
+.pn-social-password-row,
+.pn-social-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 8px;
+}
+.pagenest-social-account .pn-social-password-row input {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid #94a3b8;
+  border-radius: 8px;
+  background: #fff;
+  color: #1e293b;
+  font: inherit;
+  flex: 1 1 150px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+.pn-social-provider-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.pn-social-provider-heading .pagenest-social-icon {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+}
+.pn-social-badge {
+  margin-left: auto;
+  padding: 3px 9px;
+  border-radius: 20px;
+  background: #eef3f8;
+  font-size: 12px;
+}
+.pagenest-social-account .button {
+  min-height: 44px;
+  padding: 9px 16px;
+  border: 1px solid #94a3b8;
+  border-radius: 8px;
+  background: #fff;
+  color: #334155;
+  font: inherit;
+  font-weight: 600;
+  line-height: 1.5;
+  text-decoration: none;
+  box-shadow: none;
+  white-space: normal;
+  cursor: pointer;
+}
+.pagenest-social-account :is(button, input):focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 3px;
+}
+.pn-social-notice {
+  border: 1px solid #a7cfb5;
+  border-left: 4px solid #218349;
+  border-radius: 8px;
+  background: #f0faf3;
+  padding: 14px 18px;
+  margin: 16px 0;
+  line-height: 1.7;
+}
+.pn-social-notice--error {
+  border-color: #e9b5b5;
+  border-left-color: #b42318;
+  background: #fff5f5;
+}
+.pn-social-history {
+  margin-top: 24px;
+  padding: 20px;
+  border: 1px dashed #b9c4d2;
+  border-radius: 12px;
+}
+.pn-social-history-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 0;
+}
+@media (max-width: 640px) {
+  .pn-social-security-grid,
+  .pn-social-provider-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .pn-social-card {
+    padding: 16px;
+  }
+}
+
+.pagenest-social-account .button:hover {
+  background: #f1f5f9;
+  border-color: #64748b;
+  color: #1e293b;
+}
+.pagenest-social-account .button.pn-social-button--primary {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+.pagenest-social-account .button.pn-social-button--primary:hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  color: #fff;
+}
+.pagenest-social-account .button.pn-social-button--danger {
+  background: #fff;
+  border-color: #d8a4a0;
+  color: #a1261c;
+}
+.pagenest-social-account .button.pn-social-button--danger:hover {
+  background: #fff1f0;
+  border-color: #b42318;
+  color: #8f2018;
+}
+.pagenest-social-account .pn-social-badge--connected {
+  background: #e8f5ec;
+  color: #21643b;
+}
