@@ -69,6 +69,26 @@ def source_files():
 
 def installation_name(name):
     path = Path(name)
+    if path.parts[:2] == ("assets", "vendor"):
+        return path.parts[:3] == ("assets", "vendor", "pdfjs-6.4.299") and (
+            (path.name == "LICENSE" or path.name.startswith("LICENSE_") or path.name == "NOTICE.md")
+            or path.suffix
+            in {
+                ".mjs",
+                ".js",
+                ".css",
+                ".html",
+                ".json",
+                ".svg",
+                ".gif",
+                ".bcmap",
+                ".pfb",
+                ".ttf",
+                ".wasm",
+                ".icc",
+                ".ftl",
+            }
+        )
     if len(path.parts) == 1:
         return (
             path.suffix == ".php"

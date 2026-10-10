@@ -30,7 +30,10 @@ async function format() {
     .split('\0')
     .filter((file) => file && fs.existsSync(path.join(root, file)));
   const web = files.filter(
-    (file) => /\.(php|js|cjs|css|json|md|ya?ml)$/.test(file) && !generated.test(file),
+    (file) =>
+      /\.(php|js|cjs|css|json|md|ya?ml)$/.test(file) &&
+      !generated.test(file) &&
+      !file.startsWith('assets/vendor/'),
   );
   const python = files.filter((file) => file.endsWith('.py'));
   const changed = [];
@@ -82,6 +85,11 @@ async function format() {
     content_css: 'content.css',
     content_js: 'content.js',
     content_spacing_js: 'content-spacing.js',
+    media_js: 'media-compatibility.js',
+    media_css: 'media-compatibility.css',
+    media_editor_js: 'media-editor.js',
+    media_library_js: 'media-library.js',
+    media_library_css: 'media-library.css',
   })) {
     const content = fs.readFileSync(path.join(assets, name));
     const hash = crypto.createHash('sha256').update(content).digest('hex').slice(0, 12);

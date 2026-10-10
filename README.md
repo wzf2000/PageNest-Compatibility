@@ -4,7 +4,7 @@
 
 Companion plugin for PageNest: paragraph comments, chapter navigation, likes, notifications and Markdown compatibility.
 
-需要 **WordPress 6.0+、PHP 8.0+**。当前源码候选版本 **0.10.0-rc.1**，安装目录保持 `pagenest-compatibility`。
+需要 **WordPress 6.0+、PHP 8.0+**。当前源码候选版本 **0.11.0-rc.1**，安装目录保持 `pagenest-compatibility`。
 
 [安装与使用](docs/USAGE.md) · [更新记录](CHANGELOG.md) · [发行说明](docs/RELEASING.md)
 
@@ -48,6 +48,12 @@ Companion plugin for PageNest: paragraph comments, chapter navigation, likes, no
 正文、来源、菜单和私人记录不迁移。无 JavaScript 时保留完整原生正文与链接；搜索、关联入口和概览控件是渐进增强。旧 Site Extensions 展示负责人仍加载时，新内容模块关闭并提示管理员，避免两个负责人重复渲染。合成配置与提供方接口见[扩展接口](docs/EXTENDING.md)。
 
 Optional content modules support resource directories, section guides, reading links, archive guides and chapter display through an independent validated server profile. They preserve native content, permissions and stable identities, with progressive controls and a single display owner.
+
+## 可选媒体展示（开发候选）
+
+迁移配置就绪后，可显示既有画廊和 PDF 短代码／区块，无需改写文章正文。画廊支持轮播、移动端单列和键盘灯箱；PDF 使用随包提供的独立查看器，并保留文件链接。此模块默认关闭，已有展示负责人优先；媒体文件、文件夹与上传管理仍由 WordPress 和媒体组织插件负责。
+
+配置与迁移范围见[使用指南](docs/USAGE.md#可选媒体展示)。此功能尚未包含在公开稳定发行版中。
 
 ## 旧站升级
 

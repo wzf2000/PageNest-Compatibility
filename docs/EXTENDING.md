@@ -160,3 +160,41 @@ GitHub 和 Google 使用每次授权独立的 S256 PKCE；Google 同时绑定 no
 加载在 `plugins_loaded` 完成后检查唯一展示负责人；旧 Site Extensions 仍加载时关闭全部新内容模块并提示管理员。切换程序和配置应共同验收，保留恢复点，不能让两个负责人同时运行。安装包不含旧 Editor.md 预览代码、专用 emoji/math 分支、同步执行器或本站配置；现用 MarkBridge 渲染与 API 保持。
 
 开发验证：`npm run test:content` 使用非学习类合成配置检查独立配置、访问、发布、投影幂等与启动负责人；`npm run test:content-browser` 检查桌面／手机、搜索、分组、键盘折叠、历史锚点、无 JavaScript 和展示间距。这些合成检查不代表生产 WordPress、真实手机或 Safari 已验收。
+
+## 媒体展示配置
+
+可选根字段 `library_taxonomy`（默认空字符串）指定附件层级分类法。启用后仅对具备上传和该分类法分配权限的用户显示媒体库网格文件夹导航；分类法提供者必须支持媒体集合的同名 slug 筛选属性。导航不写分类关系，刷新接口校验 nonce 和权限，最多显示 5000 个目录。
+
+开发候选使用 WordPress option `pagenest_companion_media`。迁移工具在 WP-CLI 中先调用 `pagenest_companion_media_validate($input)`，再以 `update_option()` 保存验证后的配置。后台设置只修改启用开关并保留映射；没有配置或配置非法时关闭模块。不要在前台请求中执行迁移。
+
+```json
+{
+  "schema_version": 1,
+  "enabled": false,
+  "galleries": {
+    "17": {
+      "attachment_ids": [11, 12],
+      "source": {
+        "taxonomy": "media_folder",
+        "term_ids": [9],
+        "include_children": false
+      },
+      "layout": "slider",
+      "columns": 3,
+      "gap": 15,
+      "size": "large",
+      "target_size": "large",
+      "link": "file",
+      "orderby": "random",
+      "order": "ASC",
+      "autoplay": true,
+      "interval": 2000,
+      "lightbox": true
+    }
+  }
+}
+```
+
+`source` 可省略；来源附件与 `attachment_ids` 取并集、去重，并按当前阅读权限过滤。标识必须为正整数，布尔值不接受字符串。`layout` 支持 `slider/grid/masonry`；`orderby` 支持 `random/ids/date/title/id`；`link` 支持 `file/post/none`。旧短代码中的已支持展示参数覆盖映射中的对应默认值。PDF 仅接受已知本地 PDF 附件，不请求任意远端 URL；主题并非依赖项。
+
+独立 PDF.js 6.4.299 legacy 查看器位于 `assets/vendor/pdfjs-6.4.299`。维护者从官方发行下载 ZIP，以 `python3 tools/vendor-pdfjs.py /path/to/archive.zip` 验证固定 SHA256 并导入；保留所有许可证、字体与解码资源，排除示例 PDF 和 source maps。六处打包层面的等值 Unicode 转义记录在 `NOTICE.md`，工具校验解析后的字符串值不变。模块文件与引用统一采用 `.js` 扩展名，避免服务器缺少 `.mjs` MIME 映射时加载失败，ES 模块语义保持。`npm run test:media` 检查 PHP 边界及完整 vendor 文件哈希和安装白名单；vendor 不参与格式化。

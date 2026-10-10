@@ -13,7 +13,9 @@
     "test:content": "php tests/content-contracts.php && php tests/content-bootstrap.php && php tests/content-bootstrap.php enabled && php tests/content-bootstrap.php legacy && php tests/content-bootstrap.php legacy-class && php tests/content-bootstrap.php late",
     "test:content-browser": "playwright test --config tests/content-playwright.config.cjs",
     "test:services": "php tests/services-contracts.php",
-    "test:service-browser": "playwright test --config tests/services-playwright.config.cjs"
+    "test:service-browser": "playwright test --config tests/services-playwright.config.cjs",
+    "test:media": "php tests/media-contracts.php && python3 -m unittest discover -s tests -p \"test_media_vendor.py\"",
+    "test:media-browser": "playwright test --config tests/media-playwright.config.cjs"
   },
   "devDependencies": {
     "@prettier/plugin-php": "0.25.0",
@@ -24,6 +26,6 @@
     "@playwright/test": "1.55.1",
     "prismjs": "1.30.0"
   },
-  "version": "0.10.0-rc.1",
+  "version": "0.11.0-rc.1",
   "license": "GPL-2.0-or-later"
 }
