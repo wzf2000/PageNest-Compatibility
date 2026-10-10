@@ -48,8 +48,45 @@ function pagenest_social_profile($user)
         return;
     }
     echo '<h2>社交账号</h2><p>连接或解除用于登录的社交账号。</p>';
+    echo '<p>连接、解除连接或发送邮箱验证前，请先确认身份；确认后十分钟内有效。</p>';
+    echo '<p><label for="pn-social-password">当前密码</label> <input id="pn-social-password" type="password" name="password" autocomplete="current-password" form="pn-social-password-form"> <button class="button" type="submit" form="pn-social-password-form">确认身份</button></p>';
+    $GLOBALS['pagenest_social_profile_forms'][] = [
+        'id' => 'pn-social-password-form',
+        'action' => 'pagenest_social_password',
+    ];
+    echo '<p>' .
+        (pagenest_social_email_verified($user->ID)
+            ? '当前邮箱已验证，可用于账号恢复。'
+            : '当前邮箱尚未验证。请先保存可收信的邮箱，再发送验证邮件。') .
+        '</p>';
+    echo '<p><button class="button" type="submit" form="pn-social-email-form">发送邮箱验证邮件</button></p>';
+    $GLOBALS['pagenest_social_profile_forms'][] = [
+        'id' => 'pn-social-email-form',
+        'action' => 'pagenest_social_email_request',
+    ];
     $bindings = get_user_meta($user->ID, '_pagenest_social_bindings', true) ?: [];
     foreach ($bindings as $key => $binding) {
+        $config = pagenest_social_provider_config($binding['provider']);
+        $owner = pagenest_social_owner($key);
+        if (
+            $config &&
+            $config['client_id'] === $binding['app'] &&
+            is_array($owner) &&
+            (int) $owner['user_id'] === (int) $user->ID
+        ) {
+            $reauth = 'pn-social-reauth-' . substr(hash('sha256', $key), 0, 16);
+            echo '<p><button class="button" type="submit" form="' .
+                esc_attr($reauth) .
+                '">使用已连接的 ' .
+                esc_html(strtoupper($binding['provider'])) .
+                ' 确认身份</button></p>';
+            $GLOBALS['pagenest_social_profile_forms'][] = [
+                'id' => $reauth,
+                'action' => 'pagenest_social_start',
+                'provider' => $binding['provider'],
+                'mode' => 'reauth',
+            ];
+        }
         $form = 'pn-social-unbind-' . substr(hash('sha256', $key), 0, 16);
         echo '<p>' .
             esc_html(strtoupper($binding['provider'])) .
@@ -102,7 +139,9 @@ function pagenest_social_profile_forms()
         wp_nonce_field(
             $form['action'] === 'pagenest_social_unbind'
                 ? 'pagenest-social-unbind'
-                : 'pagenest-social-bind',
+                : ($form['action'] === 'pagenest_social_start'
+                    ? 'pagenest-social-bind'
+                    : 'pagenest-social-security'),
         );
         echo '</form>';
     }

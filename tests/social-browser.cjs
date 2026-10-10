@@ -108,6 +108,81 @@ const { chromium } = require('@playwright/test');
         await page.close();
       }
     }
+    const securityUiRoot = process.env.PAGENEST_SOCIAL_SECURITY_UI_ROOT;
+    if (securityUiRoot) {
+      for (const width of [390, 1440]) {
+        for (const mode of ['profile', 'registration', 'email-confirmation']) {
+          const page = await browser.newPage({ viewport: { width, height: 1000 } });
+          await page.route('**/*', (route) => route.abort());
+          const markup = fs.readFileSync(path.join(securityUiRoot, `${mode}.html`), 'utf8');
+          await page.setContent(
+            `<style>${coreCss} ${socialCss} body{margin:16px;max-width:760px} input{max-width:100%;box-sizing:border-box}</style>${markup}`,
+          );
+          assert.equal(await page.locator('form form').count(), 0);
+          assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+          for (const control of await page.locator('[form]').all()) {
+            assert(await control.evaluate((el) => el.form?.id === el.getAttribute('form')));
+          }
+          await page.evaluate(() => {
+            document.addEventListener('submit', (event) => {
+              event.preventDefault();
+              window.syntheticSubmission = Object.fromEntries(
+                new FormData(event.target, event.submitter),
+              );
+            });
+          });
+          if (mode === 'profile') {
+            await page.getByLabel('当前密码').fill('synthetic-current-password');
+            await page.getByRole('button', { name: '确认身份', exact: true }).click();
+            assert(
+              await page.evaluate(
+                () =>
+                  window.syntheticSubmission.action === 'pagenest_social_password' &&
+                  window.syntheticSubmission.password === 'synthetic-current-password' &&
+                  !!window.syntheticSubmission._wpnonce,
+              ),
+            );
+            await page.getByRole('button', { name: '发送邮箱验证邮件', exact: true }).click();
+            assert(
+              await page.evaluate(
+                () =>
+                  window.syntheticSubmission.action === 'pagenest_social_email_request' &&
+                  !('password' in window.syntheticSubmission),
+              ),
+            );
+          } else if (mode === 'registration') {
+            for (const [label, choice] of [
+              ['创建新的本站账号', 'create'],
+              ['登录已有账号', 'existing'],
+            ]) {
+              await page.getByRole('button', { name: label, exact: true }).click();
+              assert(
+                await page.evaluate(
+                  (expected) =>
+                    window.syntheticSubmission.choice === expected &&
+                    !!window.syntheticSubmission._wpnonce,
+                  choice,
+                ),
+              );
+            }
+          } else {
+            await page.getByRole('button', { name: '确认邮箱', exact: true }).click();
+            assert(
+              await page.evaluate(
+                () =>
+                  window.syntheticSubmission.action === 'pagenest_social_email_confirm' &&
+                  !!window.syntheticSubmission._wpnonce &&
+                  /^[a-f0-9]{64}$/.test(window.syntheticSubmission.token),
+              ),
+            );
+          }
+          await page.close();
+        }
+      }
+      console.log(
+        'Synthetic WordPress account forms: desktop/mobile layout, form ownership and submitted fields passed; no requests submitted.',
+      );
+    }
     console.log(
       'Social browser: desktop/mobile QR and anonymous/authenticated login visibility, clipping, focus and Turnstile success passed.',
     );

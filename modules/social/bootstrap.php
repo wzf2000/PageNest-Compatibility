@@ -4,6 +4,17 @@ defined('ABSPATH') || exit();
 require_once __DIR__ . '/providers.php';
 require_once __DIR__ . '/identities.php';
 require_once __DIR__ . '/routes.php';
+require_once __DIR__ . '/account-security.php';
+require_once __DIR__ . '/pending-registration.php';
+add_action('set_auth_cookie', 'pagenest_social_pending_clear_browser');
+add_action('clear_auth_cookie', 'pagenest_social_pending_clear_browser');
+add_action('admin_post_nopriv_pagenest_social_email_confirm', 'pagenest_social_email_signin');
+add_action('profile_update', 'pagenest_social_email_changed', 10, 2);
+foreach (['password', 'email_request', 'email_confirm'] as $action) {
+    add_action('admin_post_pagenest_social_' . $action, 'pagenest_social_security_route');
+}
+add_action('admin_post_nopriv_pagenest_social_register', 'pagenest_social_registration_route');
+add_action('admin_post_pagenest_social_register', 'pagenest_social_registration_route');
 require_once __DIR__ . '/migration.php';
 require_once __DIR__ . '/ui.php';
 add_action('admin_post_nopriv_pagenest_social_start', 'pagenest_social_start');

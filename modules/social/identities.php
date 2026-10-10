@@ -115,14 +115,22 @@ function pagenest_social_unbind($user_id, $key)
             if (!isset($bindings[$key])) {
                 throw new RuntimeException('Binding not found.');
             }
-            $remaining = array_filter($bindings, static function ($binding) {
-                return pagenest_social_provider_config($binding['provider']) !== null &&
-                    pagenest_social_provider_config($binding['provider'])['client_id'] ===
-                        $binding['app'];
-            });
+            $remaining = array_filter(
+                $bindings,
+                static function ($binding, $identity_key) use ($user_id) {
+                    $owner = pagenest_social_owner($identity_key);
+                    if (!is_array($owner) || (int) $owner['user_id'] !== (int) $user_id) {
+                        return false;
+                    }
+                    return pagenest_social_provider_config($binding['provider']) !== null &&
+                        pagenest_social_provider_config($binding['provider'])['client_id'] ===
+                            $binding['app'];
+                },
+                ARRAY_FILTER_USE_BOTH,
+            );
             unset($remaining[$key]);
             $user = get_userdata($user_id);
-            if (!$remaining && !pagenest_social_recoverable_email($user->user_email)) {
+            if (!$remaining && !pagenest_social_email_verified($user_id)) {
                 throw new RuntimeException('Keep at least one usable login method.');
             }
             $owner = pagenest_social_owner($key);
@@ -150,12 +158,21 @@ function pagenest_social_unbind($user_id, $key)
         });
     });
 }
-function pagenest_social_login_identity($provider, $config, $identity)
+function pagenest_social_login_identity($provider, $config, $identity, $confirmed = false)
 {
     $key = pagenest_social_identity_key($provider, $config['client_id'], $identity['subject']);
-    return pagenest_social_lock($key, static function () use ($key, $identity, $provider, $config) {
+    return pagenest_social_lock($key, static function () use (
+        $key,
+        $identity,
+        $provider,
+        $config,
+        $confirmed,
+    ) {
         $owner = pagenest_social_owner($key);
         if (is_array($owner) && $owner['user_id']) {
+            if ($confirmed) {
+                throw new RuntimeException('Identity already registered.');
+            }
             return (int) $owner['user_id'];
         }
         // Exact provider/application scope only. Never merge by email or display name.
@@ -173,8 +190,14 @@ function pagenest_social_login_identity($provider, $config, $identity)
                 throw new RuntimeException('Duplicate legacy identity.');
             }
             if (count($legacy) === 1) {
+                if ($confirmed) {
+                    throw new RuntimeException('Identity already registered.');
+                }
                 return (int) $legacy[0];
             }
+        }
+        if (!$confirmed) {
+            return 0;
         }
         if (
             (pagenest_social_config()['allow_registration'] ?? false) !== true ||

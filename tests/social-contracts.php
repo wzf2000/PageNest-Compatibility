@@ -106,6 +106,10 @@ function get_userdata($id)
 {
     return $GLOBALS['users'][$id] ?? false;
 }
+function wp_get_session_token()
+{
+    return $GLOBALS['session_token'] ?? '';
+}
 function get_current_user_id()
 {
     return $GLOBALS['current'];
@@ -165,6 +169,7 @@ function wp_remote_retrieve_body($response)
 }
 require __DIR__ . '/../modules/social/providers.php';
 require __DIR__ . '/../modules/social/identities.php';
+require __DIR__ . '/../modules/social/account-security.php';
 require __DIR__ . '/../modules/social/routes.php';
 require __DIR__ . '/../modules/social/migration.php';
 function add_filter(...$args) {}
@@ -203,6 +208,10 @@ $GLOBALS['meta'] = [
         'open_access_token' => 'preserve-only',
         'private' => 'unchanged',
     ],
+];
+$GLOBALS['meta'][2]['_pagenest_social_verified_email'] = [
+    'email' => hash('sha256', 'real@example.test'),
+    'at' => time(),
 ];
 $old = $GLOBALS['meta'][1];
 $dry = pagenest_social_migration();
@@ -244,6 +253,10 @@ $newkey = pagenest_social_identity_key('qq', 'app', 'new-subject');
 pagenest_social_unbind(2, $newkey);
 check(get_option($newkey)['user_id'] === 0, 'disconnect tombstone');
 $GLOBALS['users'][1]->user_email = 'real@example.test';
+$GLOBALS['meta'][1]['_pagenest_social_verified_email'] = [
+    'email' => hash('sha256', 'real@example.test'),
+    'at' => time(),
+];
 pagenest_social_unbind(1, $key);
 pagenest_social_migration(true);
 check(
@@ -403,7 +416,7 @@ function wp_insert_user($data)
 }
 $provider_config = $GLOBALS['config']['providers']['qq'];
 $identity = ['subject' => 'registration-subject', 'name' => 'Synthetic'];
-$id = pagenest_social_login_identity('qq', $provider_config, $identity);
+$id = pagenest_social_login_identity('qq', $provider_config, $identity, true);
 check($GLOBALS['users'][$id]->role === 'subscriber', 'registration minimum role');
 check(
     str_ends_with($GLOBALS['users'][$id]->user_email, '@social.invalid'),
@@ -428,12 +441,12 @@ check(
 );
 $GLOBALS['config']['legacy_apps']['qq'] = 'other';
 $GLOBALS['config']['allow_registration'] = false;
-rejects(
-    static fn() => pagenest_social_login_identity('qq', $provider_config, [
+check(
+    pagenest_social_login_identity('qq', $provider_config, [
         'subject' => 'original-subject',
         'name' => 'Ignored',
-    ]),
-    'legacy application mismatch rejected',
+    ]) === 0,
+    'legacy application mismatch cannot log in',
 );
 
 $failurekey = pagenest_social_identity_key('qq', 'app', 'failed-bind');
@@ -453,19 +466,29 @@ $GLOBALS['config']['allow_registration'] = true;
 $count = count($GLOBALS['users']);
 $GLOBALS['fail_meta'] = true;
 rejects(
-    static fn() => pagenest_social_login_identity('qq', $provider_config, [
-        'subject' => 'failed-registration',
-        'name' => 'Synthetic',
-    ]),
+    static fn() => pagenest_social_login_identity(
+        'qq',
+        $provider_config,
+        [
+            'subject' => 'failed-registration',
+            'name' => 'Synthetic',
+        ],
+        true,
+    ),
     'registration metadata failure',
 );
 check(count($GLOBALS['users']) === $count, 'failed new registration removes only new account');
 $GLOBALS['fail_index'] = true;
 rejects(
-    static fn() => pagenest_social_login_identity('qq', $provider_config, [
-        'subject' => 'failed-registration',
-        'name' => 'Synthetic',
-    ]),
+    static fn() => pagenest_social_login_identity(
+        'qq',
+        $provider_config,
+        [
+            'subject' => 'failed-registration',
+            'name' => 'Synthetic',
+        ],
+        true,
+    ),
     'registration index failure',
 );
 check(count($GLOBALS['users']) === $count, 'index failure rolls back new registration');

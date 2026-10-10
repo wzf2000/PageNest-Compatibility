@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.0-rc.1
+
+- 绑定、解绑及恢复邮箱验证要求当前会话十分钟内重新确认身份，支持密码与已绑定供应商；密码确认及发信限流。
+- 最后解绑只接受其他有效且归属一致的供应商，或已通过一次性链接验证的当前邮箱；历史邮箱不自动信任，邮箱变更撤销验证。
+- 未知社交身份先选择创建新账号或登录已有账号后重新绑定；选择限时、浏览器绑定、一次消费，不按邮箱合并账号。
+- Add session-bound reauthentication, explicit first-login registration and verified recovery email protection. This is a release candidate; no automatic migration or provider activation.
+
 ## 0.7.1
 
 - Brevo 地址省略空显示名，兼容只有邮箱的收件人、抄送、密送与 Reply-To。

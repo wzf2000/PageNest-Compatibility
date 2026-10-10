@@ -70,3 +70,11 @@
 仅支持 `WP_CACHE=false` 的 PHP 页面渲染，缓存启用时停计并在后台提示，不提供 AJAX 或 REST 替代路径。停用保留数据，启用不会扫描历史文章、发布内容或发放经验。
 
 Optional view counting is disabled by default. Enable it explicitly in Companion settings, select everyone, guests or signed-in users, and optionally exclude known bots. The plain-text template replaces `%VIEW_COUNT%` with the formatted count. Reads never increment, and counters do not award experience. Only publicly viewable posts and pages are counted; previews, admin requests and password-locked content are excluded. Page caches are unsupported: `WP_CACHE=true` stops counting and shows an administrator notice. Existing data is retained.
+
+## 社交账号与恢复邮箱
+
+启用社交服务后，在自己的 “个人资料” 中管理连接。连接、解除连接或发送邮箱验证前，先输入当前密码确认身份；只有社交登录的账号可用已连接的供应商确认。确认仅对当前浏览器会话生效，十分钟后需要重新确认。
+
+建议在解除最后一个社交登录前设置恢复邮箱：先通过 WordPress 保存可收信的邮箱（如提示确认邮箱变更，先完成该步骤），再点击 “发送邮箱验证邮件”，登录发起验证的账号并打开邮件链接，点击 “确认邮箱”。链接三十分钟有效。旧邮箱不会自动视为已验证，变更邮箱后需要重新验证；没有其他可用连接或已验证邮箱时，系统拒绝解绑，不删除账号。
+
+首次使用未连接的社交账号时，可明确选择创建新本站账号，或先登录已有账号后到资料页重新授权连接。系统不会按昵称或相同邮箱合并账号。若提示身份已属于其他账号，请使用原账号登录，或联系管理员核实。

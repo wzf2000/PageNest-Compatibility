@@ -70,8 +70,12 @@ The optional `views` profile section accepts explicit `legacy_meta` and `legacy_
 
 社交映射保存在 `_pagenest_social_bindings` 和以提供者／应用／subject 摘要命名的唯一 option 中。原 `open_type_*`、头像及旧 token 不删除或批量视作有效令牌。迁移为显式管理员维护动作，不在插件加载时运行；先 dry run、检查重复与原用户归属，再应用。解绑墓碑优先于旧字段，重复迁移不得复活已解除身份。迁移后出现新注册或绑定时，回退前必须带冲突守卫同步新增映射，不能仅恢复旧程序，更不能覆盖整库丢弃新的内容。
 
-OAuth state 随机、限时、一次使用，绑定浏览器 cookie、提供者、应用、当前用户和登录／绑定操作；返回地址只允许同源。绑定和解绑要求登录、POST 与 nonce；未知异常不展示上游响应或身份。没有可恢复邮箱的账号必须保留至少一个当前可用提供者。新注册还遵守 WordPress 注册开关，创建普通 subscriber，不按提供者资料合并已有账号。社交按钮不会触发经验补发。
+OAuth state 随机、十分钟有效、一次使用，绑定浏览器 cookie、提供者、应用、当前用户、当前 WordPress 会话与登录／绑定／身份确认操作；返回地址只允许同源。绑定和解绑要求登录、POST、nonce 与十分钟内的显式身份确认；密码变化或切换会话使确认失效。可用当前密码或已归属于本人的当前供应商重新确认；新授权身份不能替代原账号认证。密码确认每个账号十分钟最多五次尝试，历史登录不会自动获得近期认证。未知异常不展示上游响应或身份。
+
+恢复邮箱必须通过本模块验证，不能仅靠邮箱格式或历史字段。用户保存有效邮箱后，近期认证并主动发送验证邮件，每账号每小时最多三次；三十分钟一次性令牌只以摘要存储。GET 只显示确认页，登录对应账号后 POST 与 nonce 才消费令牌并验证当前邮箱；邮件发送成功不等于验证成功。`_pagenest_social_verified_email` 记录精确邮箱摘要与验证时间，实际邮箱变更撤销验证和未完成挑战。没有已验证恢复邮箱时，必须保留至少一个当前已配置且 owner 一致的供应商；解绑保留墓碑，不删除账号。
+
+未知第三方身份返回后不会自动注册：最小身份与白名单头像进入十分钟、匿名浏览器绑定、一次消费的待选择记录，不保存供应商令牌。用户 POST 确认创建后才检查双方注册开关并建立普通 subscriber；若身份已被其他请求注册／绑定则拒绝，不能转而登录该账号。选择已有账号时丢弃授权记录，登录后到个人资料重新授权绑定。登录／退出清除待选择 cookie。原已绑定用户继续登录原 ID，不按邮箱或昵称合并。社交按钮不会触发经验补发。
 
 微信二维码使用 Kazuhiko Arase 的 MIT 授权 [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator/tree/83b7e8fe3fddd3b0368dbafd6ce56995bd25e3c8)，许可证随包保留；固定源 `js/dist/qrcode.js` 的 SHA256 为 `79ec86f82856005b1c887905cfccfcfbec3821ca61c7fd5a952faa5f778f791c`，经本仓库格式化后的资源由 manifest 标识。二维码本地生成，不向第三方二维码服务提交文章链接。其他分享按钮仅在点击后打开对应供应商网页，不自动发布微博。服务端请求强制验证 TLS，并限定官方提供者地址；供应商真实授权与实际邮件送达须单独验收，模拟 HTTP 不等于外部成功。
 
-维护测试：`php tests/services-contracts.php /path/to/wordpress` 使用实际核心与 PHPMailer、模拟 HTTP，不加载生产数据库或发信；`php tests/social-contracts.php` 检查身份与回调契约；`npm run test:service-browser` 检查验证码可达性。所有维护测试文件和依赖排除出安装包。
+维护测试：`php tests/services-contracts.php /path/to/wordpress` 使用实际核心与 PHPMailer、模拟 HTTP，不加载生产数据库或发信；`php tests/social-contracts.php` 检查身份与回调契约；`npm run test:service-browser` 检查验证码可达性。`tests/social-security-wordpress.php` 在合成 WordPress 验证近期认证、邮箱与注册规则；`tools/social-security-concurrency.py` 验证注册、邮箱及待选择记录的双进程竞争，已接入 WordPress CI。浏览器可通过 `PAGENEST_SOCIAL_SECURITY_UI_ROOT` 使用合成核心生成的表单，检查桌面／手机布局及表单归属。所有维护测试文件和依赖排除出安装包。
