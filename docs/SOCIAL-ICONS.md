@@ -1,6 +1,6 @@
 # Social provider icons
 
-QQ, Baidu and Sina Weibo icon paths from Simple Icons 15.0.0.
+QQ, Baidu, Sina Weibo, GitHub and WeChat icon paths from Simple Icons 15.0.0.
 Source: https://github.com/simple-icons/simple-icons/tree/15.0.0/icons
 Brand names and logos remain trademarks of their respective owners.
 
@@ -34,3 +34,9 @@ For these and/or other purposes and motivations, and without any expectation of 
    4. Affirmer understands and acknowledges that Creative Commons is not a party to this document and has no duty or obligation with respect to this CC0 or use of the Work.
 
 For more information, please see <https://creativecommons.org/publicdomain/zero/1.0>.
+
+## Google
+
+The Google G logo is distributed unchanged from [Google’s official branding assets](https://developers.google.com/identity/branding-guidelines), subject to Google brand guidelines, not the CC0 license above. Source: https://developers.google.com/static/identity/images/g-logo.png
+
+SHA256: `d1ce9c2af0b10a7333abc99bc706f9a6a199e5b65bf3e3009624f076b8638e6a`. Local asset: `assets/social-google-icon-d1ce9c2af0b1.png`.

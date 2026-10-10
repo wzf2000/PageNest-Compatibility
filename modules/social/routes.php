@@ -66,6 +66,12 @@ function pagenest_social_state_create($provider, $config, $mode, $return)
         'session' => pagenest_social_session_fingerprint(get_current_user_id()),
         'return' => pagenest_social_return($return),
     ];
+    if (in_array($provider, ['github', 'google'], true)) {
+        $record['pkce_verifier'] = pagenest_social_base64url(random_bytes(32));
+        if ($provider === 'google') {
+            $record['nonce'] = bin2hex(random_bytes(32));
+        }
+    }
     if (!set_transient($key, $record, 600)) {
         throw new RuntimeException('Unable to start authorization.');
     }
@@ -145,7 +151,8 @@ function pagenest_social_start()
             wp_unslash($_REQUEST['return'] ?? home_url('/')),
         );
         nocache_headers();
-        wp_redirect(pagenest_social_authorize_url($provider, $config, $state));
+        $record = get_transient('pagenest_social_state_' . hash('sha256', $state));
+        wp_redirect(pagenest_social_authorize_url($provider, $config, $state, $record));
         exit();
     } catch (Throwable $error) {
         wp_die(
@@ -160,7 +167,7 @@ function pagenest_social_callback()
     $state = wp_unslash($_GET['state'] ?? '');
     if (
         !is_string($state) ||
-        !preg_match('/^pn\.(qq|sina|baidu)\.[a-f0-9]{64}$/D', $state, $match)
+        !preg_match('/^pn\.(qq|sina|baidu|github|google|wechat)\.[a-f0-9]{64}$/D', $state, $match)
     ) {
         return;
     }
@@ -200,7 +207,7 @@ function pagenest_social_callback()
         ) {
             throw new RuntimeException('Authorization cancelled or invalid.');
         }
-        $identity = pagenest_social_exchange($provider, $config, $code);
+        $identity = pagenest_social_exchange($provider, $config, $code, $record);
         $key = pagenest_social_identity_key($provider, $config['client_id'], $identity['subject']);
         if ($record['mode'] === 'reauth') {
             pagenest_social_reauthenticate_identity(

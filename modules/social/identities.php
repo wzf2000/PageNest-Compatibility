@@ -56,6 +56,7 @@ function pagenest_social_bind($user_id, $provider, $app, $subject, $migration = 
             }
             if (
                 $owner === null &&
+                in_array($provider, ['qq', 'sina', 'baidu'], true) &&
                 (pagenest_social_config()['legacy_apps'][$provider] ?? '') === (string) $app
             ) {
                 $legacy = get_users([
@@ -244,6 +245,7 @@ function pagenest_social_login_identity(
         // Exact provider/application scope only. Never merge by email or display name.
         if (
             $owner === null &&
+            in_array($provider, ['qq', 'sina', 'baidu'], true) &&
             (pagenest_social_config()['legacy_apps'][$provider] ?? '') === $config['client_id']
         ) {
             $legacy = get_users([

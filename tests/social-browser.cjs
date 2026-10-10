@@ -41,9 +41,18 @@ const { chromium } = require('@playwright/test');
           .join('\n')
       : '';
     for (const width of [390, 1440]) {
-      for (const mode of ['anonymous', 'authenticated']) {
+      for (const mode of ['anonymous', 'authenticated', 'all-providers']) {
         const page = await browser.newPage({ viewport: { width, height: 1000 } });
-        await page.route('**/*', (route) => route.abort());
+        await page.route('**/*', (route) => {
+          if (route.request().url().endsWith('/social-google-icon-d1ce9c2af0b1.png'))
+            return route.fulfill({
+              contentType: 'image/png',
+              body: fs.readFileSync(
+                path.join(__dirname, '../assets/social-google-icon-d1ce9c2af0b1.png'),
+              ),
+            });
+          return route.abort();
+        });
         const panel = execFileSync(
           'php',
           [path.join(__dirname, 'social-login-fixture.php'), mode],
@@ -71,16 +80,24 @@ const { chromium } = require('@playwright/test');
             phase === 'pending',
           );
           const links = page.locator('.pagenest-social-buttons a');
-          assert.equal(await links.count(), mode === 'anonymous' ? 3 : 2);
-          if (mode === 'anonymous') {
+          assert.equal(
+            await links.count(),
+            mode === 'authenticated' ? 2 : mode === 'all-providers' ? 6 : 3,
+          );
+          if (mode !== 'authenticated') {
             assert.equal(
               await page.locator('.pagenest-social-provider svg[aria-hidden="true"]').count(),
-              3,
+              mode === 'all-providers' ? 5 : 3,
             );
+            if (mode === 'all-providers') {
+              const logo = page.locator('.pagenest-social-provider img');
+              await logo.evaluate((el) => el.decode());
+              assert(await logo.evaluate((el) => el.naturalWidth > 0 && el.alt === ''));
+            }
             for (const control of await page.locator('.pagenest-social-provider').all()) {
               assert((await control.boundingBox()).height >= 44);
               assert((await control.innerText()).includes('登录'));
-              assert.equal(await control.locator('img').count(), 0);
+              assert.equal(await control.locator('svg, img').count(), 1);
               await control.focus();
               assert(await control.evaluate((el) => getComputedStyle(el).outlineStyle !== 'none'));
             }

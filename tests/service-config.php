@@ -42,6 +42,55 @@ check(
     ]),
 );
 check(invalid(['social' => ['share' => ['providers' => ['custom']]]]));
+foreach (['github', 'google', 'wechat'] as $provider) {
+    $candidate = pagenest_companion_validate_services([
+        'social' => ['providers' => [$provider => []]],
+    ]);
+    check($candidate['social']['providers'][$provider]['enabled'] === false);
+    check(invalid(['social' => ['providers' => [$provider => ['enabled' => true]]]]));
+    check(invalid(['social' => ['providers' => [$provider => ['legacy_app_id' => 'historic']]]]));
+    foreach ([false, true] as $enabled) {
+        try {
+            pagenest_companion_validate_services([
+                'social' => [
+                    'legacy_apps' => [$provider => 'synthetic-colliding-scope'],
+                    'providers' => [
+                        $provider => [
+                            'enabled' => $enabled,
+                            'client_id' => 'synthetic-colliding-scope',
+                            'client_secret' => 'synthetic',
+                            'redirect_uri' => 'https://example.test/callback/',
+                        ],
+                    ],
+                ],
+            ]);
+            check(false);
+        } catch (InvalidArgumentException $error) {
+            check(!str_contains($error->getMessage(), 'synthetic-colliding-scope'));
+        }
+    }
+    $historic_only = pagenest_companion_validate_services([
+        'social' => ['legacy_apps' => [$provider => 'historic'], 'providers' => [$provider => []]],
+    ]);
+    check($historic_only['social']['providers'][$provider]['enabled'] === false);
+    $candidate = pagenest_companion_validate_services([
+        'social' => [
+            'legacy_apps' => ['github' => 'historic'],
+            'providers' => [
+                $provider => [
+                    'enabled' => true,
+                    'client_id' => 'synthetic',
+                    'client_secret' => 'synthetic',
+                    'redirect_uri' => 'https://example.test/callback/',
+                ],
+            ],
+        ],
+    ]);
+    check(
+        $candidate['social']['providers'][$provider]['enabled'] === true &&
+            $candidate['social']['legacy_apps']['github'] === 'historic',
+    );
+}
 check(invalid(['output' => ['purge' => true]]));
 check(invalid(['cron' => []]));
 $valid = [

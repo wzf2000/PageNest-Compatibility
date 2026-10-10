@@ -114,3 +114,10 @@
     color: ButtonText;
   }
 }
+
+.pagenest-social-provider--github .pagenest-social-icon {
+  color: #181717;
+}
+.pagenest-social-provider--wechat .pagenest-social-icon {
+  color: #07a854;
+}

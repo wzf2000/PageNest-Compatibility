@@ -80,3 +80,17 @@ Optional view counting is disabled by default. Enable it explicitly in Companion
 首次使用未连接的社交账号时，可明确选择创建新本站账号，或先登录已有账号后到资料页重新授权连接。选择创建后会进入资料表单：用户名、邮箱必填，昵称选填并预填第三方昵称，留空使用用户名。重名、邮箱已用或格式错误会在页面提示，可修正后重试；邮箱填入不等于验证完成，账号创建后仍须在个人资料验证恢复邮箱。系统不会按昵称或相同邮箱合并账号。若提示身份已属于其他账号，请使用原账号登录，或联系管理员核实。
 
 删除 WordPress 用户后，插件同步清理属于该用户的社交身份索引与解绑记录。若清理因并发锁或数据库错误未完成，下次登录／绑定会核实原用户已不存在后再释放残留归属；存活用户的绑定不会因此转移。
+
+## 新增社交供应商
+
+GitHub、Google 和微信网站应用均需管理员自行创建并控制对应应用。默认关闭；先配置受限服务器文件，再在发布窗口启用单个提供者。按钮出现或模拟测试通过不代表真实授权成功。
+
+| 提供者 | 应用类型与准备                                                                                                              | 身份范围                                    |
+| ------ | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| GitHub | [Developer settings → OAuth Apps](https://github.com/settings/developers)，使用 OAuth App                                   | `read:user` 基本用户资料，不请求仓库权限                |
+| Google | [Google Auth Platform](https://console.cloud.google.com/auth/overview)，创建 Web application 客户端；Testing 时添加测试用户 | `openid profile`，不请求 Gmail 或 Drive     |
+| 微信   | [微信开放平台](https://open.weixin.qq.com/) 创建网站应用，完成主体资格／应用审核并取得微信登录权限                          | 网站扫码 `snsapi_login`，不是公众号网页授权 |
+
+在 `services.social.providers` 中按名称配置 `enabled`、`client_id`、`client_secret`、`redirect_uri`；不要向聊天或工单发送凭据。默认回调格式为 `https://example.com/wp-admin/admin-post.php?action=pagenest_social_callback&provider=github`，另两家分别将最后的值替换为 `google`、`wechat`；用实际站点地址替换示例域名。控制台与服务器配置的回调须完全一致。微信控制台按网站应用要求登记授权回调域，并使用同域 HTTPS 回调。不要把任一新供应商设置为历史应用回退。
+
+应用准备完毕、代码发布且配置启用后，由应用所有者在无痕窗口测试：拒绝授权、首次创建时填写资料、已有绑定回到原账号、登录后重新确认身份与绑定／解绑、退出后再次登录。测试过程中保留一个已验证的恢复方式，不发送完整回调 URL 或令牌。Google Testing 与微信审核限制由各自控制台决定；跨供应商相同邮箱不会合并账号。

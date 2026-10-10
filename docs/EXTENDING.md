@@ -65,7 +65,7 @@ The optional `views` profile section accepts explicit `legacy_meta` and `legacy_
 
 - `mail`：`enabled`、`provider`（仅 `brevo`）、`api_key`、`from_email`、`from_name`、`reply_to_email`、`reply_to_name`。启用要求有效强制 From 和 API key；Reply-To 追加并沿用 API 的首个地址规则。WordPress 原生 `wp_mail` 构建、过滤和事件保留；成功表示 API 接收，失败不自动重试，避免超时后的重复投递。HTML／纯文本和普通附件可用，CID 内嵌资源明确失败，不承诺旧服务未提供的投递能力。
 - `turnstile`：`enabled`、`site_key`、`secret_key`、`hostname`、`scopes`（`login`、`register`、`reset`、`comments` 布尔值）、`theme`、`language`、`size`、`appearance`。服务端检查 success、精确 hostname、action 和 300 秒期限；不缓存成功结果。浏览器到 Cloudflare 加载 widget，服务端调用 Siteverify；网络失败拒绝提交并提供重试。原生四表单覆盖不包括段落评论 REST、REST/XML-RPC 认证或 OAuth 回调。
-- `social`：`enabled`、`allow_registration`、`avatar_enabled`、`share`、`providers`、`legacy_apps`。`share` 有 `enabled`、`posts`、`pages` 与 `providers`（`qq`、`weibo`、`qqzone`、`wechat` 列表）。`providers` 仅 `qq`、`sina`、`baidu`，每个包含 `enabled`、`client_id`、`client_secret`、`redirect_uri`，可选 `legacy_app_id`。回调必须 HTTPS 同源，迁移保持供应商已登记的精确 URL；QQ 身份按应用 OpenID，不根据 unionid 或邮箱合并。`legacy_apps` 显式映射旧提供者到应用 scope；无实现的历史提供者仅保留数据，不假定能登录。
+- `social`：`enabled`、`allow_registration`、`avatar_enabled`、`share`、`providers`、`legacy_apps`。`share` 有 `enabled`、`posts`、`pages` 与 `providers`（`qq`、`weibo`、`qqzone`、`wechat` 列表）。`providers` 支持 `qq`、`sina`、`baidu`、`github`、`google`、`wechat`，每个包含 `enabled`、`client_id`、`client_secret`、`redirect_uri`，可选 `legacy_app_id`（仅前三个旧供应商可非空）。回调必须 HTTPS 同源，迁移保持供应商已登记的精确 URL；QQ 身份按应用 OpenID，不根据 unionid 或邮箱合并。`legacy_apps` 显式映射旧提供者到应用 scope；无实现的历史提供者仅保留数据，不假定能登录。
 - `output`：`enabled`、`html_whitespace`，默认均 false。可选处理只移除匿名公开 HTML 文档外壳缩进，保护正文和代码／公式／脚本；保留资源 URL 版本，无缓存、字体远程下载、数据库清理、测速或定时任务。
 
 社交映射保存在 `_pagenest_social_bindings` 和以提供者／应用／subject 摘要命名的唯一 option 中。原 `open_type_*`、头像及旧 token 不删除或批量视作有效令牌。迁移为显式管理员维护动作，不在插件加载时运行；先 dry run、检查重复与原用户归属，再应用。解绑墓碑优先于旧字段，重复迁移不得复活已解除身份。迁移后出现新注册或绑定时，回退前必须带冲突守卫同步新增映射，不能仅恢复旧程序，更不能覆盖整库丢弃新的内容。
@@ -81,3 +81,7 @@ OAuth state 随机、十分钟有效、一次使用，绑定浏览器 cookie、�
 维护测试：`php tests/services-contracts.php /path/to/wordpress` 使用实际核心与 PHPMailer、模拟 HTTP，不加载生产数据库或发信；`php tests/social-contracts.php` 检查身份与回调契约；`npm run test:service-browser` 检查验证码可达性。`tests/social-security-wordpress.php` 在合成 WordPress 验证近期认证、邮箱与注册规则；`tools/social-security-concurrency.py` 验证注册、邮箱及待选择记录的双进程竞争，已接入 WordPress CI。浏览器可通过 `PAGENEST_SOCIAL_SECURITY_UI_ROOT` 使用合成核心生成的表单，检查桌面／手机布局及表单归属。所有维护测试文件和依赖排除出安装包。
 
 用户删除后的 `deleted_user` 钩子只在确认用户表中原 ID 已不存在后清理其 owner 与解绑记录，身份锁内重新读取并核对归属；锁忙或数据库失败保留记录，登录／绑定的孤立 owner 核验作为历史残留兜底。不在删除前释放身份，也不删除转移给存活用户的记录。
+
+GitHub 和 Google 使用每次授权独立的 S256 PKCE；Google 同时绑定 nonce，并通过固定官方证书地址校验 RS256、issuer、audience／azp、时间与 subject。需要 PHP OpenSSL；证书缓存遵守响应期限且最多一小时，未知 key 最多刷新一次，不访问令牌自带的 key URL。GitHub 仅使用数字用户 ID；Google 使用 subject；微信网站扫码仅使用当前应用 OpenID，严格比对令牌与资料响应。三者均不按邮箱、昵称或 UnionID 自动归并。旧 GitHub 字段与历史作用域只保留，不能通过新增配置自动接管；新供应商 client_id 与同名历史作用域相同时，配置拒绝加载。
+
+新增供应商配置与人工验收步骤见 [使用指南](USAGE.md#新增社交供应商)。

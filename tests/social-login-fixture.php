@@ -8,7 +8,10 @@ function pagenest_social_active()
 }
 function pagenest_social_provider_config($provider)
 {
-    return ['client_id' => 'synthetic'];
+    return in_array($provider, ['qq', 'baidu', 'sina'], true) ||
+        ($GLOBALS['argv'][1] ?? '') === 'all-providers'
+        ? ['client_id' => 'synthetic']
+        : null;
 }
 function is_user_logged_in()
 {
@@ -17,6 +20,10 @@ function is_user_logged_in()
 function get_current_user_id()
 {
     return $GLOBALS['fixture_user'];
+}
+function plugin_dir_url($file)
+{
+    return 'https://example.test/wp-content/plugins/pagenest-compatibility/';
 }
 function esc_html($value)
 {

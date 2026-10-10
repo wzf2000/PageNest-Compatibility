@@ -1,12 +1,23 @@
 <?php
 defined('ABSPATH') || exit();
 require_once __DIR__ . '/icons.php';
+function pagenest_social_provider_labels()
+{
+    return [
+        'qq' => 'QQ',
+        'baidu' => '百度',
+        'github' => 'GitHub',
+        'google' => 'Google',
+        'wechat' => '微信',
+        'sina' => '微博',
+    ];
+}
 function pagenest_social_buttons($return = '')
 {
     if (!pagenest_social_active() || is_user_logged_in()) {
         return '';
     }
-    $labels = ['qq' => 'QQ', 'sina' => '微博', 'baidu' => '百度'];
+    $labels = pagenest_social_provider_labels();
     $html =
         '<div class="pagenest-social-login-options"><div class="pagenest-social-divider"><span>或使用第三方账号</span></div><div class="pagenest-social-buttons pagenest-social-providers" role="group" aria-label="社交登录">';
     foreach ($labels as $provider => $label) {
@@ -85,7 +96,10 @@ function pagenest_social_profile($user)
             echo '<p><button class="button" type="submit" form="' .
                 esc_attr($reauth) .
                 '">使用已连接的 ' .
-                esc_html(strtoupper($binding['provider'])) .
+                esc_html(
+                    pagenest_social_provider_labels()[$binding['provider']] ??
+                        strtoupper($binding['provider']),
+                ) .
                 ' 确认身份</button></p>';
             $GLOBALS['pagenest_social_profile_forms'][] = [
                 'id' => $reauth,
@@ -96,7 +110,10 @@ function pagenest_social_profile($user)
         }
         $form = 'pn-social-unbind-' . substr(hash('sha256', $key), 0, 16);
         echo '<p>' .
-            esc_html(strtoupper($binding['provider'])) .
+            esc_html(
+                pagenest_social_provider_labels()[$binding['provider']] ??
+                    strtoupper($binding['provider']),
+            ) .
             ' <button class="button" type="submit" form="' .
             esc_attr($form) .
             '">解除连接</button></p>';
@@ -106,7 +123,7 @@ function pagenest_social_profile($user)
             'identity' => $key,
         ];
     }
-    foreach (['qq' => 'QQ', 'sina' => '微博', 'baidu' => '百度'] as $provider => $label) {
+    foreach (pagenest_social_provider_labels() as $provider => $label) {
         if (!pagenest_social_provider_config($provider)) {
             continue;
         }

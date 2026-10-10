@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.0-rc.1
+
+- 新增默认关闭的 GitHub、Google 与微信开放平台网站应用登录；沿用注册资料、绑定、恢复与删除清理规则，不按邮箱或 UnionID 合并。
+- GitHub 使用 PKCE 与数字身份；Google 使用 PKCE、nonce 与 RS256 签名／声明校验；微信严格匹配应用内 OpenID。历史 GitHub 不自动认领。
+- 新入口采用品牌图标＋文字；Google 使用本地原版官方资源。
+- Add opt-in GitHub, Google OIDC and WeChat website login with scoped identities and offline protocol tests. No provider is enabled automatically.
+
 ## 0.8.0-rc.3
 
 - 第三方登录入口采用本地品牌 SVG 图标与文字按钮，统一触控尺寸、键盘焦点与移动布局。

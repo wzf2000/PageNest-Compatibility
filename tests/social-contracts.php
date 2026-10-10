@@ -48,7 +48,7 @@ function get_option($key, $default = false)
 }
 function set_transient($key, $value, $ttl)
 {
-    return add_option($key, $value);
+    return update_option($key, $value);
 }
 function get_transient($key)
 {
@@ -236,6 +236,10 @@ function wp_remote_retrieve_response_code($response)
 function wp_remote_retrieve_body($response)
 {
     return $response['body'];
+}
+function wp_remote_retrieve_header($response, $name)
+{
+    return $response['headers'][$name] ?? '';
 }
 require __DIR__ . '/../modules/social/providers.php';
 require __DIR__ . '/../modules/social/identities.php';
@@ -844,4 +848,5 @@ check(
     get_option($bind_key) === ['user_id' => 1],
     'deletion hook leaves unrelated live owner intact',
 );
+require __DIR__ . '/social-provider-contracts.php';
 echo "Social contracts: $checks checks passed; mock HTTP only.\n";
