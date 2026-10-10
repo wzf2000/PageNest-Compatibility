@@ -79,6 +79,9 @@ async function format() {
     social_qrcode_js: 'social-qrcode.js',
     social_share_js: 'social-share.js',
     social_ui_css: 'social-ui.css',
+    content_css: 'content.css',
+    content_js: 'content.js',
+    content_spacing_js: 'content-spacing.js',
   })) {
     const content = fs.readFileSync(path.join(assets, name));
     const hash = crypto.createHash('sha256').update(content).digest('hex').slice(0, 12);

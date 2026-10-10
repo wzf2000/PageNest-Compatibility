@@ -45,6 +45,7 @@ require_once __DIR__ . '/modules/theme-compatibility.php';
 require_once __DIR__ . '/modules/chapters.php';
 require_once __DIR__ . '/modules/paragraph-comments.php';
 require_once __DIR__ . '/modules/likes.php';
+require_once __DIR__ . '/modules/content/bootstrap.php';
 // Keep only the old Markdown preservation contract, never old reward/like handlers.
 add_filter('jetpack_markdown_preserve_pattern', static function ($patterns) {
     $patterns[] = '/(\$)([^\n\r\$]+?)(\$)/s';
@@ -113,23 +114,6 @@ add_action(
                 'before',
             );
             wp_enqueue_script('pagenest-mathjax');
-        }
-        global $wp_filter;
-        $hook = $wp_filter['wp_print_footer_scripts'] ?? null;
-        if ($hook) {
-            foreach ($hook->callbacks as $priority => $callbacks) {
-                foreach ($callbacks as $cb) {
-                    $fn = $cb['function'];
-                    if (
-                        is_array($fn) &&
-                        is_object($fn[0]) &&
-                        get_class($fn[0]) === 'EditormdApp\\PrismJSAuto' &&
-                        $fn[1] === 'prism_wp_footer_scripts'
-                    ) {
-                        remove_action('wp_print_footer_scripts', $fn, $priority);
-                    }
-                }
-            }
         }
         pagenest_configure_prism(wp_scripts());
     },

@@ -64,6 +64,10 @@ function get_option($key, $default = false)
 {
     return $default;
 }
+function get_site_option($key, $default = false)
+{
+    return $default;
+}
 function metadata_exists(...$args)
 {
     return false;
@@ -114,11 +118,9 @@ function copy_tree($from, $to)
         }
     }
 }
-copy_tree(dirname(__DIR__) . '/node_modules/prismjs/components', $out . '/prism/components');
-copy_tree(
-    dirname(__DIR__) . '/node_modules/prismjs/plugins/autoloader',
-    $out . '/prism/plugins/autoloader',
-);
+$node_modules = getenv('PAGENEST_TEST_NODE_MODULES') ?: dirname(__DIR__) . '/node_modules';
+copy_tree($node_modules . '/prismjs/components', $out . '/prism/components');
+copy_tree($node_modules . '/prismjs/plugins/autoloader', $out . '/prism/plugins/autoloader');
 foreach ([false, true] as $existing) {
     $queue = $existing ? ['mbb-math'] : [];
     $registered = $inline = [];

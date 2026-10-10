@@ -10,6 +10,8 @@
     "package:check": "python3 tools/release.py --check-package",
     "build": "python3 build-assets.py",
     "identity:check": "python3 tools/identity_scan.py",
+    "test:content": "php tests/content-contracts.php && php tests/content-bootstrap.php && php tests/content-bootstrap.php enabled && php tests/content-bootstrap.php legacy && php tests/content-bootstrap.php legacy-class && php tests/content-bootstrap.php late",
+    "test:content-browser": "playwright test --config tests/content-playwright.config.cjs",
     "test:services": "php tests/services-contracts.php",
     "test:service-browser": "playwright test --config tests/services-playwright.config.cjs"
   },

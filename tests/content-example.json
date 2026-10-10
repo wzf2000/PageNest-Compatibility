@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "modules": {
+    "resources": {
+      "enabled": true,
+      "labels": { "search": "Search resources", "related": "Event results" },
+      "pages": [
+        {
+          "selector": { "meta": "_fixture_resource", "value": "community-directory" },
+          "targets_meta": "_fixture_targets",
+          "release_meta": "_fixture_release",
+          "excerpt": "Browse community facilities and events.",
+          "provider": "none",
+          "external_links": ["https://external.example/facility"],
+          "icons": { "hall": "image", "event": "dice", "result": "medal" },
+          "groups": { "event": [{ "slug": "result", "label": "Recent results" }] },
+          "sections": [
+            {
+              "heading": { "text": "Facilities", "level": 2 },
+              "anchor": "facilities",
+              "label": "Facilities",
+              "list_kind": "ul"
+            },
+            {
+              "heading": { "text": "Events", "level": 2 },
+              "anchor": "events",
+              "label": "Events",
+              "list_kind": "ul"
+            },
+            {
+              "heading": { "text": "Results", "level": 2 },
+              "anchor": "results",
+              "label": "Results",
+              "list_kind": "ul"
+            }
+          ]
+        }
+      ]
+    },
+    "guide": {
+      "enabled": true,
+      "pages": [
+        {
+          "selector": { "meta": "_fixture_guide", "value": "festival-visit" },
+          "targets_meta": "_fixture_guide_targets",
+          "sections": [
+            {
+              "heading": { "text": "Arrival", "level": 2 },
+              "anchor": "arrival",
+              "list_heading": { "text": "Visit stops", "level": 3 },
+              "list_kind": "ol",
+              "default_open": true
+            },
+            {
+              "heading": { "id": "venue-existing", "level": 2 },
+              "anchor": "venue",
+              "list_heading": { "text": "Suggested stops", "level": 3 },
+              "list_kind": "ul",
+              "default_open": false
+            },
+            {
+              "heading": { "text": "Departure", "level": 2 },
+              "anchor": "departure",
+              "list_heading": { "text": "Final stops", "level": 3 },
+              "list_kind": "ol",
+              "default_open": true
+            }
+          ]
+        }
+      ]
+    },
+    "reading_links": {
+      "enabled": true,
+      "pages": [
+        {
+          "selector": { "meta": "_fixture_report", "value": "venue-report" },
+          "table_scroll": true,
+          "sections": [
+            {
+              "heading": { "text": "Observations", "level": 2 },
+              "anchor": "observations",
+              "label": "Observations"
+            },
+            { "heading": { "id": "existing-findings", "level": 2 }, "label": "Findings" }
+          ]
+        }
+      ]
+    },
+    "archives": {
+      "enabled": true,
+      "items": [
+        {
+          "taxonomy": "category",
+          "term_id": 71,
+          "intro": "Explore community events.",
+          "groups": [{ "taxonomy": "post_tag", "term_id": 72 }],
+          "start_posts": [101, 102, 103]
+        }
+      ]
+    },
+    "chapter_display": {
+      "enabled": true,
+      "document_meta": "_fixture_document",
+      "heading_aliases_meta": "_fixture_aliases",
+      "library_meta": "_fixture_library",
+      "hide_first_title": true,
+      "labels": { "navigation": "Collection navigation", "return": "Return to collection" }
+    }
+  }
+}

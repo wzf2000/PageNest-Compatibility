@@ -13,6 +13,9 @@ for key, name in [
     ("social_qrcode_js", "social-qrcode.js"),
     ("social_share_js", "social-share.js"),
     ("social_ui_css", "social-ui.css"),
+    ("content_css", "content.css"),
+    ("content_js", "content.js"),
+    ("content_spacing_js", "content-spacing.js"),
 ]:
     content = (assets / name).read_bytes()
     path = Path(name)

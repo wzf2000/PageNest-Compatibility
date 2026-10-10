@@ -75,3 +75,64 @@ OAuth state 随机、限时、一次使用，绑定浏览器 cookie、提供者�
 微信二维码使用 Kazuhiko Arase 的 MIT 授权 [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator/tree/83b7e8fe3fddd3b0368dbafd6ce56995bd25e3c8)，许可证随包保留；固定源 `js/dist/qrcode.js` 的 SHA256 为 `79ec86f82856005b1c887905cfccfcfbec3821ca61c7fd5a952faa5f778f791c`，经本仓库格式化后的资源由 manifest 标识。二维码本地生成，不向第三方二维码服务提交文章链接。其他分享按钮仅在点击后打开对应供应商网页，不自动发布微博。服务端请求强制验证 TLS，并限定官方提供者地址；供应商真实授权与实际邮件送达须单独验收，模拟 HTTP 不等于外部成功。
 
 维护测试：`php tests/services-contracts.php /path/to/wordpress` 使用实际核心与 PHPMailer、模拟 HTTP，不加载生产数据库或发信；`php tests/social-contracts.php` 检查身份与回调契约；`npm run test:service-browser` 检查验证码可达性。所有维护测试文件和依赖排除出安装包。
+
+## 可选内容配置 schema 1
+
+`PAGENEST_COMPANION_CONTENT_FILE` 是独立、受限、Web 根之外的 JSON 文件，不修改共享兼容 profile 或 services schema。顶层仅接受 `schema_version: 1` 和 `modules`；可省略模块。每个模块的 `enabled` 必须为布尔值，未知字段拒绝；多个模块声明同一页面 selector 时关闭这些冲突模块。错误只关闭相应模块并显示固定模块名提示，文件或顶层错误关闭全部内容模块。未配置时不注册内容过滤器。读取路径需精确加入服务器许可。配置是数据，不能提供正则、JavaScript、SVG、HTML 或可执行模板。
+
+`pagenest_companion_content_config($dotKey, $default)` 只读已校验配置，供外部维护工具使用；例如 `modules.archives.items`。它不执行同步、初始化或存储迁移，不提供旧插件全局函数。多个配置实例使用明确的 `selector.value` 定位；维护工具不能把数组第一项假定为站点特定入口。
+
+合成的社区参观导览可以配置为：
+
+```json
+{
+  "schema_version": 1,
+  "modules": {
+    "guide": {
+      "enabled": true,
+      "labels": {
+        "controls": "Visit guide",
+        "overview": "Section overview",
+        "expand": "Expand stops",
+        "list": "{count} visit stops"
+      },
+      "pages": [
+        {
+          "selector": { "meta": "_community_guide", "value": "festival-visit" },
+          "targets_meta": "_community_targets",
+          "sections": [
+            {
+              "heading": { "text": "Arrival", "level": 2 },
+              "anchor": "arrival",
+              "list_heading": { "text": "Visit stops", "level": 3 },
+              "list_kind": "ol",
+              "default_open": true
+            },
+            {
+              "heading": { "id": "venue-existing", "level": 2 },
+              "list_heading": { "text": "Suggested stops", "level": 3 },
+              "list_kind": "ul",
+              "default_open": false
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+```
+
+- `resources`、`guide`、`reading_links` 均使用 `pages` 列表。每页 `selector` 必须包含 ASCII 元数据键 `meta` 和精确值 `value`。`sections` 按配置顺序匹配标题；`heading` 和可选 `list_heading` 各使用 `level` (1–6) 以及精确 `text` 或已有 `id`，两者不能同时提供。可选 `anchor` 仅为缺少 ID 的标题补锚点；已有标题 ID、历史前置空锚点优先并保留，不制造重复 ID。`label` 提供控件文字；`list_kind` 为 `ul` 或 `ol`；`start_list: true` 只将原生起点列表展示为入口网格，`default_open` 决定增强阅读清单的初始状态。
+- `resources`、`guide` 要求 `targets_meta`，读取已有的 URL → 整数文章 ID 映射，缺失或非数组时正文投影关闭。仅实际公开、无密码的文章／页面可建立内部链接；映射值 `0` 的外部链接还必须精确匹配该页 `external_links` HTTPS 白名单，包括斜线、查询与片段。未批准的列表条目移除，其他正文中的未批准链接保留文字并移除目的地址。本地片段链接保留。资源目录及分段导览在前台和 REST 维持 private/no-store，前台同时设置 `DONOTCACHEPAGE`。
+- `resources` 每页还要求 `release_meta` 和纯文本 `excerpt`。明确字符串 `"1"` 的发布标记允许公开阅读；有编辑权限者可预览未发布正文，但目标链接仍只向公开、无密码内容投影。未经标记的状态变更限制为 draft/trash/auto-draft。`provider` 默认 `none`，可选 `site_tools` 只通过公开 `SiteTools\Registry::indexEntries()` 投影装饰信息。`icons` 是条目 slug → 可信内置名称，支持 `dice`、`text`、`dinosaur`、`tiles`、`fibonacci`、`graduate`、`medal`、`dinosaur-medal`、`tiles-calendar`、`tiles-trophy`、`fibonacci-calendar`、`fibonacci-trophy`、`graduate-trophy`、`image`、`cloud`；没有提供方时使用通用图标，不创造入口。`groups` 是父 slug → `[{"slug":"child","label":"Related entry"}]`，不接受重复、嵌套或自身分组；只关联当前已获准的原生链接。
+- `reading_links` 将匹配章节的跳转链接直接输出到原生正文，无 JavaScript 也可使用。可选 `targets_meta` 启用同样的内部目标投影；未提供时不过滤原文链接。`table_scroll: true` 只增加该正文表格的横向滚动，表格视觉沿用主题。
+- `archives` 使用 `items` 列表；每项为 `{taxonomy,term_id,intro,groups,start_posts}`，`taxonomy` 只接受 category/post_tag，`groups` 为 `{taxonomy,term_id}` 列表，`start_posts` 为已有整数文章 ID。系列目标需要实际公开无密码文章，阅读入口也须公开无密码。只在第一页、非后台/feed/REST 的首个主循环插入一次；不改变分类、菜单或文章。
+- `chapter_display` 使用 `document_meta`、`heading_aliases_meta`、`library_meta`；`hide_first_title` 可选布尔值。标题、重复标题与历史别名只在展示时补齐；已有 ID 和空锚点保留。返回目录使用现有 `pagenest_companion_can_read()`，私人目录要求当前用户权限，锁定密码目录不显示。过滤优先级为 30，后续相对链接为 32、段落身份为 35。间距只处理展示文本，跳过代码、属性、TeX、段落气泡和私人界面，不写回正文或注册表。
+
+各模块可提供纯文本 `labels`：resources 支持 `search`、`placeholder`、`category`、`all`、`reset`、`empty`、`count`、`filtered_count`、`related`、`show_related`、`hide_related`、`matched_related`、`group_hint`；guide 支持 `controls`、`overview`、`expand`、`list`、`closed`、`opened`、`partial`；reading_links 支持 `navigation`；archives 支持 `navigation`、`groups`、`starts`；chapter_display 支持 `navigation`、`return`。缺省使用通用英文文字，`{count}` 仅作数字替换。
+
+`pagenest_companion_resource_entries` filter 接收提供方条目数组和当前页面配置；返回的条目使用 `slug`、`canonical_url`。该接口只装饰已批准链接，不能授权链接或调用工具、成绩、游戏或经验业务。无效或有歧义的提供方条目忽略，授权仍完全依赖服务端目标映射与白名单。
+
+加载在 `plugins_loaded` 完成后检查唯一展示负责人；旧 Site Extensions 仍加载时关闭全部新内容模块并提示管理员。切换程序和配置应共同验收，保留恢复点，不能让两个负责人同时运行。安装包不含旧 Editor.md 预览代码、专用 emoji/math 分支、同步执行器或本站配置；现用 MarkBridge 渲染与 API 保持。
+
+开发验证：`npm run test:content` 使用非学习类合成配置检查独立配置、访问、发布、投影幂等与启动负责人；`npm run test:content-browser` 检查桌面／手机、搜索、分组、键盘折叠、历史锚点、无 JavaScript 和展示间距。这些合成检查不代表生产 WordPress、真实手机或 Safari 已验收。

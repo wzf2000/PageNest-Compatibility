@@ -53,11 +53,15 @@ jobs:
       - name: Check PHP syntax
         run: git ls-files '*.php' -z | xargs -0 -n1 php -l
       - name: Run basic feature fixtures
-        run: npm test
+        run: |
+          npm test
+          npm run test:content
       - name: Install pinned Chromium
         run: npx playwright install --with-deps --only-shell chromium
       - name: Run frontend regressions
-        run: npm run test:frontend
+        run: |
+          npm run test:frontend
+          npm run test:content-browser
       - name: Upload browser failure evidence
         if: failure()
         uses: actions/upload-artifact@v4

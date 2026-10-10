@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- 新增独立配置驱动的资源目录、内容导览、文章阅读跳转、归档导览和章节展示模块，保留原生正文、锚点、权限和私人记录。
+- 移除失效的 Editor.md footer 补丁；新安装包不携带旧编辑器预览或专用公式资源。
+- Add optional content presentation modules with server-side access checks and progressive controls.
+
 ## 0.7.1
 
 - Brevo 地址省略空显示名，兼容只有邮箱的收件人、抄送、密送与 Reply-To。

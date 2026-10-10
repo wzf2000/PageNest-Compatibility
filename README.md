@@ -41,6 +41,14 @@ Companion plugin for PageNest: paragraph comments, chapter navigation, likes, no
 
 邮件成功只代表 Brevo 接收请求，不等于送达；该 API 不支持 CID 内嵌资源，遇到此类邮件明确失败。可选输出处理默认关闭，保留资源版本参数，不提供页面缓存、数据库自动清理或定时任务。具体配置和限制见[扩展接口](docs/EXTENDING.md)。
 
+## 可选内容展示
+
+服务器可用独立的 `PAGENEST_COMPANION_CONTENT_FILE` JSON 配置启用资源目录、分段内容导览、文章阅读跳转、归档导览和章节展示。配置位于 Web 根之外；默认关闭，单个模块配置错误只停用该模块，其他阅读和站点服务继续运行。资源目录的发布标记、服务端目标检查及 private/no-store 边界保留；章节链接继续检查当前读者及密码权限。
+
+正文、来源、菜单和私人记录不迁移。无 JavaScript 时保留完整原生正文与链接；搜索、关联入口和概览控件是渐进增强。旧 Site Extensions 展示负责人仍加载时，新内容模块关闭并提示管理员，避免两个负责人重复渲染。合成配置与提供方接口见[扩展接口](docs/EXTENDING.md)。
+
+Optional content modules support resource directories, section guides, reading links, archive guides and chapter display through an independent validated server profile. They preserve native content, permissions and stable identities, with progressive controls and a single display owner.
+
 ## 旧站升级
 
 先备份文件与数据库，再停用原来拥有同一功能的插件或桥接代码，避免两个组件同时写入。服务器管理员通过 Web 根之外的显式配置接入旧存储、路由和别名；后台操作只保存新的中性设置，旧记录不需要重写。配置错误时功能停止并提示管理员。
