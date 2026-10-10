@@ -4,7 +4,7 @@
 
 Companion plugin for PageNest: paragraph comments, chapter navigation, likes, notifications and Markdown compatibility.
 
-需要 **WordPress 6.0+、PHP 8.0+**。当前源码候选版本 **0.9.0-rc.1**，安装目录保持 `pagenest-compatibility`。
+需要 **WordPress 6.0+、PHP 8.0+**。当前源码候选版本 **0.9.0-rc.2**，安装目录保持 `pagenest-compatibility`。
 
 [安装与使用](docs/USAGE.md) · [更新记录](CHANGELOG.md) · [发行说明](docs/RELEASING.md)
 

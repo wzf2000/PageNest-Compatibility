@@ -54,7 +54,9 @@ function pagenest_companion_settings_page()
     if (!current_user_can('manage_options')) {
         return;
     }
-    echo '<div class="wrap"><h1>PageNest Companion</h1><p>选择读者可使用的功能。关闭功能保留文章配置与既有记录；启用段落评论还需逐篇文章选择。</p><form action="options.php" method="post">';
+    echo '<div class="wrap"><h1>PageNest Companion</h1><p><a href="' .
+        esc_url(admin_url('options-general.php?page=pagenest-social')) .
+        '">管理社交登录供应商与接入参数</a></p><p>选择读者可使用的功能。关闭功能保留文章配置与既有记录；启用段落评论还需逐篇文章选择。</p><form action="options.php" method="post">';
     settings_fields('pagenest_companion');
     foreach (
         ['comments' => '段落评论', 'chapters' => '章节导航与链接', 'likes' => '文章点赞']

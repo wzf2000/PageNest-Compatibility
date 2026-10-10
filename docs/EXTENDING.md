@@ -61,7 +61,7 @@ The optional `views` profile section accepts explicit `legacy_meta` and `legacy_
 
 ## 可选服务配置
 
-`PAGENEST_COMPANION_SERVICES_FILE` 指向独立、受限、Web 根之外的 JSON 文件，格式为 `{"schema_version":1,"services":{}}`；它不向原共享兼容 profile 增加字段，避免破坏其他组件的严格 schema。没有常量时，邮件、验证码、社交与输出模块均关闭。配置无效只停用这些服务，既有阅读功能继续可用。新增路径必须精确加入服务器读取许可，不扩大整个目录的读取权限。各模块必须显式 `enabled: true`；开关必须为布尔值，未知字段拒绝。凭据只能放受限、Web 根外的配置文件，不写公共源码、安装 ZIP、普通后台设置、浏览器或错误日志。配置变更应原子替换，先校验完整服务 profile，并保存私有原版。
+`PAGENEST_COMPANION_SERVICES_FILE` 指向独立、受限、Web 根之外的 JSON 文件，格式为 `{"schema_version":1,"services":{}}`；它不向原共享兼容 profile 增加字段，避免破坏其他组件的严格 schema。没有常量时，邮件、验证码、社交与输出模块均关闭。配置无效只停用这些服务，既有阅读功能继续可用。新增路径必须精确加入服务器读取许可，不扩大整个目录的读取权限。各模块必须显式 `enabled: true`；开关必须为布尔值，未知字段拒绝。服务器凭据放受限、Web 根外的配置文件，不写公共源码、安装 ZIP 或错误日志。社交供应商也可由管理员通过独立后台配置入口保存覆盖值，密钥不回显；覆盖值随数据库备份，应与站点凭据同等保护。配置变更应原子替换，先校验完整服务 profile，并保存私有原版。
 
 - `mail`：`enabled`、`provider`（仅 `brevo`）、`api_key`、`from_email`、`from_name`、`reply_to_email`、`reply_to_name`。启用要求有效强制 From 和 API key；Reply-To 追加并沿用 API 的首个地址规则。WordPress 原生 `wp_mail` 构建、过滤和事件保留；成功表示 API 接收，失败不自动重试，避免超时后的重复投递。HTML／纯文本和普通附件可用，CID 内嵌资源明确失败，不承诺旧服务未提供的投递能力。
 - `turnstile`：`enabled`、`site_key`、`secret_key`、`hostname`、`scopes`（`login`、`register`、`reset`、`comments` 布尔值）、`theme`、`language`、`size`、`appearance`。服务端检查 success、精确 hostname、action 和 300 秒期限；不缓存成功结果。浏览器到 Cloudflare 加载 widget，服务端调用 Siteverify；网络失败拒绝提交并提供重试。原生四表单覆盖不包括段落评论 REST、REST/XML-RPC 认证或 OAuth 回调。
@@ -85,3 +85,9 @@ OAuth state 随机、十分钟有效、一次使用，绑定浏览器 cookie、�
 GitHub 和 Google 使用每次授权独立的 S256 PKCE；Google 同时绑定 nonce，并通过固定官方证书地址校验 RS256、issuer、audience／azp、时间与 subject。需要 PHP OpenSSL；证书缓存遵守响应期限且最多一小时，未知 key 最多刷新一次，不访问令牌自带的 key URL。GitHub 仅使用数字用户 ID；Google 使用 subject；微信网站扫码仅使用当前应用 OpenID，严格比对令牌与资料响应。三者均不按邮箱、昵称或 UnionID 自动归并。旧 GitHub 字段与历史作用域只保留，不能通过新增配置自动接管；新供应商 client_id 与同名历史作用域相同时，配置拒绝加载。
 
 新增供应商配置与人工验收步骤见 [使用指南](USAGE.md#新增社交供应商)。
+
+## 社交后台覆盖
+
+`pagenest_social_settings` option 使用 `schema_version: 1`，仅包含 `switches`（`enabled`、`allow_registration`）和 `providers`（提供者到 `enabled`、`client_id`、`client_secret`、`redirect_uri` 的映射）。未指定项继承服务器服务 profile；没有服务器文件时继承默认关闭值。后台不提供修改 `legacy_apps`、`legacy_app_id`、邮件、验证码、分享或输出节的入口。服务器 profile 无效时所有可选服务继续关闭，数据库覆盖不能绕过；后台覆盖损坏时仅关闭社交模块。
+
+该 option 不注册 REST 设置，不自动加载，不在首次访问页面时复制服务器密钥。管理员写入走独立 POST／nonce，供应商逐个保存且完整验证最终配置；任何失败保持已存配置。密码字段从不回填原密钥，空值保留当前有效密钥，清除须明确提交且停用提供者；更换 Client ID 必须同时更换密钥或禁用清除。恢复继承会重新采用服务器当时的开关与凭据。后台覆盖随 WordPress 数据库备份，不能视为与数据库隔离的秘密存储。

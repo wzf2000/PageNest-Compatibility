@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.0-rc.2
+
+- 新增管理员社交登录设置，逐家管理应用参数、密钥和启用状态，支持恢复服务器默认配置。
+- 密钥不回填，留空保留，变更应用须提供新密钥；配置写入串行化并在锁内刷新缓存。
+- 后台覆盖仅影响社交登录，服务器配置错误不能被覆盖掩盖；提供者默认不自动启用。
+- Add administrator-only social provider configuration with explicit inheritance, secret handling and fail-closed validation.
+
 ## 0.9.0-rc.1
 
 - 新增默认关闭的 GitHub、Google 与微信开放平台网站应用登录；沿用注册资料、绑定、恢复与删除清理规则，不按邮箱或 UnionID 合并。
