@@ -2,7 +2,7 @@
 /**
  * Plugin Name: PageNest Companion
  * Description: 为栖页主题提供评论邮件通知、Markdown 编辑兼容、数学公式与代码高亮支持，并提供章节链接、段落评论和点赞。
- * Version: 0.6.2
+ * Version: 0.7.0
  * Author: PageNest Contributors
  * License: GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -21,6 +21,22 @@ try {
     });
     return;
 }
+require_once __DIR__ . '/service-config.php';
+$GLOBALS['pagenest_companion_services_profile'] = pagenest_companion_service_defaults();
+if (defined('PAGENEST_COMPANION_SERVICES_FILE')) {
+    try {
+        $GLOBALS['pagenest_companion_services_profile'] = pagenest_companion_load_services(
+            PAGENEST_COMPANION_SERVICES_FILE,
+            ABSPATH,
+        );
+    } catch (Throwable $error) {
+        add_action('admin_notices', static function () {
+            echo '<div class="notice notice-error"><p>PageNest Companion service profile is invalid; optional services are disabled.</p></div>';
+        });
+    }
+}
+require_once __DIR__ . '/modules/services/bootstrap.php';
+require_once __DIR__ . '/modules/social/bootstrap.php';
 require_once __DIR__ . '/modules/settings.php';
 require_once __DIR__ . '/modules/views.php';
 require_once __DIR__ . '/prism-compatibility.php';

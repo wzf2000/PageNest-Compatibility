@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.0
+
+- 新增独立、默认关闭的 Brevo 邮件、原生四表单 Turnstile、QQ／微博／百度 OAuth 与本地文章分享模块；只从显式服务器配置读取凭据，不建立缓存或定时任务。
+- 社交身份以提供者、应用和 subject 唯一映射；迁移保留原用户和旧字段，绑定需 nonce，回调 state 绑定浏览器且一次使用，最后可用凭据不能解绑。
+- 沿用 WordPress 邮件构建、过滤与成功／失败事件；不补发历史通知，Brevo API 不支持的 CID 附件明确失败。
+- 输出处理独立且默认关闭，保持资源版本参数，不迁入自动数据库清理或供应商许可证服务。
+- Add opt-in mail, native-form verification and scoped social identity services without replacing user IDs, enabling caches or scheduling cleanup.
+
 ## 0.6.2
 
 - 新增默认关闭的轻量浏览计数、统计人群与纯文本模板；无页面缓存时统计公开文章和页面，缓存启用时停计并提示。

@@ -75,6 +75,10 @@ async function format() {
     comments_js: 'paragraph-comments.js',
     comments_css: 'paragraph-comments.css',
     likes_js: 'likes.js',
+    services_turnstile_js: 'services-turnstile.js',
+    social_qrcode_js: 'social-qrcode.js',
+    social_share_js: 'social-share.js',
+    social_ui_css: 'social-ui.css',
   })) {
     const content = fs.readFileSync(path.join(assets, name));
     const hash = crypto.createHash('sha256').update(content).digest('hex').slice(0, 12);

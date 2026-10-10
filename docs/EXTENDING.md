@@ -58,3 +58,20 @@ Reader Experience 的 `weekly_lock` 必须为不超过 64 字节的标识，按�
 `pagenest_companion_views_get($post_id)` 优先读取新键，缺失时回退到明确配置的旧键，返回整数；重复／无效／超界原始行抛出异常。`pagenest_companion_views_increment($post_id)` 返回新次数或 `WP_Error`，仍检查启用、公开可读文章类型、人群、缓存与旧负责人，且不会调用经验事件。首次计数在每文章数据库锁内承接旧计数，后续原子增量；整数溢出或数据库失败拒绝写入。`pagenest_article_actions` 上的展示只读，不提供旧全局函数或短代码。
 
 The optional `views` profile section accepts explicit `legacy_meta` and `legacy_owner_function` identifiers. Omitted fields stay empty. Reads prefer the new key and only fall back when absent; an existing legacy owner function disables counting and footer output. The new independent settings option defaults to disabled, and `_pagenest_companion_views` holds counts. The read API throws on malformed or duplicate metadata; increment returns an integer or `WP_Error`, serializes initialization and increments with a per-post database lock, and never emits experience events. Page caching is unsupported.
+
+## 可选服务配置
+
+`PAGENEST_COMPANION_SERVICES_FILE` 指向独立、受限、Web 根之外的 JSON 文件，格式为 `{"schema_version":1,"services":{}}`；它不向原共享兼容 profile 增加字段，避免破坏其他组件的严格 schema。没有常量时，邮件、验证码、社交与输出模块均关闭。配置无效只停用这些服务，既有阅读功能继续可用。新增路径必须精确加入服务器读取许可，不扩大整个目录的读取权限。各模块必须显式 `enabled: true`；开关必须为布尔值，未知字段拒绝。凭据只能放受限、Web 根外的配置文件，不写公共源码、安装 ZIP、普通后台设置、浏览器或错误日志。配置变更应原子替换，先校验完整服务 profile，并保存私有原版。
+
+- `mail`：`enabled`、`provider`（仅 `brevo`）、`api_key`、`from_email`、`from_name`、`reply_to_email`、`reply_to_name`。启用要求有效强制 From 和 API key；Reply-To 追加并沿用 API 的首个地址规则。WordPress 原生 `wp_mail` 构建、过滤和事件保留；成功表示 API 接收，失败不自动重试，避免超时后的重复投递。HTML／纯文本和普通附件可用，CID 内嵌资源明确失败，不承诺旧服务未提供的投递能力。
+- `turnstile`：`enabled`、`site_key`、`secret_key`、`hostname`、`scopes`（`login`、`register`、`reset`、`comments` 布尔值）、`theme`、`language`、`size`、`appearance`。服务端检查 success、精确 hostname、action 和 300 秒期限；不缓存成功结果。浏览器到 Cloudflare 加载 widget，服务端调用 Siteverify；网络失败拒绝提交并提供重试。原生四表单覆盖不包括段落评论 REST、REST/XML-RPC 认证或 OAuth 回调。
+- `social`：`enabled`、`allow_registration`、`avatar_enabled`、`share`、`providers`、`legacy_apps`。`share` 有 `enabled`、`posts`、`pages` 与 `providers`（`qq`、`weibo`、`qqzone`、`wechat` 列表）。`providers` 仅 `qq`、`sina`、`baidu`，每个包含 `enabled`、`client_id`、`client_secret`、`redirect_uri`，可选 `legacy_app_id`。回调必须 HTTPS 同源，迁移保持供应商已登记的精确 URL；QQ 身份按应用 OpenID，不根据 unionid 或邮箱合并。`legacy_apps` 显式映射旧提供者到应用 scope；无实现的历史提供者仅保留数据，不假定能登录。
+- `output`：`enabled`、`html_whitespace`，默认均 false。可选处理只移除匿名公开 HTML 文档外壳缩进，保护正文和代码／公式／脚本；保留资源 URL 版本，无缓存、字体远程下载、数据库清理、测速或定时任务。
+
+社交映射保存在 `_pagenest_social_bindings` 和以提供者／应用／subject 摘要命名的唯一 option 中。原 `open_type_*`、头像及旧 token 不删除或批量视作有效令牌。迁移为显式管理员维护动作，不在插件加载时运行；先 dry run、检查重复与原用户归属，再应用。解绑墓碑优先于旧字段，重复迁移不得复活已解除身份。迁移后出现新注册或绑定时，回退前必须带冲突守卫同步新增映射，不能仅恢复旧程序，更不能覆盖整库丢弃新的内容。
+
+OAuth state 随机、限时、一次使用，绑定浏览器 cookie、提供者、应用、当前用户和登录／绑定操作；返回地址只允许同源。绑定和解绑要求登录、POST 与 nonce；未知异常不展示上游响应或身份。没有可恢复邮箱的账号必须保留至少一个当前可用提供者。新注册还遵守 WordPress 注册开关，创建普通 subscriber，不按提供者资料合并已有账号。社交按钮不会触发经验补发。
+
+微信二维码使用 Kazuhiko Arase 的 MIT 授权 [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator/tree/83b7e8fe3fddd3b0368dbafd6ce56995bd25e3c8)，许可证随包保留；固定源 `js/dist/qrcode.js` 的 SHA256 为 `79ec86f82856005b1c887905cfccfcfbec3821ca61c7fd5a952faa5f778f791c`，经本仓库格式化后的资源由 manifest 标识。二维码本地生成，不向第三方二维码服务提交文章链接。其他分享按钮仅在点击后打开对应供应商网页，不自动发布微博。服务端请求强制验证 TLS，并限定官方提供者地址；供应商真实授权与实际邮件送达须单独验收，模拟 HTTP 不等于外部成功。
+
+维护测试：`php tests/services-contracts.php /path/to/wordpress` 使用实际核心与 PHPMailer、模拟 HTTP，不加载生产数据库或发信；`php tests/social-contracts.php` 检查身份与回调契约；`npm run test:service-browser` 检查验证码可达性。所有维护测试文件和依赖排除出安装包。

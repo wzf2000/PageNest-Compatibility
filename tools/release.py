@@ -76,7 +76,10 @@ def installation_name(name):
             or (SLUG == "pagenest" and name in {"style.css", "theme.json", "screenshot.png"})
         )
     return (
-        (path.parts[0] == "modules" and path.suffix == ".php")
+        (
+            path.parts[0] == "modules"
+            and (path.suffix == ".php" or name == "modules/social/QR-LICENSE.txt")
+        )
         or (path.parts[0] == "assets" and path.suffix in {".php", ".js", ".css", ".json", ".svg"})
         or (path.parts[0] == "docs" and path.suffix in {".md", ".svg"})
     )

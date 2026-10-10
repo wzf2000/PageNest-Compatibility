@@ -126,6 +126,8 @@ jobs:
           COMPANION_TEST_DB_USER: root
           COMPANION_TEST_DB_PASSWORD: synthetic-ci-password
         run: python3 tools/wp-integration.py --wp-cli /tmp/wp-cli.phar --lab /tmp/pagenest-companion-ci
+      - name: Run actual WordPress mail construction with mocked provider
+        run: php tests/services-contracts.php /tmp/pagenest-companion-ci/site
       - name: Preserve synthetic test evidence
         if: always()
         uses: actions/upload-artifact@v4

@@ -9,6 +9,10 @@ for key, name in [
     ("comments_js", "paragraph-comments.js"),
     ("comments_css", "paragraph-comments.css"),
     ("likes_js", "likes.js"),
+    ("services_turnstile_js", "services-turnstile.js"),
+    ("social_qrcode_js", "social-qrcode.js"),
+    ("social_share_js", "social-share.js"),
+    ("social_ui_css", "social-ui.css"),
 ]:
     content = (assets / name).read_bytes()
     path = Path(name)

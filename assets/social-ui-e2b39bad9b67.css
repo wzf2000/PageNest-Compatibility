@@ -1,0 +1,17 @@
+.pagenest-social-share {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-block: 1.5rem;
+  align-items: baseline;
+}
+.pagenest-social-qr canvas {
+  max-width: 100%;
+  height: auto;
+}
+.pagenest-social-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-block: 1rem;
+}
