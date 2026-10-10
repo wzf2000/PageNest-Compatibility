@@ -72,6 +72,19 @@ const { chromium } = require('@playwright/test');
           );
           const links = page.locator('.pagenest-social-buttons a');
           assert.equal(await links.count(), mode === 'anonymous' ? 3 : 2);
+          if (mode === 'anonymous') {
+            assert.equal(
+              await page.locator('.pagenest-social-provider svg[aria-hidden="true"]').count(),
+              3,
+            );
+            for (const control of await page.locator('.pagenest-social-provider').all()) {
+              assert((await control.boundingBox()).height >= 44);
+              assert((await control.innerText()).includes('登录'));
+              assert.equal(await control.locator('img').count(), 0);
+              await control.focus();
+              assert(await control.evaluate((el) => getComputedStyle(el).outlineStyle !== 'none'));
+            }
+          }
           for (const link of await links.all()) {
             assert(await link.isVisible());
             await link.scrollIntoViewIfNeeded();
@@ -111,7 +124,13 @@ const { chromium } = require('@playwright/test');
     const securityUiRoot = process.env.PAGENEST_SOCIAL_SECURITY_UI_ROOT;
     if (securityUiRoot) {
       for (const width of [390, 1440]) {
-        for (const mode of ['profile', 'registration', 'email-confirmation']) {
+        for (const mode of [
+          'profile',
+          'registration',
+          'registration-details',
+          'registration-errors',
+          'email-confirmation',
+        ]) {
           const page = await browser.newPage({ viewport: { width, height: 1000 } });
           await page.route('**/*', (route) => route.abort());
           const markup = fs.readFileSync(path.join(securityUiRoot, `${mode}.html`), 'utf8');
@@ -165,6 +184,40 @@ const { chromium } = require('@playwright/test');
                 ),
               );
             }
+          } else if (mode === 'registration-details' || mode === 'registration-errors') {
+            const login = page.locator('input[name="user_login"]');
+            const email = page.locator('input[name="user_email"]');
+            const nickname = page.locator('input[name="nickname"]');
+            assert(await login.evaluate((el) => el.required));
+            assert(await email.evaluate((el) => el.required && el.type === 'email'));
+            assert(!(await nickname.evaluate((el) => el.required)));
+            for (const control of [login, email, nickname]) {
+              assert(await control.isVisible());
+              assert(await control.evaluate((el) => el.labels.length > 0));
+            }
+            if (mode === 'registration-errors') {
+              assert((await page.locator('[role="alert"]').count()) > 0);
+              assert((await login.inputValue()).length > 0);
+            }
+            await login.fill('');
+            await email.fill('');
+            await page.locator('button[name="choice"][value="register"]').click();
+            assert(await page.evaluate(() => !window.syntheticSubmission));
+            await login.fill('synthetic_reader');
+            await email.fill('synthetic-reader@example.test');
+            await nickname.fill('合成昵称');
+            await page.locator('button[name="choice"][value="register"]').click();
+            assert(
+              await page.evaluate(
+                () =>
+                  window.syntheticSubmission.choice === 'register' &&
+                  window.syntheticSubmission.user_login === 'synthetic_reader' &&
+                  window.syntheticSubmission.user_email === 'synthetic-reader@example.test' &&
+                  window.syntheticSubmission.nickname === '合成昵称' &&
+                  !!window.syntheticSubmission.pending &&
+                  !!window.syntheticSubmission._wpnonce,
+              ),
+            );
           } else {
             await page.getByRole('button', { name: '确认邮箱', exact: true }).click();
             assert(

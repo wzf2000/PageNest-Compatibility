@@ -1,12 +1,14 @@
 <?php
 defined('ABSPATH') || exit();
+require_once __DIR__ . '/icons.php';
 function pagenest_social_buttons($return = '')
 {
     if (!pagenest_social_active() || is_user_logged_in()) {
         return '';
     }
     $labels = ['qq' => 'QQ', 'sina' => '微博', 'baidu' => '百度'];
-    $html = '<div class="pagenest-social-buttons" aria-label="社交登录">';
+    $html =
+        '<div class="pagenest-social-login-options"><div class="pagenest-social-divider"><span>或使用第三方账号</span></div><div class="pagenest-social-buttons pagenest-social-providers" role="group" aria-label="社交登录">';
     foreach ($labels as $provider => $label) {
         if (!pagenest_social_provider_config($provider)) {
             continue;
@@ -20,13 +22,18 @@ function pagenest_social_buttons($return = '')
             admin_url('admin-post.php'),
         );
         $html .=
-            '<a class="button" href="' .
+            '<a class="button pagenest-social-provider pagenest-social-provider--' .
+            esc_attr($provider) .
+            '" href="' .
             esc_url($url) .
             '">' .
-            esc_html($label . ' 登录') .
-            '</a> ';
+            pagenest_social_provider_icon($provider) .
+            '<span>使用 ' .
+            esc_html($label) .
+            ' 登录</span>' .
+            '</a>';
     }
-    return $html . '</div>';
+    return $html . '</div></div>';
 }
 function pagenest_social_login_panel($return = '')
 {

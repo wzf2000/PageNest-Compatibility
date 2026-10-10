@@ -43,7 +43,7 @@ def main():
     worker("prepare")
     results = {}
     try:
-        for mode in ["register", "email", "pending"]:
+        for mode in ["register", "register-username", "register-email", "email", "pending"]:
             with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
                 outcomes = list(pool.map(worker, [mode, mode]))
             assert sorted(row["result"] for row in outcomes) == ["accepted", "refused"]

@@ -7,6 +7,7 @@ $GLOBALS['users'] = [];
 $GLOBALS['current'] = 0;
 $GLOBALS['wpdb'] = new class {
     public $users = 'synthetic_users';
+    public $options = 'synthetic_options';
     public $last_error = '';
     public function prepare($query, $id)
     {
@@ -16,6 +17,20 @@ $GLOBALS['wpdb'] = new class {
     {
         $this->last_error = !empty($GLOBALS['fail_owner_lookup']) ? 'synthetic failure' : '';
         return $this->last_error === '' && isset($GLOBALS['users'][$id]) ? (string) $id : null;
+    }
+    public function esc_like($value)
+    {
+        return addcslashes($value, '_%\\');
+    }
+    public function get_col($query)
+    {
+        $this->last_error = '';
+        return array_values(
+            array_filter(
+                array_keys($GLOBALS['options']),
+                static fn($key) => str_starts_with($key, '_pagenest_social_identity_'),
+            ),
+        );
     }
 };
 $GLOBALS['config'] = [
@@ -94,6 +109,7 @@ function delete_user_meta($id, $key)
 function wp_delete_user($id)
 {
     unset($GLOBALS['users'][$id], $GLOBALS['meta'][$id]);
+    pagenest_social_deleted_user($id);
     return true;
 }
 function update_user_meta($id, $key, $value)
@@ -161,6 +177,44 @@ function is_multisite()
 function sanitize_text_field($value)
 {
     return strip_tags($value);
+}
+function sanitize_user($value, $strict = false)
+{
+    return trim(preg_replace('/[^a-zA-Z0-9 _.@-]/', '', $value));
+}
+function validate_username($value)
+{
+    return $value !== '' && sanitize_user($value, true) === $value;
+}
+function apply_filters($name, $value)
+{
+    return $name === 'illegal_user_logins' ? ['reserved'] : $value;
+}
+function username_exists($value)
+{
+    foreach ($GLOBALS['users'] as $id => $user) {
+        if (strtolower($user->user_login ?? '') === strtolower($value)) {
+            return $id;
+        }
+    }
+    return false;
+}
+function email_exists($value)
+{
+    foreach ($GLOBALS['users'] as $id => $user) {
+        if (strtolower($user->user_email ?? '') === strtolower($value)) {
+            return $id;
+        }
+    }
+    return false;
+}
+function registration_details($suffix)
+{
+    return [
+        'user_login' => 'synthetic_' . $suffix,
+        'user_email' => 'synthetic_' . $suffix . '@example.test',
+        'nickname' => 'Synthetic',
+    ];
 }
 function add_query_arg($args, $url)
 {
@@ -432,11 +486,17 @@ function wp_insert_user($data)
 }
 $provider_config = $GLOBALS['config']['providers']['qq'];
 $identity = ['subject' => 'registration-subject', 'name' => 'Synthetic'];
-$id = pagenest_social_login_identity('qq', $provider_config, $identity, true);
+$id = pagenest_social_login_identity(
+    'qq',
+    $provider_config,
+    $identity,
+    true,
+    registration_details('main'),
+);
 check($GLOBALS['users'][$id]->role === 'subscriber', 'registration minimum role');
 check(
-    str_ends_with($GLOBALS['users'][$id]->user_email, '@social.invalid'),
-    'registration placeholder',
+    $GLOBALS['users'][$id]->user_email === 'synthetic_main@example.test',
+    'registration uses supplied email',
 );
 check(
     pagenest_social_login_identity('qq', $provider_config, $identity) === $id,
@@ -490,6 +550,7 @@ rejects(
             'name' => 'Synthetic',
         ],
         true,
+        registration_details('rollback'),
     ),
     'registration metadata failure',
 );
@@ -504,6 +565,7 @@ rejects(
             'name' => 'Synthetic',
         ],
         true,
+        registration_details('rollback'),
     ),
     'registration index failure',
 );
@@ -651,7 +713,13 @@ check(
 );
 check(get_option($deleted_key, null) === null, 'deleted owner is removed');
 $GLOBALS['config']['allow_registration'] = true;
-$new_owner = pagenest_social_login_identity('qq', $deleted_config, $deleted_identity, true);
+$new_owner = pagenest_social_login_identity(
+    'qq',
+    $deleted_config,
+    $deleted_identity,
+    true,
+    registration_details('replacement'),
+);
 check(
     get_option($deleted_key) === ['user_id' => $new_owner],
     'confirmed registration claims released identity',
@@ -702,4 +770,78 @@ check(
     'deleted account tombstone continues suppressing legacy identity',
 );
 check(get_option($legacy_key) === $tombstone, 'tombstone is not discarded');
+
+$valid_details = registration_details('validation');
+foreach (
+    [
+        [],
+        array_replace($valid_details, ['user_login' => 'reserved']),
+        array_replace($valid_details, ['user_login' => 'bad<script>name']),
+        array_replace($valid_details, ['user_login' => ' padded ']),
+        array_replace($valid_details, ['user_login' => str_repeat('a', 61)]),
+        array_replace($valid_details, ['user_email' => 'bad-email']),
+        array_replace($valid_details, ['user_email' => 'placeholder@social.invalid']),
+        array_replace($valid_details, ['user_email' => str_repeat('a', 89) . '@example.test']),
+        array_replace($valid_details, ['user_email' => 'synthetic_main@example.test']),
+        array_replace($valid_details, ['user_login' => 'synthetic_main']),
+        array_replace($valid_details, ['nickname' => str_repeat('a', 251)]),
+    ]
+    as $invalid_details
+) {
+    rejects(
+        static fn() => pagenest_social_registration_details($invalid_details),
+        'invalid or duplicate supplied registration details refused',
+    );
+}
+check(
+    pagenest_social_registration_details(
+        array_replace($valid_details, ['nickname' => '<b>Chosen</b>']),
+    )['nickname'] === 'Chosen',
+    'nickname sanitizes markup',
+);
+check(
+    pagenest_social_registration_details(array_replace($valid_details, ['nickname' => '']))[
+        'nickname'
+    ] === $valid_details['user_login'],
+    'empty nickname uses username',
+);
+check(
+    pagenest_social_registration_details(array_replace($valid_details, ['nickname' => '0']))[
+        'nickname'
+    ] === '0',
+    'nonempty zero nickname retained',
+);
+$count = count($GLOBALS['users']);
+rejects(
+    static fn() => pagenest_social_login_identity(
+        'qq',
+        $deleted_config,
+        ['subject' => 'missing-details', 'name' => 'Name'],
+        true,
+    ),
+    'confirmed registration has no generated username or email fallback',
+);
+check(count($GLOBALS['users']) === $count, 'missing registration details create no user');
+
+$cleanup_key = pagenest_social_identity_key('qq', 'cleanup-app', 'cleanup-owner');
+$cleanup_tombstone = pagenest_social_identity_key('qq', 'cleanup-app', 'cleanup-tombstone');
+add_option($cleanup_key, ['user_id' => 99998]);
+add_option($cleanup_tombstone, ['user_id' => 0, 'unbound_from' => 99998]);
+pagenest_social_deleted_user(1);
+check(get_option($bind_key) === ['user_id' => 1], 'spurious deletion hook preserves live owner');
+pagenest_social_lock($cleanup_key, static fn() => pagenest_social_deleted_user(99998));
+check(
+    get_option($cleanup_key) === ['user_id' => 99998],
+    'deletion hook skips held lock without recursion',
+);
+check(
+    get_option($cleanup_tombstone, null) === null,
+    'deletion hook removes deleted user tombstone',
+);
+pagenest_social_deleted_user(99998);
+check(get_option($cleanup_key, null) === null, 'deletion hook removes deleted user owner');
+check(
+    get_option($bind_key) === ['user_id' => 1],
+    'deletion hook leaves unrelated live owner intact',
+);
 echo "Social contracts: $checks checks passed; mock HTTP only.\n";

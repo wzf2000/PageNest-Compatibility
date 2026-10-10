@@ -254,7 +254,11 @@ try {
         pagenest_social_login_identity('qq', $config, $identity) === 0,
         'unknown callback cannot auto-register',
     );
-    $new = pagenest_social_login_identity('qq', $config, $identity, true);
+    $new = pagenest_social_login_identity('qq', $config, $identity, true, [
+        'user_login' => $prefix . '_new',
+        'user_email' => $prefix . '_new@example.test',
+        'nickname' => 'Synthetic reader',
+    ]);
     $created[] = $new;
     $assert(get_userdata($new)->roles === ['subscriber'], 'explicit registration minimum role');
     $assert(
@@ -294,7 +298,7 @@ try {
         'browser' => hash('sha256', 'fixture-browser'),
         'provider' => 'qq',
         'app' => $prefix,
-        'identity' => $identity,
+        'identity' => ['subject' => $prefix . '_pending', 'name' => 'Synthetic pending nickname'],
         'return' => home_url('/'),
     ];
     set_transient($pending_key, $pending_record, 600);
@@ -326,6 +330,49 @@ try {
             get_transient($pending_key) === $pending_record,
             'GET choice does not consume authorization',
         );
+        $page_markup = '';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST = ['choice' => 'create', '_wpnonce' => wp_create_nonce('pagenest-social-register')];
+        try {
+            pagenest_social_registration_route();
+        } catch (RuntimeException $error) {
+        }
+        $ui['registration-details'] = $page_markup;
+        $assert(
+            str_contains($page_markup, 'name="user_login"') &&
+                str_contains($page_markup, 'name="user_email"') &&
+                str_contains($page_markup, 'Synthetic pending nickname'),
+            'create renders required details and provider nickname',
+        );
+        $assert(
+            get_transient($pending_key) === $pending_record,
+            'create choice does not consume authorization',
+        );
+        $page_markup = '';
+        $_POST = [
+            'choice' => 'register',
+            '_wpnonce' => wp_create_nonce('pagenest-social-register'),
+            'user_login' => 'bad<script>name',
+            'user_email' => 'invalid-email',
+            'nickname' => '<b>Kept</b>',
+        ];
+        try {
+            pagenest_social_registration_route();
+        } catch (RuntimeException $error) {
+        }
+        $ui['registration-errors'] = $page_markup;
+        $assert(
+            str_contains($page_markup, 'role="alert"') &&
+                str_contains($page_markup, 'value="invalid-email"') &&
+                !str_contains($page_markup, 'bad<script>name'),
+            'invalid details remain escaped in retry form',
+        );
+        $assert(
+            get_transient($pending_key) === $pending_record,
+            'invalid form preserves authorization',
+        );
+        $_POST = [];
+        $_SERVER['REQUEST_METHOD'] = 'GET';
         $login($two);
         $page_markup = '';
         $_GET = $_REQUEST = [
@@ -374,6 +421,79 @@ try {
         'pending choice expiry enforced',
     );
     delete_transient($pending_key);
+    $pending_record['expires'] = time() + 600;
+    set_transient($pending_key, $pending_record, 600);
+    $details = [
+        'user_login' => $prefix . '_form',
+        'user_email' => $prefix . '_form@example.test',
+        'nickname' => '<b>Chosen nickname</b>',
+    ];
+    $users_before_invalid = count_users()['total_users'];
+    foreach (
+        [
+            [],
+            array_replace($details, ['user_login' => '']),
+            array_replace($details, ['user_email' => '']),
+            array_replace($details, ['user_login' => '名字']),
+            array_replace($details, ['user_login' => ' padded ']),
+            array_replace($details, ['user_login' => str_repeat('a', 61)]),
+            array_replace($details, ['user_email' => str_repeat('a', 89) . '@example.test']),
+            array_replace($details, ['user_email' => 'bad-email']),
+            array_replace($details, ['user_login' => get_userdata($one)->user_login]),
+            array_replace($details, ['user_email' => get_userdata($one)->user_email]),
+            array_replace($details, ['nickname' => str_repeat('名', 251)]),
+        ]
+        as $invalid
+    ) {
+        $reject(
+            static fn() => pagenest_social_pending_register($pending, 'fixture-browser', $invalid),
+            'invalid registration details refused before account creation',
+        );
+        $assert(
+            get_transient($pending_key) === $pending_record,
+            'invalid details preserve pending for retry',
+        );
+    }
+    $assert(
+        count_users()['total_users'] === $users_before_invalid,
+        'invalid attempts create no users',
+    );
+    $mail_before_registration = count($mail);
+    $registered = pagenest_social_pending_register($pending, 'fixture-browser', $details);
+    $created[] = $registered['user_id'];
+    $registered_user = get_userdata($registered['user_id']);
+    $assert(
+        $registered_user->user_login === $details['user_login'] &&
+            $registered_user->user_email === $details['user_email'],
+        'registration saves explicit username and email',
+    );
+    $assert(
+        $registered_user->display_name === 'Chosen nickname' &&
+            $registered_user->nickname === 'Chosen nickname',
+        'nickname is sanitized and used for display',
+    );
+    $assert(
+        !pagenest_social_email_verified($registered['user_id']),
+        'supplied email remains unverified',
+    );
+    $assert(
+        count($mail) === $mail_before_registration,
+        'social registration sends no email automatically',
+    );
+    $assert(!get_transient($pending_key), 'successful creation consumes pending');
+    $reject(
+        static fn() => pagenest_social_pending_register($pending, 'fixture-browser', $details),
+        'successful registration cannot replay',
+    );
+    $fallback = pagenest_social_registration_details([
+        'user_login' => $prefix . '_fallback',
+        'user_email' => $prefix . '_fallback@example.test',
+        'nickname' => '',
+    ]);
+    $assert(
+        $fallback['nickname'] === $fallback['user_login'],
+        'blank nickname falls back to username',
+    );
     $login($two);
     $state = 'pn.qq.' . str_repeat('c', 64);
     $state_key = 'pagenest_social_state_' . hash('sha256', $state);
@@ -396,12 +516,15 @@ try {
     );
     delete_transient($state_key);
 
-    // Reproduce normal WordPress user deletion, which leaves the option index.
+    // Normal deletion proactively clears owners and historical tombstones.
     $login(0);
     $deleted_config = $config;
     $deleted_config['client_id'] = $prefix . '_deleted';
     $deleted_identity = ['subject' => 'deleted-login', 'name' => 'Synthetic deleted account'];
-    $deleted = pagenest_social_login_identity('qq', $deleted_config, $deleted_identity, true);
+    $deleted = pagenest_social_login_identity('qq', $deleted_config, $deleted_identity, true, [
+        'user_login' => $prefix . '_deleted',
+        'user_email' => $prefix . '_deleted@example.test',
+    ]);
     $created[] = $deleted;
     $deleted_key = pagenest_social_identity_key(
         'qq',
@@ -414,18 +537,39 @@ try {
         'deleted-bind',
     );
     pagenest_social_bind($deleted, 'baidu', $deleted_config['client_id'], 'deleted-bind');
+    $deleted_tombstone = pagenest_social_identity_key(
+        'qq',
+        $deleted_config['client_id'],
+        'deleted-tombstone',
+    );
+    add_option($deleted_tombstone, ['user_id' => 0, 'unbound_from' => $deleted], '', false);
+    pagenest_social_deleted_user($deleted);
+    $assert(
+        get_option($deleted_key) === ['user_id' => $deleted],
+        'deletion handler never removes a live account owner',
+    );
     require_once ABSPATH . 'wp-admin/includes/user.php';
     $assert(wp_delete_user($deleted), 'delete synthetic WordPress account');
     $assert(
-        get_option($deleted_key) === ['user_id' => $deleted],
-        'normal deletion leaves social owner',
+        get_option($deleted_key, null) === null && get_option($deleted_bind_key, null) === null,
+        'normal deletion proactively clears all bound social owners',
     );
+    $assert(
+        get_option($deleted_tombstone, null) === null,
+        'normal deletion clears historical tombstone',
+    );
+    // Simulate an orphan retained by a version predating the deletion hook.
+    add_option($deleted_key, ['user_id' => $deleted], '', false);
+    add_option($deleted_bind_key, ['user_id' => $deleted], '', false);
     $assert(
         pagenest_social_login_identity('qq', $deleted_config, $deleted_identity) === 0,
         'deleted identity reaches explicit registration choice',
     );
     $assert(get_option($deleted_key, null) === null, 'verified missing user releases owner');
-    $replacement = pagenest_social_login_identity('qq', $deleted_config, $deleted_identity, true);
+    $replacement = pagenest_social_login_identity('qq', $deleted_config, $deleted_identity, true, [
+        'user_login' => $prefix . '_replacement',
+        'user_email' => $prefix . '_replacement@example.test',
+    ]);
     $created[] = $replacement;
     $assert(
         $replacement !== $deleted && get_userdata($replacement)->roles === ['subscriber'],

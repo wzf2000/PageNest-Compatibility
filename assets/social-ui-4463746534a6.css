@@ -1,0 +1,116 @@
+.pagenest-social-share {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-block: 1.5rem;
+  align-items: baseline;
+}
+.pagenest-social-qr canvas {
+  max-width: 100%;
+  height: auto;
+}
+.pagenest-social-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-block: 1rem;
+}
+
+.pagenest-social-login-options {
+  width: 100%;
+}
+.pagenest-social-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0 14px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.pagenest-social-divider::before,
+.pagenest-social-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #dce3ec;
+}
+.pagenest-social-providers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+  gap: 10px;
+  margin: 0 0 18px;
+}
+.login .pagenest-social-providers {
+  grid-template-columns: 1fr;
+}
+.pagenest-social-buttons a.pagenest-social-provider {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  min-height: 46px;
+  width: 100%;
+  padding: 10px 14px;
+  margin: 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #fff;
+  color: #273449;
+  box-shadow: 0 1px 2px #0f172a08;
+  font:
+    500 14px/1.5 system-ui,
+    sans-serif;
+  text-align: center;
+  text-decoration: none;
+  white-space: normal;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+.pagenest-social-provider::after {
+  content: '';
+  width: 20px;
+}
+.pagenest-social-provider .pagenest-social-icon {
+  display: block;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.pagenest-social-provider--qq .pagenest-social-icon {
+  color: #111827;
+}
+.pagenest-social-provider--baidu .pagenest-social-icon {
+  color: #2932e1;
+}
+.pagenest-social-provider--sina .pagenest-social-icon {
+  color: #e6162d;
+}
+.pagenest-social-buttons a.pagenest-social-provider:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #172033;
+  box-shadow: 0 2px 6px #0f172a0d;
+}
+.pagenest-social-buttons a.pagenest-social-provider:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 3px;
+  border-color: #2563eb;
+  box-shadow: none;
+}
+.pagenest-social-buttons a.pagenest-social-provider:active {
+  background: #edf2f7;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pagenest-social-buttons a.pagenest-social-provider {
+    transition: none;
+  }
+}
+@media (forced-colors: active) {
+  .pagenest-social-provider .pagenest-social-icon {
+    color: ButtonText;
+  }
+}

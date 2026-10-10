@@ -70,7 +70,9 @@ $GLOBALS['pagenest_companion_services_profile']['social'] = [
     'providers' => ['qq' => $config],
 ];
 $key = pagenest_social_identity_key('qq', $data['prefix'], $data['prefix']);
-if (in_array($mode, ['register', 'email', 'pending'], true)) {
+if (
+    in_array($mode, ['register', 'register-username', 'register-email', 'email', 'pending'], true)
+) {
     try {
         if ($mode === 'register') {
             pagenest_social_login_identity(
@@ -78,6 +80,32 @@ if (in_array($mode, ['register', 'email', 'pending'], true)) {
                 $config,
                 ['subject' => $data['prefix'], 'name' => 'Synthetic'],
                 true,
+                [
+                    'user_login' => $data['prefix'] . '_new',
+                    'user_email' => $data['prefix'] . '_new@example.test',
+                ],
+            );
+        } elseif (in_array($mode, ['register-username', 'register-email'], true)) {
+            $suffix = bin2hex(random_bytes(5));
+            // Different identity in each process: these races must be stopped
+            // by the username/email locks, not the provider identity lock.
+            pagenest_social_login_identity(
+                'qq',
+                $config,
+                [
+                    'subject' => $data['prefix'] . '_' . $mode . '_' . $suffix,
+                    'name' => 'Synthetic',
+                ],
+                true,
+                [
+                    'user_login' =>
+                        $data['prefix'] .
+                        ($mode === 'register-username' ? '_shared_login' : '_e_' . $suffix),
+                    'user_email' =>
+                        $data['prefix'] .
+                        ($mode === 'register-email' ? '_shared' : '_n_' . $suffix) .
+                        '@example.test',
+                ],
             );
         } elseif ($mode === 'email') {
             wp_set_current_user($data['user']);
@@ -104,7 +132,28 @@ if (in_array($mode, ['register', 'email', 'pending'], true)) {
     ) {
         throw new RuntimeException('Concurrent security postcondition failed.');
     }
-    echo "{\"registration_owners\":1,\"email_verified\":true,\"pending_consumed\":true}\n";
+    foreach (
+        [
+            ['user_login', $data['prefix'] . '_shared_login'],
+            ['user_email', $data['prefix'] . '_shared@example.test'],
+        ]
+        as [$field, $value]
+    ) {
+        $ids = $wpdb->get_col(
+            $wpdb->prepare("SELECT ID FROM {$wpdb->users} WHERE {$field} = %s", $value),
+        );
+        if (count($ids) !== 1) {
+            throw new RuntimeException('Registration field uniqueness failed.');
+        }
+        $bindings = get_user_meta((int) $ids[0], '_pagenest_social_bindings', true);
+        if (
+            count($bindings) !== 1 ||
+            pagenest_social_owner(array_key_first($bindings))['user_id'] !== (int) $ids[0]
+        ) {
+            throw new RuntimeException('Registration field owner failed.');
+        }
+    }
+    echo "{\"registration_owners\":1,\"shared_username_owners\":1,\"shared_email_owners\":1,\"email_verified\":true,\"pending_consumed\":true}\n";
 } elseif ($mode === 'cleanup') {
     $owner = pagenest_social_owner($key);
     delete_option($key);
@@ -112,6 +161,19 @@ if (in_array($mode, ['register', 'email', 'pending'], true)) {
     require_once ABSPATH . 'wp-admin/includes/user.php';
     if (is_array($owner) && $owner['user_id']) {
         wp_delete_user($owner['user_id']);
+    }
+    foreach (
+        get_users([
+            'search' => $data['prefix'] . '_*',
+            'search_columns' => ['user_login'],
+            'fields' => 'ID',
+        ])
+        as $id
+    ) {
+        // Only users bearing this fixture's random prefix are owned here.
+        if (str_starts_with(get_userdata($id)->user_login, $data['prefix'] . '_')) {
+            wp_delete_user($id);
+        }
     }
     wp_delete_user($data['user']);
     update_option('users_can_register', $data['original_registration']);

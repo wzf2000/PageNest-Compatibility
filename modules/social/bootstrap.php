@@ -10,6 +10,7 @@ add_action('set_auth_cookie', 'pagenest_social_pending_clear_browser');
 add_action('clear_auth_cookie', 'pagenest_social_pending_clear_browser');
 add_action('admin_post_nopriv_pagenest_social_email_confirm', 'pagenest_social_email_signin');
 add_action('profile_update', 'pagenest_social_email_changed', 10, 2);
+add_action('deleted_user', 'pagenest_social_deleted_user');
 foreach (['password', 'email_request', 'email_confirm'] as $action) {
     add_action('admin_post_pagenest_social_' . $action, 'pagenest_social_security_route');
 }
