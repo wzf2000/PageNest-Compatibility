@@ -1,10 +1,57 @@
 # Changelog
 
-## Unreleased
+## 0.10.0-rc.1
 
 - 新增独立配置驱动的资源目录、内容导览、文章阅读跳转、归档导览和章节展示模块，保留原生正文、锚点、权限和私人记录。
 - 移除失效的 Editor.md footer 补丁；新安装包不携带旧编辑器预览或专用公式资源。
 - Add optional content presentation modules with server-side access checks and progressive controls.
+
+## 0.9.0-rc.4
+
+- 个人资料采用安全确认、恢复邮箱和带品牌图标的登录方式卡片，已连接的当前应用不再重复显示连接按钮。
+- 历史连接单独标明不可用于当前登录，保留安全解绑；前台与后台支持移动布局、键盘操作和独立表单。
+- 身份确认、连接、解绑与邮箱验证新增短期、会话绑定、一次性服务端反馈，不以 URL 参数决定成功状态。
+- Improve social account management cards and accessible, session-bound operation feedback.
+
+## 0.9.0-rc.3
+
+- 新增默认关闭、仅服务器可配置的 Google Unix SOCKS 出口，仅覆盖固定令牌与证书接口。
+- 保持 TLS 和身份校验，代理不可用时明确失败，不影响其他提供者或邮件请求。
+- Add an opt-in Google-only Unix SOCKS transport with strict TLS verification and scoped request hooks.
+
+## 0.9.0-rc.2
+
+- 新增管理员社交登录设置，逐家管理应用参数、密钥和启用状态，支持恢复服务器默认配置。
+- 密钥不回填，留空保留，变更应用须提供新密钥；配置写入串行化并在锁内刷新缓存。
+- 后台覆盖仅影响社交登录，服务器配置错误不能被覆盖掩盖；提供者默认不自动启用。
+- Add administrator-only social provider configuration with explicit inheritance, secret handling and fail-closed validation.
+
+## 0.9.0-rc.1
+
+- 新增默认关闭的 GitHub、Google 与微信开放平台网站应用登录；沿用注册资料、绑定、恢复与删除清理规则，不按邮箱或 UnionID 合并。
+- GitHub 使用 PKCE 与数字身份；Google 使用 PKCE、nonce 与 RS256 签名／声明校验；微信严格匹配应用内 OpenID。历史 GitHub 不自动认领。
+- 新入口采用品牌图标＋文字；Google 使用本地原版官方资源。
+- Add opt-in GitHub, Google OIDC and WeChat website login with scoped identities and offline protocol tests. No provider is enabled automatically.
+
+## 0.8.0-rc.3
+
+- 第三方登录入口采用本地品牌 SVG 图标与文字按钮，统一触控尺寸、键盘焦点与移动布局。
+
+- 首次第三方注册增加资料表单：用户名／邮箱必填、昵称选填，错误可修改重试，不按邮箱合并或自动验证。
+- WordPress 用户删除后清理其社交归属和解绑记录，保留身份锁与孤立记录兜底。
+- Add explicit social registration details and post-deletion identity cleanup.
+
+## 0.8.0-rc.2
+
+- 删除 WordPress 用户后，登录／绑定在身份锁内核实原用户确已不存在，再释放残留归属记录，允许明确重新注册或绑定；存活账号冲突、解绑标记和旧身份规则保持。
+- Recover orphaned social identity owners after user deletion; database lookup failures remain fail-closed.
+
+## 0.8.0-rc.1
+
+- 绑定、解绑及恢复邮箱验证要求当前会话十分钟内重新确认身份，支持密码与已绑定供应商；密码确认及发信限流。
+- 最后解绑只接受其他有效且归属一致的供应商，或已通过一次性链接验证的当前邮箱；历史邮箱不自动信任，邮箱变更撤销验证。
+- 未知社交身份先选择创建新账号或登录已有账号后重新绑定；选择限时、浏览器绑定、一次消费，不按邮箱合并账号。
+- Add session-bound reauthentication, explicit first-login registration and verified recovery email protection. This is a release candidate; no automatic migration or provider activation.
 
 ## 0.7.1
 

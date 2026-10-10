@@ -1,6 +1,7 @@
 <?php
 /** Fixed provider endpoints; never accept endpoints supplied by a browser. */
 defined('ABSPATH') || exit();
+require_once __DIR__ . '/provider-security.php';
 function pagenest_social_endpoints($provider)
 {
     return [
@@ -19,6 +20,20 @@ function pagenest_social_endpoints($provider)
             'authorize' => 'https://openapi.baidu.com/oauth/2.0/authorize',
             'token' => 'https://openapi.baidu.com/oauth/2.0/token',
             'profile' => 'https://openapi.baidu.com/rest/2.0/passport/users/getLoggedInUser',
+        ],
+        'github' => [
+            'authorize' => 'https://github.com/login/oauth/authorize',
+            'token' => 'https://github.com/login/oauth/access_token',
+            'profile' => 'https://api.github.com/user',
+        ],
+        'google' => [
+            'authorize' => 'https://accounts.google.com/o/oauth2/v2/auth',
+            'token' => 'https://oauth2.googleapis.com/token',
+        ],
+        'wechat' => [
+            'authorize' => 'https://open.weixin.qq.com/connect/qrconnect',
+            'token' => 'https://api.weixin.qq.com/sns/oauth2/access_token',
+            'profile' => 'https://api.weixin.qq.com/sns/userinfo',
         ],
     ][$provider] ?? null;
 }
@@ -63,7 +78,7 @@ function pagenest_social_http($url, $params, $post = false)
     }
     return $data;
 }
-function pagenest_social_authorize_url($provider, $config, $state)
+function pagenest_social_authorize_url($provider, $config, $state, $record = [])
 {
     $params = [
         'response_type' => 'code',
@@ -71,16 +86,35 @@ function pagenest_social_authorize_url($provider, $config, $state)
         'redirect_uri' => $config['redirect_uri'],
         'state' => $state,
     ];
+    if ($provider === 'wechat') {
+        unset($params['client_id']);
+        $params['appid'] = $config['client_id'];
+        $params['scope'] = 'snsapi_login';
+        return pagenest_social_query_url(
+            $params,
+            pagenest_social_endpoints($provider)['authorize'],
+        ) . '#wechat_redirect';
+    }
     if ($provider === 'qq') {
         $params['scope'] = 'get_user_info';
     }
     if ($provider === 'baidu') {
         $params['scope'] = 'basic';
     }
+    if (in_array($provider, ['github', 'google'], true)) {
+        $params += pagenest_social_pkce_authorize($provider, $record);
+        $params['scope'] = $provider === 'google' ? 'openid profile' : 'read:user';
+    }
     return pagenest_social_query_url($params, pagenest_social_endpoints($provider)['authorize']);
 }
-function pagenest_social_exchange($provider, $config, $code)
+function pagenest_social_exchange($provider, $config, $code, $record = [])
 {
+    if ($provider === 'wechat') {
+        return pagenest_social_wechat_exchange($config, $code);
+    }
+    if (in_array($provider, ['github', 'google'], true)) {
+        return pagenest_social_modern_exchange($provider, $config, $code, $record);
+    }
     $urls = pagenest_social_endpoints($provider);
     $token = pagenest_social_http(
         $urls['token'],
@@ -168,6 +202,8 @@ function pagenest_social_avatar_url($url)
         'githubusercontent.com',
         'github.com',
         'gravatar.com',
+        'googleusercontent.com',
+        'qpic.cn',
     ];
     foreach ($hosts as $host) {
         if ($parts['host'] === $host || str_ends_with(strtolower($parts['host']), '.' . $host)) {

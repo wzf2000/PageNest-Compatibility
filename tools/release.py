@@ -80,7 +80,10 @@ def installation_name(name):
             path.parts[0] == "modules"
             and (path.suffix == ".php" or name == "modules/social/QR-LICENSE.txt")
         )
-        or (path.parts[0] == "assets" and path.suffix in {".php", ".js", ".css", ".json", ".svg"})
+        or (
+            path.parts[0] == "assets"
+            and path.suffix in {".php", ".js", ".css", ".json", ".svg", ".png"}
+        )
         or (path.parts[0] == "docs" and path.suffix in {".md", ".svg"})
     )
 

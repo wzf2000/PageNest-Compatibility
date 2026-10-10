@@ -33,6 +33,34 @@ check(invalid(['mail' => ['provider' => 'smtp']]));
 check(invalid(['turnstile' => ['enabled' => true]]));
 check(invalid(['turnstile' => ['scopes' => ['rest' => true]]]));
 check(invalid(['social' => ['enabled' => true]]));
+check(
+    pagenest_companion_service_defaults()['social']['google_proxy'] === [
+        'enabled' => false,
+        'unix_socket' => '',
+    ],
+);
+foreach (
+    [
+        ['enabled' => true],
+        ['enabled' => 1],
+        ['unix_socket' => 'relative.sock'],
+        ['unix_socket' => '/tmp/../proxy.sock'],
+        ['unix_socket' => '/tmp/proxy.sock?override=1'],
+        ['url' => 'http://arbitrary.example'],
+    ]
+    as $proxy
+) {
+    check(invalid(['social' => ['google_proxy' => $proxy]]));
+}
+$proxy_config = pagenest_companion_validate_services([
+    'social' => [
+        'google_proxy' => ['enabled' => true, 'unix_socket' => '/tmp/synthetic-proxy.sock'],
+    ],
+]);
+check(
+    $proxy_config['social']['google_proxy']['enabled'] === true &&
+        $proxy_config['social']['enabled'] === false,
+);
 check(invalid(['social' => ['providers' => ['arbitrary' => []]]]));
 check(
     invalid([
@@ -42,6 +70,55 @@ check(
     ]),
 );
 check(invalid(['social' => ['share' => ['providers' => ['custom']]]]));
+foreach (['github', 'google', 'wechat'] as $provider) {
+    $candidate = pagenest_companion_validate_services([
+        'social' => ['providers' => [$provider => []]],
+    ]);
+    check($candidate['social']['providers'][$provider]['enabled'] === false);
+    check(invalid(['social' => ['providers' => [$provider => ['enabled' => true]]]]));
+    check(invalid(['social' => ['providers' => [$provider => ['legacy_app_id' => 'historic']]]]));
+    foreach ([false, true] as $enabled) {
+        try {
+            pagenest_companion_validate_services([
+                'social' => [
+                    'legacy_apps' => [$provider => 'synthetic-colliding-scope'],
+                    'providers' => [
+                        $provider => [
+                            'enabled' => $enabled,
+                            'client_id' => 'synthetic-colliding-scope',
+                            'client_secret' => 'synthetic',
+                            'redirect_uri' => 'https://example.test/callback/',
+                        ],
+                    ],
+                ],
+            ]);
+            check(false);
+        } catch (InvalidArgumentException $error) {
+            check(!str_contains($error->getMessage(), 'synthetic-colliding-scope'));
+        }
+    }
+    $historic_only = pagenest_companion_validate_services([
+        'social' => ['legacy_apps' => [$provider => 'historic'], 'providers' => [$provider => []]],
+    ]);
+    check($historic_only['social']['providers'][$provider]['enabled'] === false);
+    $candidate = pagenest_companion_validate_services([
+        'social' => [
+            'legacy_apps' => ['github' => 'historic'],
+            'providers' => [
+                $provider => [
+                    'enabled' => true,
+                    'client_id' => 'synthetic',
+                    'client_secret' => 'synthetic',
+                    'redirect_uri' => 'https://example.test/callback/',
+                ],
+            ],
+        ],
+    ]);
+    check(
+        $candidate['social']['providers'][$provider]['enabled'] === true &&
+            $candidate['social']['legacy_apps']['github'] === 'historic',
+    );
+}
 check(invalid(['output' => ['purge' => true]]));
 check(invalid(['cron' => []]));
 $valid = [

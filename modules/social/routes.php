@@ -63,8 +63,15 @@ function pagenest_social_state_create($provider, $config, $mode, $return)
         'redirect_uri' => $config['redirect_uri'],
         'mode' => $mode,
         'user_id' => get_current_user_id(),
+        'session' => pagenest_social_session_fingerprint(get_current_user_id()),
         'return' => pagenest_social_return($return),
     ];
+    if (in_array($provider, ['github', 'google'], true)) {
+        $record['pkce_verifier'] = pagenest_social_base64url(random_bytes(32));
+        if ($provider === 'google') {
+            $record['nonce'] = bin2hex(random_bytes(32));
+        }
+    }
     if (!set_transient($key, $record, 600)) {
         throw new RuntimeException('Unable to start authorization.');
     }
@@ -97,8 +104,10 @@ function pagenest_social_state_consume($state, $browser, $provider, $config)
             $record['app'] !== $config['client_id'] ||
             $record['redirect_uri'] !== $config['redirect_uri'] ||
             $record['user_id'] !== get_current_user_id() ||
-            !in_array($record['mode'], ['login', 'bind'], true) ||
-            ($record['mode'] === 'bind' && !$record['user_id']) ||
+            !in_array($record['mode'], ['login', 'bind', 'reauth'], true) ||
+            ($record['session'] ?? '') !==
+                pagenest_social_session_fingerprint(get_current_user_id()) ||
+            (in_array($record['mode'], ['bind', 'reauth'], true) && !$record['user_id']) ||
             ($record['mode'] === 'login' && $record['user_id'])
         ) {
             throw new RuntimeException('Authorization expired or browser changed.');
@@ -120,13 +129,21 @@ function pagenest_social_start()
         if (!$config) {
             throw new RuntimeException('Provider is unavailable.');
         }
-        $mode = is_user_logged_in() ? 'bind' : 'login';
+        $mode = is_user_logged_in()
+            ? (($_POST['mode'] ?? '') === 'reauth'
+                ? 'reauth'
+                : 'bind')
+            : 'login';
         if (
-            $mode === 'bind' &&
+            $mode !== 'login' &&
             (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST' ||
                 !wp_verify_nonce(wp_unslash($_POST['_wpnonce'] ?? ''), 'pagenest-social-bind'))
         ) {
             throw new RuntimeException('Binding requires a valid signed form.');
+        }
+        $trusted = $mode !== 'login';
+        if ($mode === 'bind') {
+            pagenest_social_require_recent(get_current_user_id());
         }
         $state = pagenest_social_state_create(
             $provider,
@@ -135,10 +152,18 @@ function pagenest_social_start()
             wp_unslash($_REQUEST['return'] ?? home_url('/')),
         );
         nocache_headers();
-        wp_redirect(pagenest_social_authorize_url($provider, $config, $state));
+        $record = get_transient('pagenest_social_state_' . hash('sha256', $state));
+        wp_redirect(pagenest_social_authorize_url($provider, $config, $state, $record));
         exit();
     } catch (Throwable $error) {
-        wp_die('社交账号请求无法完成，请重新登录后重试。', 'Social login', ['response' => 400]);
+        if (!empty($trusted)) {
+            pagenest_social_profile_result($mode . '_error');
+        }
+        wp_die(
+            '社交账号请求无法完成。管理绑定时，请先返回个人资料确认身份，并确保解除连接后仍有可用的登录方式或已验证邮箱；登录失败请重新开始。',
+            'Social login',
+            ['response' => 400],
+        );
     }
 }
 function pagenest_social_callback()
@@ -146,7 +171,7 @@ function pagenest_social_callback()
     $state = wp_unslash($_GET['state'] ?? '');
     if (
         !is_string($state) ||
-        !preg_match('/^pn\.(qq|sina|baidu)\.[a-f0-9]{64}$/D', $state, $match)
+        !preg_match('/^pn\.(qq|sina|baidu|github|google|wechat)\.[a-f0-9]{64}$/D', $state, $match)
     ) {
         return;
     }
@@ -186,9 +211,19 @@ function pagenest_social_callback()
         ) {
             throw new RuntimeException('Authorization cancelled or invalid.');
         }
-        $identity = pagenest_social_exchange($provider, $config, $code);
+        $identity = pagenest_social_exchange($provider, $config, $code, $record);
         $key = pagenest_social_identity_key($provider, $config['client_id'], $identity['subject']);
+        if ($record['mode'] === 'reauth') {
+            pagenest_social_reauthenticate_identity(
+                $record['user_id'],
+                $provider,
+                $config['client_id'],
+                $identity['subject'],
+            );
+            pagenest_social_profile_result('reauth_ok');
+        }
         if ($record['mode'] === 'bind') {
+            pagenest_social_require_recent($record['user_id']);
             $user_id = pagenest_social_bind(
                 $record['user_id'],
                 $provider,
@@ -197,30 +232,41 @@ function pagenest_social_callback()
             );
         } else {
             $user_id = pagenest_social_login_identity($provider, $config, $identity);
-            $user = get_userdata($user_id);
-            if (!$user || (int) $user->user_status !== 0) {
-                throw new RuntimeException('Account unavailable.');
+            if (!$user_id) {
+                $pending = pagenest_social_pending_create(
+                    $provider,
+                    $config,
+                    $identity,
+                    $record['return'],
+                );
+                wp_safe_redirect(
+                    pagenest_social_query_url(
+                        ['action' => 'pagenest_social_register', 'pending' => $pending],
+                        admin_url('admin-post.php'),
+                    ),
+                );
+                exit();
             }
-            $authenticated = apply_filters('wp_authenticate_user', $user, '');
-            if (
-                is_wp_error($authenticated) ||
-                !($authenticated instanceof WP_User) ||
-                (int) $authenticated->ID !== (int) $user_id
-            ) {
-                throw new RuntimeException('Account unavailable.');
-            }
-            wp_set_current_user($user_id);
-            wp_set_auth_cookie($user_id, false, is_ssl());
-            do_action('wp_login', $user->user_login, $user);
+            pagenest_social_complete_login($user_id);
         }
         if ($identity['avatar']) {
             update_user_meta($user_id, '_pagenest_social_avatar', $identity['avatar']);
+        }
+        if ($record['mode'] === 'bind') {
+            pagenest_social_profile_result('bind_ok');
         }
         nocache_headers();
         wp_safe_redirect($record['return']);
         exit();
     } catch (Throwable $error) {
-        wp_die('社交账号请求无法完成，请重新登录后重试。', 'Social login', ['response' => 400]);
+        if (isset($record) && in_array($record['mode'], ['bind', 'reauth'], true)) {
+            pagenest_social_profile_result($record['mode'] . '_error');
+        }
+        wp_die(
+            '社交账号请求无法完成。管理绑定时，请先返回个人资料确认身份，并确保解除连接后仍有可用的登录方式或已验证邮箱；登录失败请重新开始。',
+            'Social login',
+            ['response' => 400],
+        );
     }
 }
 function pagenest_social_unbind_route()
@@ -234,14 +280,22 @@ function pagenest_social_unbind_route()
         ) {
             throw new RuntimeException('Invalid disconnect request.');
         }
+        $trusted = true;
+        pagenest_social_require_recent(get_current_user_id());
         pagenest_social_unbind(
             get_current_user_id(),
             sanitize_key(wp_unslash($_POST['identity'] ?? '')),
         );
-        wp_safe_redirect(get_edit_profile_url(get_current_user_id()));
-        exit();
+        pagenest_social_profile_result('unbind_ok');
     } catch (Throwable $error) {
-        wp_die('社交账号请求无法完成，请重新登录后重试。', 'Social login', ['response' => 400]);
+        if (!empty($trusted)) {
+            pagenest_social_profile_result('unbind_error');
+        }
+        wp_die(
+            '社交账号请求无法完成。管理绑定时，请先返回个人资料确认身份，并确保解除连接后仍有可用的登录方式或已验证邮箱；登录失败请重新开始。',
+            'Social login',
+            ['response' => 400],
+        );
     }
 }
 

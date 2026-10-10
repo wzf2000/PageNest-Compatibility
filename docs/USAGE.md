@@ -70,3 +70,41 @@
 仅支持 `WP_CACHE=false` 的 PHP 页面渲染，缓存启用时停计并在后台提示，不提供 AJAX 或 REST 替代路径。停用保留数据，启用不会扫描历史文章、发布内容或发放经验。
 
 Optional view counting is disabled by default. Enable it explicitly in Companion settings, select everyone, guests or signed-in users, and optionally exclude known bots. The plain-text template replaces `%VIEW_COUNT%` with the formatted count. Reads never increment, and counters do not award experience. Only publicly viewable posts and pages are counted; previews, admin requests and password-locked content are excluded. Page caches are unsupported: `WP_CACHE=true` stops counting and shows an administrator notice. Existing data is retained.
+
+## 社交账号与恢复邮箱
+
+启用社交服务后，在自己的 “个人资料” 中管理连接。连接、解除连接或发送邮箱验证前，先输入当前密码确认身份；只有社交登录的账号可用已连接的供应商确认。确认仅对当前浏览器会话生效，十分钟后需要重新确认。
+
+建议在解除最后一个社交登录前设置恢复邮箱：先通过 WordPress 保存可收信的邮箱（如提示确认邮箱变更，先完成该步骤），再点击 “发送验证邮件”，登录发起验证的账号并打开邮件链接，点击 “确认邮箱”。链接三十分钟有效。旧邮箱不会自动视为已验证，变更邮箱后需要重新验证；没有其他可用连接或已验证邮箱时，系统拒绝解绑，不删除账号。
+
+首次使用未连接的社交账号时，可明确选择创建新本站账号，或先登录已有账号后到资料页重新授权连接。选择创建后会进入资料表单：用户名、邮箱必填，昵称选填并预填第三方昵称，留空使用用户名。重名、邮箱已用或格式错误会在页面提示，可修正后重试；邮箱填入不等于验证完成，账号创建后仍须在个人资料验证恢复邮箱。系统不会按昵称或相同邮箱合并账号。若提示身份已属于其他账号，请使用原账号登录，或联系管理员核实。
+
+删除 WordPress 用户后，插件同步清理属于该用户的社交身份索引与解绑记录。若清理因并发锁或数据库错误未完成，下次登录／绑定会核实原用户已不存在后再释放残留归属；存活用户的绑定不会因此转移。
+
+## 管理第三方登录配置
+
+管理员可从 “设置 → PageNest 社交登录” 逐家配置 QQ、百度、微博、GitHub、Google 与微信网站应用。先填写应用 ID、密钥和 HTTPS 同源回调地址，再明确启用该提供者；社交登录总开关和允许新用户注册分别控制。关闭注册不影响已绑定账号登录。开启某个提供者不会迁移或合并历史账号。
+
+服务器配置作为默认来源，首次打开页面不会将凭据复制进数据库。每家单独保存，只覆盖所选提供者；“恢复服务器配置” 移除该项后台覆盖。页面标示当前配置来源。邮件、验证码、分享与历史映射仍由既有服务器配置管理。
+
+密钥字段始终为空，仅提示是否已配置；留空保留当前有效密钥。更换应用 ID 时须填写对应新密钥，不能沿用其他应用的密钥；需要清除时须明确选择并关闭该提供者。后台保存的凭据位于不自动加载的私有 WordPress option，不向 REST 或访客公开，但会随数据库备份，备份应按凭据保护。
+
+保存需要管理员权限、POST 与 nonce；错误不会回显密钥，整次更新校验失败时保留原配置。服务器 profile 损坏不会被后台覆盖掩盖；后台记录损坏只停用社交服务，可由管理员恢复继承后重新配置。存在服务器管理策略时先协调来源，避免恢复继承重新启用服务器原先开启的提供者。
+
+个人资料中的 “社交账号” 分为安全确认、恢复邮箱与登录方式卡片。已连接的当前应用提供确认身份和解除连接；未连接的应用提供连接按钮。历史连接单独标注 “当前不可用于登录”，不会自动迁移或删除。近期身份确认显示有效截止时间，过期后操作仍需重新确认。
+
+确认身份、连接、解绑及邮箱验证完成后，会返回个人资料显示操作结果。提示只属于当前登录会话，短期有效且仅展示一次；失败不会展示第三方错误或凭据。邮件提示 “已提交发送” 不代表送达。邮箱已经验证时不重复显示发送按钮，更改邮箱后需重新验证。
+
+## 新增社交供应商
+
+GitHub、Google 和微信网站应用均需管理员自行创建并控制对应应用。默认关闭；管理员可在插件的社交登录设置中填写接入参数，也可使用受限服务器配置。每家分别启用。按钮出现或模拟测试通过不代表真实授权成功。
+
+| 提供者 | 应用类型与准备                                                                                                              | 身份范围                                    |
+| ------ | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| GitHub | [Developer settings → OAuth Apps](https://github.com/settings/developers)，使用 OAuth App                                   | `read:user` 基本用户资料，不请求仓库权限    |
+| Google | [Google Auth Platform](https://console.cloud.google.com/auth/overview)，创建 Web application 客户端；Testing 时添加测试用户 | `openid profile`，不请求 Gmail 或 Drive     |
+| 微信   | [微信开放平台](https://open.weixin.qq.com/) 创建网站应用，完成主体资格／应用审核并取得微信登录权限                          | 网站扫码 `snsapi_login`，不是公众号网页授权 |
+
+在 `services.social.providers` 中按名称配置 `enabled`、`client_id`、`client_secret`、`redirect_uri`；不要向聊天或工单发送凭据。默认回调格式为 `https://example.com/wp-admin/admin-post.php?action=pagenest_social_callback&provider=github`，另两家分别将最后的值替换为 `google`、`wechat`；用实际站点地址替换示例域名。控制台与服务器配置的回调须完全一致。微信控制台按网站应用要求登记授权回调域，并使用同域 HTTPS 回调。不要把任一新供应商设置为历史应用回退。
+
+应用准备完毕、代码发布且配置启用后，由应用所有者在无痕窗口测试：拒绝授权、首次创建时填写资料、已有绑定回到原账号、登录后重新确认身份与绑定／解绑、退出后再次登录。测试过程中保留一个已验证的恢复方式，不发送完整回调 URL 或令牌。Google Testing 与微信审核限制由各自控制台决定；跨供应商相同邮箱不会合并账号。

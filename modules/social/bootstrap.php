@@ -4,6 +4,19 @@ defined('ABSPATH') || exit();
 require_once __DIR__ . '/providers.php';
 require_once __DIR__ . '/identities.php';
 require_once __DIR__ . '/routes.php';
+require_once __DIR__ . '/account-security.php';
+require_once __DIR__ . '/flash.php';
+require_once __DIR__ . '/pending-registration.php';
+add_action('set_auth_cookie', 'pagenest_social_pending_clear_browser');
+add_action('clear_auth_cookie', 'pagenest_social_pending_clear_browser');
+add_action('admin_post_nopriv_pagenest_social_email_confirm', 'pagenest_social_email_signin');
+add_action('profile_update', 'pagenest_social_email_changed', 10, 2);
+add_action('deleted_user', 'pagenest_social_deleted_user');
+foreach (['password', 'email_request', 'email_confirm'] as $action) {
+    add_action('admin_post_pagenest_social_' . $action, 'pagenest_social_security_route');
+}
+add_action('admin_post_nopriv_pagenest_social_register', 'pagenest_social_registration_route');
+add_action('admin_post_pagenest_social_register', 'pagenest_social_registration_route');
 require_once __DIR__ . '/migration.php';
 require_once __DIR__ . '/ui.php';
 add_action('admin_post_nopriv_pagenest_social_start', 'pagenest_social_start');
@@ -33,3 +46,10 @@ require_once __DIR__ . '/placeholder-mail.php';
 
 add_action('login_enqueue_scripts', 'pagenest_social_ui_assets');
 add_action('wp_enqueue_scripts', 'pagenest_social_ui_assets');
+
+add_action('wp_footer', 'pagenest_social_profile_forms');
+add_action('admin_enqueue_scripts', static function ($hook) {
+    if (in_array($hook, ['profile.php', 'user-edit.php'], true)) {
+        pagenest_social_ui_assets();
+    }
+});

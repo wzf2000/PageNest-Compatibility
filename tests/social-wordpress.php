@@ -118,6 +118,10 @@ try {
     $second_key = pagenest_social_identity_key('qq', $prefix, $prefix . '_second');
     $keys[] = $second_key;
     pagenest_social_bind($two, 'qq', $prefix, $prefix . '_second');
+    update_user_meta($two, '_pagenest_social_verified_email', [
+        'email' => hash('sha256', get_userdata($two)->user_email),
+        'at' => time(),
+    ]);
     pagenest_social_unbind($two, $second_key);
     $assert(get_option($second_key)['user_id'] === 0);
     wp_set_current_user(0);

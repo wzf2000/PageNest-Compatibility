@@ -143,6 +143,29 @@ def main():
     for mode in ["seed", "verify"]:
         results[mode] = json.loads(wp("eval-file", str(ROOT / "tests/wp-wordpress.php"), mode=mode))
     results["settings"] = json.loads(wp("eval-file", str(ROOT / "tests/wp-settings.php")))
+    results["social_settings"] = json.loads(
+        wp("eval-file", str(ROOT / "tests/social-settings-wordpress.php"))
+    )
+    results["social_account_security"] = json.loads(
+        wp("eval-file", str(ROOT / "tests/social-security-wordpress.php"))
+    )
+    subprocess.run(
+        [
+            "python3",
+            str(ROOT / "tools/social-security-concurrency.py"),
+            "--lab",
+            str(lab),
+            "--wp-cli",
+            str(args.wp_cli.resolve()),
+        ],
+        env=env,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    results["social_account_concurrency"] = json.loads(
+        (lab / "social-security-concurrency.json").read_text()
+    )
     subprocess.run(
         [
             "python3",

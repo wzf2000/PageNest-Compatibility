@@ -61,20 +61,44 @@ The optional `views` profile section accepts explicit `legacy_meta` and `legacy_
 
 ## 可选服务配置
 
-`PAGENEST_COMPANION_SERVICES_FILE` 指向独立、受限、Web 根之外的 JSON 文件，格式为 `{"schema_version":1,"services":{}}`；它不向原共享兼容 profile 增加字段，避免破坏其他组件的严格 schema。没有常量时，邮件、验证码、社交与输出模块均关闭。配置无效只停用这些服务，既有阅读功能继续可用。新增路径必须精确加入服务器读取许可，不扩大整个目录的读取权限。各模块必须显式 `enabled: true`；开关必须为布尔值，未知字段拒绝。凭据只能放受限、Web 根外的配置文件，不写公共源码、安装 ZIP、普通后台设置、浏览器或错误日志。配置变更应原子替换，先校验完整服务 profile，并保存私有原版。
+`PAGENEST_COMPANION_SERVICES_FILE` 指向独立、受限、Web 根之外的 JSON 文件，格式为 `{"schema_version":1,"services":{}}`；它不向原共享兼容 profile 增加字段，避免破坏其他组件的严格 schema。没有常量时，邮件、验证码、社交与输出模块均关闭。配置无效只停用这些服务，既有阅读功能继续可用。新增路径必须精确加入服务器读取许可，不扩大整个目录的读取权限。各模块必须显式 `enabled: true`；开关必须为布尔值，未知字段拒绝。服务器凭据放受限、Web 根外的配置文件，不写公共源码、安装 ZIP 或错误日志。社交供应商也可由管理员通过独立后台配置入口保存覆盖值，密钥不回显；覆盖值随数据库备份，应与站点凭据同等保护。配置变更应原子替换，先校验完整服务 profile，并保存私有原版。
 
 - `mail`：`enabled`、`provider`（仅 `brevo`）、`api_key`、`from_email`、`from_name`、`reply_to_email`、`reply_to_name`。启用要求有效强制 From 和 API key；Reply-To 追加并沿用 API 的首个地址规则。WordPress 原生 `wp_mail` 构建、过滤和事件保留；成功表示 API 接收，失败不自动重试，避免超时后的重复投递。HTML／纯文本和普通附件可用，CID 内嵌资源明确失败，不承诺旧服务未提供的投递能力。
 - `turnstile`：`enabled`、`site_key`、`secret_key`、`hostname`、`scopes`（`login`、`register`、`reset`、`comments` 布尔值）、`theme`、`language`、`size`、`appearance`。服务端检查 success、精确 hostname、action 和 300 秒期限；不缓存成功结果。浏览器到 Cloudflare 加载 widget，服务端调用 Siteverify；网络失败拒绝提交并提供重试。原生四表单覆盖不包括段落评论 REST、REST/XML-RPC 认证或 OAuth 回调。
-- `social`：`enabled`、`allow_registration`、`avatar_enabled`、`share`、`providers`、`legacy_apps`。`share` 有 `enabled`、`posts`、`pages` 与 `providers`（`qq`、`weibo`、`qqzone`、`wechat` 列表）。`providers` 仅 `qq`、`sina`、`baidu`，每个包含 `enabled`、`client_id`、`client_secret`、`redirect_uri`，可选 `legacy_app_id`。回调必须 HTTPS 同源，迁移保持供应商已登记的精确 URL；QQ 身份按应用 OpenID，不根据 unionid 或邮箱合并。`legacy_apps` 显式映射旧提供者到应用 scope；无实现的历史提供者仅保留数据，不假定能登录。
+- `social`：`enabled`、`allow_registration`、`avatar_enabled`、`share`、`providers`、`legacy_apps`。`share` 有 `enabled`、`posts`、`pages` 与 `providers`（`qq`、`weibo`、`qqzone`、`wechat` 列表）。`providers` 支持 `qq`、`sina`、`baidu`、`github`、`google`、`wechat`，每个包含 `enabled`、`client_id`、`client_secret`、`redirect_uri`，可选 `legacy_app_id`（仅前三个旧供应商可非空）。回调必须 HTTPS 同源，迁移保持供应商已登记的精确 URL；QQ 身份按应用 OpenID，不根据 unionid 或邮箱合并。`legacy_apps` 显式映射旧提供者到应用 scope；无实现的历史提供者仅保留数据，不假定能登录。
 - `output`：`enabled`、`html_whitespace`，默认均 false。可选处理只移除匿名公开 HTML 文档外壳缩进，保护正文和代码／公式／脚本；保留资源 URL 版本，无缓存、字体远程下载、数据库清理、测速或定时任务。
 
 社交映射保存在 `_pagenest_social_bindings` 和以提供者／应用／subject 摘要命名的唯一 option 中。原 `open_type_*`、头像及旧 token 不删除或批量视作有效令牌。迁移为显式管理员维护动作，不在插件加载时运行；先 dry run、检查重复与原用户归属，再应用。解绑墓碑优先于旧字段，重复迁移不得复活已解除身份。迁移后出现新注册或绑定时，回退前必须带冲突守卫同步新增映射，不能仅恢复旧程序，更不能覆盖整库丢弃新的内容。
 
-OAuth state 随机、限时、一次使用，绑定浏览器 cookie、提供者、应用、当前用户和登录／绑定操作；返回地址只允许同源。绑定和解绑要求登录、POST 与 nonce；未知异常不展示上游响应或身份。没有可恢复邮箱的账号必须保留至少一个当前可用提供者。新注册还遵守 WordPress 注册开关，创建普通 subscriber，不按提供者资料合并已有账号。社交按钮不会触发经验补发。
+OAuth state 随机、十分钟有效、一次使用，绑定浏览器 cookie、提供者、应用、当前用户、当前 WordPress 会话与登录／绑定／身份确认操作；返回地址只允许同源。绑定和解绑要求登录、POST、nonce 与十分钟内的显式身份确认；密码变化或切换会话使确认失效。可用当前密码或已归属于本人的当前供应商重新确认；新授权身份不能替代原账号认证。密码确认每个账号十分钟最多五次尝试，历史登录不会自动获得近期认证。未知异常不展示上游响应或身份。
+
+恢复邮箱必须通过本模块验证，不能仅靠邮箱格式或历史字段。用户保存有效邮箱后，近期认证并主动发送验证邮件，每账号每小时最多三次；三十分钟一次性令牌只以摘要存储。GET 只显示确认页，登录对应账号后 POST 与 nonce 才消费令牌并验证当前邮箱；邮件发送成功不等于验证成功。`_pagenest_social_verified_email` 记录精确邮箱摘要与验证时间，实际邮箱变更撤销验证和未完成挑战。没有已验证恢复邮箱时，必须保留至少一个当前已配置且 owner 一致的供应商；解绑保留墓碑，不删除账号。
+
+未知第三方身份返回后不会自动注册：最小身份与白名单头像进入十分钟、匿名浏览器绑定、一次消费的待选择记录，不保存供应商令牌。用户选择创建后先填写资料，用户名／邮箱遵循核心注册的必填、格式和重复检查，昵称选填。错误保留资料与待注册凭据；实际创建在待注册、用户名／邮箱及身份锁内重新校验，成功后才消费授权并建立普通 subscriber，不自动验证邮箱，不新增注册通知邮件；若身份已被其他请求注册／绑定则拒绝，不能转而登录该账号。选择已有账号时丢弃授权记录，登录后到个人资料重新授权绑定。登录／退出清除待选择 cookie。原已绑定用户继续登录原 ID，不按邮箱或昵称合并。社交按钮不会触发经验补发。
 
 微信二维码使用 Kazuhiko Arase 的 MIT 授权 [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator/tree/83b7e8fe3fddd3b0368dbafd6ce56995bd25e3c8)，许可证随包保留；固定源 `js/dist/qrcode.js` 的 SHA256 为 `79ec86f82856005b1c887905cfccfcfbec3821ca61c7fd5a952faa5f778f791c`，经本仓库格式化后的资源由 manifest 标识。二维码本地生成，不向第三方二维码服务提交文章链接。其他分享按钮仅在点击后打开对应供应商网页，不自动发布微博。服务端请求强制验证 TLS，并限定官方提供者地址；供应商真实授权与实际邮件送达须单独验收，模拟 HTTP 不等于外部成功。
 
-维护测试：`php tests/services-contracts.php /path/to/wordpress` 使用实际核心与 PHPMailer、模拟 HTTP，不加载生产数据库或发信；`php tests/social-contracts.php` 检查身份与回调契约；`npm run test:service-browser` 检查验证码可达性。所有维护测试文件和依赖排除出安装包。
+维护测试：`php tests/services-contracts.php /path/to/wordpress` 使用实际核心与 PHPMailer、模拟 HTTP，不加载生产数据库或发信；`php tests/social-contracts.php` 检查身份与回调契约；`npm run test:service-browser` 检查验证码可达性。`tests/social-security-wordpress.php` 在合成 WordPress 验证近期认证、邮箱与注册规则；`tools/social-security-concurrency.py` 验证注册、邮箱及待选择记录的双进程竞争，已接入 WordPress CI。浏览器可通过 `PAGENEST_SOCIAL_SECURITY_UI_ROOT` 使用合成核心生成的表单，检查桌面／手机布局及表单归属。所有维护测试文件和依赖排除出安装包。
+
+用户删除后的 `deleted_user` 钩子只在确认用户表中原 ID 已不存在后清理其 owner 与解绑记录，身份锁内重新读取并核对归属；锁忙或数据库失败保留记录，登录／绑定的孤立 owner 核验作为历史残留兜底。不在删除前释放身份，也不删除转移给存活用户的记录。
+
+GitHub 和 Google 使用每次授权独立的 S256 PKCE；Google 同时绑定 nonce，并通过固定官方证书地址校验 RS256、issuer、audience／azp、时间与 subject。需要 PHP OpenSSL；证书缓存遵守响应期限且最多一小时，未知 key 最多刷新一次，不访问令牌自带的 key URL。GitHub 仅使用数字用户 ID；Google 使用 subject；微信网站扫码仅使用当前应用 OpenID，严格比对令牌与资料响应。三者均不按邮箱、昵称或 UnionID 自动归并。旧 GitHub 字段与历史作用域只保留，不能通过新增配置自动接管；新供应商 client_id 与同名历史作用域相同时，配置拒绝加载。
+
+新增供应商配置与人工验收步骤见 [使用指南](USAGE.md#新增社交供应商)。
+
+## 社交后台覆盖
+
+`pagenest_social_settings` option 使用 `schema_version: 1`，仅包含 `switches`（`enabled`、`allow_registration`）和 `providers`（提供者到 `enabled`、`client_id`、`client_secret`、`redirect_uri` 的映射）。未指定项继承服务器服务 profile；没有服务器文件时继承默认关闭值。后台不提供修改 `legacy_apps`、`legacy_app_id`、邮件、验证码、分享或输出节的入口。服务器 profile 无效时所有可选服务继续关闭，数据库覆盖不能绕过；后台覆盖损坏时仅关闭社交模块。
+
+该 option 不注册 REST 设置，不自动加载，不在首次访问页面时复制服务器密钥。管理员写入走独立 POST／nonce，供应商逐个保存且完整验证最终配置；任何失败保持已存配置。密码字段从不回填原密钥，空值保留当前有效密钥，清除须明确提交且停用提供者；更换 Client ID 必须同时更换密钥或禁用清除。恢复继承会重新采用服务器当时的开关与凭据。后台覆盖随 WordPress 数据库备份，不能视为与数据库隔离的秘密存储。
+
+### Google 服务端临时出口
+
+`social.google_proxy` 仅由服务器服务 profile 配置，默认 `{"enabled":false,"unix_socket":""}`，后台数据库覆盖不接受此字段。显式启用时，`unix_socket` 指向 PHP 进程可访问的绝对 Unix socket 路径（最长 107 字节，仅字母、数字、`_`、`.`、`/`、`-`，不允许 `..` 路径段）。服务器须自行提供受限 SOCKS5 relay；relay 仅允许 `oauth2.googleapis.com:443` 和 `www.googleapis.com:443`，可再连接管理员配置的上游 HTTP CONNECT 出口。插件不创建隧道或管理上游代理。
+
+该出口只覆盖精确的 Google token 与证书 URL，不影响其他供应商、邮件、验证码或一般 WordPress HTTP。要求 PHP cURL、Unix socket 支持和 libcurl 7.84.0+，通过 `socks5h://localhost/绝对路径` 连接 relay；不能用 `CURLOPT_UNIX_SOCKET_PATH` 叠加 HTTP proxy，因为该选项会忽略代理而直接发送 TLS。插件每次请求临时强制 cURL，清除全局代理认证和绕过规则，保持 TLS 证书／主机名验证、禁止重定向，并在成功或异常后移除所有临时钩子。缺少 socket、能力不支持或未实际使用指定传输时直接失败，不回退直连。停用后恢复普通 WordPress HTTP 路径。
+
+本地回归：`php tests/social-google-proxy.php /path/to/wordpress` 使用真实 WordPress 钩子和 cURL，仅向测试自行创建的 Unix socket 发送 SOCKS5 握手，不访问 Google。协议依据：[libcurl SOCKS Unix socket](https://curl.se/libcurl/c/CURLOPT_PROXY.html)、[7.84.0 发行变更](https://curl.se/ch/7.84.0.html)。
 
 ## 可选内容配置 schema 1
 
