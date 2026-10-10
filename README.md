@@ -4,7 +4,7 @@
 
 Companion plugin for PageNest: paragraph comments, chapter navigation, likes, notifications and Markdown compatibility.
 
-需要 **WordPress 6.0+、PHP 8.0+**。当前版本 **0.7.0**，安装目录保持 `pagenest-compatibility`。
+需要 **WordPress 6.0+、PHP 8.0+**。当前版本 **0.7.1**，安装目录保持 `pagenest-compatibility`。
 
 [安装与使用](docs/USAGE.md) · [更新记录](CHANGELOG.md) · [发行说明](docs/RELEASING.md)
 
@@ -12,7 +12,7 @@ Companion plugin for PageNest: paragraph comments, chapter navigation, likes, no
 
 ## 开始使用
 
-1. 下载发行附件 `pagenest-compatibility-0.7.0.zip`，在 WordPress 后台 “插件 → 安装插件 → 上传插件” 安装并启用。
+1. 下载发行附件 `pagenest-compatibility-0.7.1.zip`，在 WordPress 后台 “插件 → 安装插件 → 上传插件” 安装并启用。
 2. 打开 “设置 → PageNest Companion”，选择段落评论、章节导航和点赞。
 3. 编辑一篇文章，在 “PageNest 阅读功能” 中明确启用段落评论，填写系列名称及章节顺序，然后保存。
 4. 用两个不同账号检查评论和点赞；退出登录确认访客只能阅读公开内容。

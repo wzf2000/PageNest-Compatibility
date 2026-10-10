@@ -107,6 +107,19 @@ function get_bloginfo($key)
 function wp_remote_post($url, $options)
 {
     $GLOBALS['requests'][] = [$url, $options];
+    if ($url === 'https://api.brevo.com/v3/smtp/email') {
+        $payload = json_decode($options['body'], true);
+        foreach (['to', 'cc', 'bcc'] as $field) {
+            foreach ($payload[$field] ?? [] as $recipient) {
+                if (isset($recipient['name']) && $recipient['name'] === '') {
+                    return [
+                        'response' => ['code' => 400],
+                        'body' => '{"code":"missing_parameter","message":"name is missing"}',
+                    ];
+                }
+            }
+        }
+    }
     return $GLOBALS['response'];
 }
 function wp_remote_retrieve_body($response)
@@ -201,6 +214,20 @@ check(
     $payload['replyTo']['email'] === 'configured@example.test',
     'configured Reply-To without original',
 );
+check(!isset($payload['to'][0]['name']), 'bare recipient omits empty optional name');
+$profiles['mail']['reply_to_name'] = '';
+check(
+    wp_mail('next@example.test', 'Unnamed', 'Body', [
+        'Cc: cc@example.test',
+        'Bcc: bcc@example.test',
+    ]),
+    'unnamed recipient groups and Reply-To accepted',
+);
+$payload = json_decode(end($requests)[1]['body'], true);
+foreach (['to', 'cc', 'bcc'] as $field) {
+    check(!isset($payload[$field][0]['name']), 'empty optional name omitted for ' . $field);
+}
+check(!isset($payload['replyTo']['name']), 'empty optional Reply-To name omitted');
 $before = count($requests);
 check(
     !wp_mail('account@fake.com', 'Placeholder', 'Body') && count($requests) === $before,

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.1
+
+- Brevo 地址省略空显示名，兼容只有邮箱的收件人、抄送、密送与 Reply-To。
+- 登录页为已登录用户提供资料管理与退出切换提示；OAuth 和分享链接显式编码参数，保留嵌套回调与返回地址。
+- Omit empty optional display names to avoid provider rejection of ordinary email addresses.
+
 ## 0.7.0
 
 - 新增独立、默认关闭的 Brevo 邮件、原生四表单 Turnstile、QQ／微博／百度 OAuth 与本地文章分享模块；只从显式服务器配置读取凭据，不建立缓存或定时任务。

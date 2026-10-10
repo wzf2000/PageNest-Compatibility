@@ -22,6 +22,16 @@ function pagenest_social_endpoints($provider)
         ],
     ][$provider] ?? null;
 }
+function pagenest_social_query_url($params, $url)
+{
+    // These are fixed provider/admin endpoints. Encode every new scalar value exactly once.
+    $separator = !str_contains($url, '?')
+        ? '?'
+        : (str_ends_with($url, '?') || str_ends_with($url, '&')
+            ? ''
+            : '&');
+    return $url . $separator . http_build_query($params, '', '&', PHP_QUERY_RFC3986);
+}
 function pagenest_social_http($url, $params, $post = false)
 {
     $args = [
@@ -34,7 +44,7 @@ function pagenest_social_http($url, $params, $post = false)
         $args['method'] = 'POST';
         $args['body'] = $params;
     } else {
-        $url = add_query_arg($params, $url);
+        $url = pagenest_social_query_url($params, $url);
     }
     $response = wp_remote_request($url, $args);
     if (is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) {
@@ -67,7 +77,7 @@ function pagenest_social_authorize_url($provider, $config, $state)
     if ($provider === 'baidu') {
         $params['scope'] = 'basic';
     }
-    return add_query_arg($params, pagenest_social_endpoints($provider)['authorize']);
+    return pagenest_social_query_url($params, pagenest_social_endpoints($provider)['authorize']);
 }
 function pagenest_social_exchange($provider, $config, $code)
 {

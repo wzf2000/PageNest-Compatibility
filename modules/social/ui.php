@@ -11,7 +11,7 @@ function pagenest_social_buttons($return = '')
         if (!pagenest_social_provider_config($provider)) {
             continue;
         }
-        $url = add_query_arg(
+        $url = pagenest_social_query_url(
             [
                 'action' => 'pagenest_social_start',
                 'provider' => $provider,
@@ -27,6 +27,20 @@ function pagenest_social_buttons($return = '')
             '</a> ';
     }
     return $html . '</div>';
+}
+function pagenest_social_login_panel($return = '')
+{
+    if (!pagenest_social_active()) {
+        return '';
+    }
+    if (!is_user_logged_in()) {
+        return pagenest_social_buttons($return);
+    }
+    return '<div class="pagenest-social-account-notice"><p>你已登录。可在个人资料中管理社交账号，或退出后切换账号。</p><div class="pagenest-social-buttons"><a class="button" href="' .
+        esc_url(get_edit_profile_url(get_current_user_id())) .
+        '">管理社交账号</a><a class="button" href="' .
+        esc_url(wp_logout_url(wp_login_url(pagenest_social_return($return)))) .
+        '">退出并切换账号</a></div></div>';
 }
 function pagenest_social_profile($user)
 {

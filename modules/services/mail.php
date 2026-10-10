@@ -30,7 +30,12 @@ function pagenest_companion_mail_addresses($addresses)
                 'PageNest mail: placeholder recipients are not deliverable.',
             );
         }
-        $result[] = ['email' => $address[0], 'name' => $address[1]];
+        $recipient = ['email' => $address[0]];
+        // Brevo rejects an explicitly empty optional name, including bare WP addresses.
+        if ($address[1] !== '') {
+            $recipient['name'] = $address[1];
+        }
+        $result[] = $recipient;
     }
     return $result;
 }
@@ -71,7 +76,10 @@ function pagenest_companion_mail_payload($mailer, $config)
     $reply = array_values($mailer->getReplyToAddresses());
     // Brevo only supports one Reply-To, matching the previous provider adapter's first-address rule.
     if ($reply) {
-        $payload['replyTo'] = ['email' => $reply[0][0], 'name' => $reply[0][1]];
+        $payload['replyTo'] = ['email' => $reply[0][0]];
+        if ($reply[0][1] !== '') {
+            $payload['replyTo']['name'] = $reply[0][1];
+        }
     }
     if ($mailer->ContentType === 'text/html') {
         $payload['htmlContent'] = $mailer->Body;

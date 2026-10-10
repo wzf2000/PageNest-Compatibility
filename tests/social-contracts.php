@@ -558,4 +558,28 @@ rejects(static fn() => pagenest_social_start(), 'binding missing or invalid nonc
 rejects(static fn() => pagenest_social_unbind_route(), 'disconnect missing nonce refused');
 $GLOBALS['current'] = 0;
 rejects(static fn() => pagenest_social_unbind_route(), 'anonymous disconnect refused');
+
+$nested_config = $provider_config;
+$nested_config['redirect_uri'] = 'https://example.test/callback/?from=login&next=%2Freading%2F';
+$url = pagenest_social_authorize_url('sina', $nested_config, 'synthetic-state');
+parse_str(parse_url($url, PHP_URL_QUERY), $parsed);
+check(
+    $parsed['redirect_uri'] === $nested_config['redirect_uri'],
+    'provider callback with nested query is encoded once',
+);
+check(!isset($parsed['next']), 'callback query cannot escape into provider query');
+$nested_config['client_secret'] = 'synthetic&secret+value';
+$GLOBALS['responses'] = [
+    response('access_token=mock-token'),
+    response('callback({"client_id":"app","openid":"subject"});'),
+    response('{"ret":0,"nickname":"Name"}'),
+];
+$GLOBALS['requests'] = [];
+pagenest_social_exchange('qq', $nested_config, 'code&synthetic');
+parse_str(parse_url($GLOBALS['requests'][0][0], PHP_URL_QUERY), $parsed);
+check(
+    $parsed['client_secret'] === $nested_config['client_secret'],
+    'GET client secret is encoded exactly once',
+);
+check($parsed['code'] === 'code&synthetic', 'authorization code is encoded exactly once');
 echo "Social contracts: $checks checks passed; mock HTTP only.\n";

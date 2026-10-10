@@ -27,21 +27,21 @@ function pagenest_social_share($content)
     $links = [
         'qq' => [
             'QQ',
-            add_query_arg(
+            pagenest_social_query_url(
                 ['url' => $url, 'title' => $title],
                 'https://connect.qq.com/widget/shareqq/index.html',
             ),
         ],
         'weibo' => [
             '微博',
-            add_query_arg(
+            pagenest_social_query_url(
                 ['url' => $url, 'title' => $title],
                 'https://service.weibo.com/share/share.php',
             ),
         ],
         'qqzone' => [
             'QQ 空间',
-            add_query_arg(
+            pagenest_social_query_url(
                 ['url' => $url, 'title' => $title],
                 'https://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey',
             ),

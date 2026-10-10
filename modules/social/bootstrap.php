@@ -14,10 +14,10 @@ add_action('admin_post_pagenest_social_callback', 'pagenest_social_callback');
 // The same state handles the historical homepage/provider callback without changing its URI.
 add_action('init', 'pagenest_social_callback', 5);
 add_action('login_form', static function () {
-    echo pagenest_social_buttons(wp_unslash($_REQUEST['redirect_to'] ?? ''));
+    echo pagenest_social_login_panel(wp_unslash($_REQUEST['redirect_to'] ?? ''));
 });
 add_action('register_form', static function () {
-    echo pagenest_social_buttons();
+    echo pagenest_social_login_panel();
 });
 add_action('comment_form_after', static function () {
     echo pagenest_social_buttons(get_permalink());

@@ -73,6 +73,18 @@ try {
         'client_secret' => 'synthetic-secret',
         'redirect_uri' => 'https://example.test/original-callback/',
     ];
+    $encoded_config = $provider_config;
+    $encoded_config['redirect_uri'] =
+        'https://example.test/index.php?from=login&next=%2Freading%2F';
+    parse_str(
+        wp_parse_url(
+            pagenest_social_authorize_url('sina', $encoded_config, 'synthetic-state'),
+            PHP_URL_QUERY,
+        ),
+        $authorization_query,
+    );
+    $assert($authorization_query['redirect_uri'] === $encoded_config['redirect_uri']);
+    $assert(!isset($authorization_query['next']));
     $one = wp_insert_user([
         'user_login' => $prefix . '_one',
         'user_pass' => wp_generate_password(),
