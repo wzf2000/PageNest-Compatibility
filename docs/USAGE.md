@@ -4,7 +4,7 @@
 
 要求 WordPress 6.0+、PHP 8.0+。
 
-1. 在 [GitHub Releases](https://github.com/wzf2000/PageNest-Compatibility/releases) 下载发行附件中的 `pagenest-compatibility-版本号.zip`，选择安装包，而非自动生成的 Source code ZIP。
+1. 在 仓库页面的 **Releases** 下载发行附件中的 `pagenest-compatibility-版本号.zip`，选择安装包，而非自动生成的 Source code ZIP。
 2. 在后台打开 “插件 → 安装插件 → 上传插件”，上传 ZIP，安装并启用。
 3. 打开 “设置 → PageNest Companion”，选择所需功能。段落评论还需要逐篇文章明确启用；新文章默认关闭。
 4. 用不同账号验证公开评论、作者操作、点赞，以及站点现有邮件服务。无需复制数据库。

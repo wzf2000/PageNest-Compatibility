@@ -1,6 +1,6 @@
 # CI 与发行
 
-供维护者准备、核验和发布安装包。普通使用者直接从 [GitHub Releases](https://github.com/wzf2000/PageNest-Compatibility/releases) 下载 ZIP，安装步骤见 [使用指南](USAGE.md)。
+供维护者准备、核验和发布安装包。普通使用者直接从 仓库页面的 **Releases** 下载 ZIP，安装步骤见 [使用指南](USAGE.md)。
 
 两个仓库分别运行 push、pull request 和可复用的 CI。固定 Node.js 24.15.0、Python 3.12、Playwright 1.55.1；PHP 8.0 和 8.2 分别检查最低支持版本与兼容版本。格式检查遵循 MarkBridge 的 Prettier、PHP 插件、Markdown 中英文间距和 Black 规则，Python 文件逐个检查以避免多进程启动。生成的哈希资源只校验，不直接格式化；CI 在构建前校验，避免构建掩盖已提交资源漂移。
 
@@ -11,3 +11,7 @@ PHP 测试使用内存中的 WordPress 替身，浏览器测试覆盖桌面与�
 打包使用固定 ZIP 时间戳与安装文件白名单，内外 manifest 保存源提交及逐文件摘要。`npm run package:check` 验证包结构、安装文件、checksum 与 proof；打包需要 Git 工作副本和 Python 3；安装文件必须与 HEAD 提交一致，先提交准备发行的修改再打包。
 
 > [贡献与本地检查](../CONTRIBUTING.md) · [返回项目首页](../README.md)
+
+## 问题反馈
+
+在本项目仓库页面打开 **Issues**，描述版本、复现步骤和实际结果；请不要附带凭据、私人正文或完整登录回调。
