@@ -90,6 +90,21 @@ class ReleaseGuards(unittest.TestCase):
             self.assertNotIn("pagenest-compatibility/screenshot.png", bundle.namelist())
         self.run_tool("--check-package")
 
+    def test_release_notes_link_installation_bundle_and_pinned_documentation(self):
+        self.run_tool()
+        slug = json.loads((self.root / "package.json").read_text())["name"]
+        notes = (self.root / "dist/release-notes.md").read_text()
+        base = "https://github.com/fixture/project"
+        self.assertIn(f"{base}/releases/download/v0.6.0/{slug}-0.6.0.zip", notes)
+        self.assertIn(f"{base}/blob/{self.sha}/docs/USAGE.md", notes)
+        self.assertIn(f"{base}/blob/{self.sha}/CHANGELOG.md", notes)
+        self.assertIn("## 下载与安装", notes)
+        self.assertIn("## 升级说明", notes)
+        self.assertIn("`Source code` 是源码归档", notes)
+        self.assertNotIn("Install the attached ZIP", notes)
+        self.assertIn("公开发行不会自动部署网站", notes)
+        self.assertIn("PageNest · 栖页" if slug == "pagenest" else "PageNest Companion", notes)
+
     def test_nested_installation_files_and_commit_bytes(self):
         for name, content in {
             "modules/feature.php": "<?php // synthetic module\n",

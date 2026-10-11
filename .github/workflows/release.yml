@@ -150,7 +150,7 @@ jobs:
             -f "ref=refs/tags/v$RELEASE_VERSION" -f "sha=$SOURCE_SHA" --silent
           gh release create "v$RELEASE_VERSION" \
             --verify-tag --target "$SOURCE_SHA" --draft "${flags[@]}" \
-            --title "PageNest-Compatibility $RELEASE_VERSION" --notes-file release/release-notes.md \
+            --title "PageNest Companion $RELEASE_VERSION" --notes-file release/release-notes.md \
             "release/pagenest-compatibility-$RELEASE_VERSION.zip" \
             "release/pagenest-compatibility-$RELEASE_VERSION.zip.sha256" \
             "release/pagenest-compatibility-$RELEASE_VERSION.manifest.json"

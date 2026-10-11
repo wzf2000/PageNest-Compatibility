@@ -122,6 +122,54 @@ def committed_sources(sha):
         assert committed == (ROOT / name).read_bytes(), f"Uncommitted installation source: {name}"
 
 
+def release_notes(version, sha, repository, notes):
+    """Write Chinese installation guidance tied to this exact tag and source."""
+    theme = SLUG == "pagenest"
+    product = "PageNest · 栖页" if theme else "PageNest Companion"
+    description = (
+        "面向文章与知识内容的独立 WordPress 阅读主题。"
+        if theme
+        else "PageNest 配套功能插件；可选模块按配置启用，不自动迁移站点数据。"
+    )
+    prefix = f"{SLUG}-{version}"
+    base = f"https://github.com/{repository}"
+    download = f"{base}/releases/download/v{version}"
+    source = f"{base}/blob/{sha}"
+    header = (ROOT / HEADER).read_text()
+    requirements = []
+    for label, field in [("WordPress", "Requires at least"), ("PHP", "Requires PHP")]:
+        match = re.search(rf"{field}:\s*([0-9.]+)", header)
+        if match:
+            requirements.append(f"{label} {match[1]} 或更高版本")
+    requires = "；".join(requirements) or "以安装包头部的最低版本声明为准"
+    install = "外观 → 主题 → 安装主题 → 上传主题" if theme else "插件 → 安装插件 → 上传插件"
+    upgrade = (
+        "升级已有主题时保留 `pagenest` 目录及现有设置；配套功能由独立 Companion 插件提供。"
+        if theme
+        else "升级时保留 `pagenest-compatibility` 目录；可选模块仍需显式配置，不会自动启用外部服务、创建工具页面或导入旧数据。"
+    )
+    preview = "**这是预发行版本，建议先在测试站验证。**\n\n" if "-" in version else ""
+    return (
+        f"{product} **{version}**。{description}\n\n{preview}"
+        f"## 本版更新\n\n{notes}\n\n"
+        "## 下载与安装\n\n"
+        f"**[下载 WordPress 安装包：{prefix}.zip]({download}/{prefix}.zip)**\n\n"
+        f"最低环境：{requires}。\n\n"
+        f"在 WordPress 后台进入「{install}」，选择上面的 ZIP 安装。"
+        "页面底部自动生成的 `Source code` 是源码归档，请使用明确命名的安装包。\n\n"
+        f"[使用指南]({source}/docs/USAGE.md) · "
+        f"[SHA-256 校验文件]({download}/{prefix}.zip.sha256) · "
+        f"[安装文件清单]({download}/{prefix}.manifest.json)\n\n"
+        f"## 升级说明\n\n{upgrade}"
+        "升级前备份数据库与受影响文件，并在测试站核对实际插件组合。\n\n"
+        "## 验证与源码\n\n"
+        "发行流程检查格式、PHP 语法、功能测试、浏览器回归及安装包完整性。"
+        "这些检查不等同于所有站点组合、真实手机或第三方服务的验收；公开发行不会自动部署网站。\n\n"
+        f"[固定源码提交 `{sha[:12]}`]({base}/commit/{sha}) · "
+        f"[完整更新记录]({source}/CHANGELOG.md)\n"
+    )
+
+
 def build(version, sha, repository):
     identity(version, sha)
     committed_sources(sha)
@@ -158,9 +206,7 @@ def build(version, sha, repository):
     (out / f"{prefix}.zip.sha256").write_text(
         f"{digest(archive_path.read_bytes())}  {archive_path.name}\n"
     )
-    (out / "release-notes.md").write_text(
-        f"{SLUG} {version}\n\n{notes}\n\nSource: https://github.com/{repository}/commit/{sha}\n\nInstall the attached ZIP in WordPress. The checksum and external manifest identify the verified source and installation files. CI checks formatting, PHP syntax, unit fixtures, browser regressions and package integrity.\n"
-    )
+    (out / "release-notes.md").write_text(release_notes(version, sha, repository, notes))
     attachments = [
         f"{prefix}.zip",
         f"{prefix}.zip.sha256",

@@ -2,7 +2,10 @@
 
 ## 1.2.0
 
-- Experimental, default-off generic tools host with trusted implementation providers; optional tools ship separately.
+- 新增默认关闭的可选工具宿主，统一提供工具登记、固定页面绑定、公开索引、编辑器预览、访问检查和按页资源加载。
+- 工具由独立实现包注册；Companion 不内置具体工具、小游戏、服务端重放器或私人存储，外部直达入口不要求安装实现包。
+- 配置只引用已注册的可信处理器，不允许指定 PHP 文件或下载执行代码；缺失／无效实现不影响其他有效工具。
+- 保留旧页面别名和绑定契约，并与旧工具负责人互斥；关闭模块不迁移、删除数据或开放私人服务。工具扩展接口仍属可选试验功能。
 
 ## 1.1.1
 
