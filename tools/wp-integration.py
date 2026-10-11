@@ -259,9 +259,11 @@ def main():
             )
             session.unlink(missing_ok=True)
     (lab / "results.json").write_text(json.dumps(results, indent=2) + "\n")
-    print(
-        json.dumps({key: len(value.get("checks", [])) for key, value in results.items()}, indent=2)
-    )
+    counts = {}
+    for key, value in results.items():
+        checks = value.get("checks", [])
+        counts[key] = checks if isinstance(checks, int) else len(checks)
+    print(json.dumps(counts, indent=2))
 
 
 if __name__ == "__main__":
