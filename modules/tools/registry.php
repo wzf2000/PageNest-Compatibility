@@ -164,7 +164,11 @@ final class Registry
                 throw new \InvalidArgumentException('Asset identifier');
             }
             if ($t['kind'] === 'internal' && Providers::has($t['render'])) {
-                Providers::asset($t['render'], $asset);
+                try {
+                    Providers::asset($t['render'], $asset);
+                } catch (\Throwable $error) {
+                    throw new \InvalidArgumentException('Asset file', 0, $error);
+                }
             }
         }
         foreach ($t['legacy_styles'] ?? [] as $style) {

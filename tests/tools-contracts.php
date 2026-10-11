@@ -203,6 +203,15 @@ try {
     check('private page read permission', str_contains(Host::render('count'), 'textarea'));
     $GLOBALS['page_status'] = 'publish';
     $bad = $text;
+    $bad['assets'][] = 'missing-fixture.js';
+    $invalidResource = false;
+    try {
+        Registry::load($catalog([$bad]));
+    } catch (InvalidArgumentException $error) {
+        $invalidResource = true;
+    }
+    check('missing declared resource preserves catalog exception contract', $invalidResource);
+    $bad = $text;
     $bad['assets'] = ['../evil.js'];
     check('path traversal rejected', rejects(fn() => Registry::load($catalog([$bad]))));
     $bad = $text;

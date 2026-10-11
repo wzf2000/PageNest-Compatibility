@@ -75,7 +75,7 @@ check('atomic registration retained', Providers::has('good'));
 SiteTools\Implementations::register('games', $root, 'https://example.invalid/games');
 SiteTools\Implementations::register('private', $root, 'https://example.invalid/private');
 $data = [
-    'games' => ['runs_table' => 'bad;sql'],
+    'games' => ['runs_table' => ['invalid' => 'type']],
     'services' => [
         'enabled' => false,
         'drafts_table' => 'drafts',
