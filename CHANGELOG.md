@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.1
+
+- 媒体库网格补回左侧文件夹导航，支持层级展开、搜索、全部文件与未分类快捷入口、目录直接归属数量和管理入口。
+- 目录树、卡片与筛选下拉框同步，保留媒体搜索和排序；窄屏改为上方可滚动导航，不挤压图片网格。
+- Restore accessible folder navigation without adding a third-party dependency or changing media relationships.
+
 ## 1.1.0
 
 - 新增可选自有媒体文件夹管理，可独立创建、改名、调整层级和删除目录，支持附件多目录归属；无需媒体组织插件，不移动文件或改变链接。

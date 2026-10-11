@@ -1,0 +1,186 @@
+.attachments > .pagenest-media-folders {
+  float: none;
+  clear: both;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0 0 16px;
+  padding: 8px;
+  list-style: none;
+}
+.pagenest-folder-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.pagenest-folder-heading nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.pagenest-folder-heading button {
+  border: 0;
+  padding: 4px;
+  background: transparent;
+  color: #2271b1;
+  cursor: pointer;
+  font: inherit;
+}
+.pagenest-folder-heading [aria-current] {
+  color: #3c434a;
+  font-weight: 600;
+}
+.pagenest-folder-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+  gap: 12px 16px;
+}
+.pagenest-folder-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 12px 16px;
+  border: 1px solid #dcdcde;
+  border-radius: 5px;
+  background: #fff;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 12%);
+  text-align: start;
+  font: inherit;
+  color: #3c434a;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.pagenest-folder-card .dashicons {
+  flex: none;
+  color: #8c8f94;
+}
+.pagenest-folder-card:hover {
+  border-color: #2271b1;
+  color: #135e96;
+}
+.pagenest-media-folders button:focus-visible {
+  outline: 2px solid #2271b1;
+  outline-offset: 2px;
+}
+.pagenest-folder-status {
+  margin: 8px 0 0;
+  color: #646970;
+}
+.pagenest-folder-status:empty {
+  display: none;
+}
+@media (max-width: 600px) {
+  .pagenest-folder-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+  }
+  .pagenest-folder-heading {
+    align-items: start;
+  }
+}
+
+/* Keep the native media frame and its toolbar together beside folder navigation. */
+body.upload-php .pagenest-has-folder-sidebar {
+  position: relative;
+  margin-inline-start: 248px;
+  overflow: visible;
+}
+.pagenest-folder-sidebar {
+  z-index: 1;
+  position: absolute;
+  inset-block-start: 0;
+  height: min(760px, calc(100vh - 130px));
+  inset-inline-start: -248px;
+  box-sizing: border-box;
+  width: 232px;
+  padding: 16px 10px;
+  overflow: auto;
+  background: #fff;
+  border: 1px solid #dcdcde;
+  border-radius: 4px;
+}
+.pagenest-folder-sidebar h2 {
+  margin: 0 4px 16px;
+  font-size: 14px;
+}
+.pagenest-folder-sidebar input[type='search'] {
+  width: 100%;
+  margin-bottom: 12px;
+}
+.pagenest-folder-tree ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pagenest-folder-tree li {
+  margin: 0;
+}
+.pagenest-folder-row {
+  display: flex;
+  align-items: center;
+}
+.pagenest-folder-select,
+.pagenest-folder-toggle {
+  border: 0;
+  background: transparent;
+  color: #50575e;
+  cursor: pointer;
+  font: inherit;
+  min-height: 36px;
+}
+.pagenest-folder-toggle {
+  flex: 0 0 20px;
+  padding: 0;
+}
+.pagenest-folder-select {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-align: start;
+  padding: 6px;
+  width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.pagenest-folder-select .dashicons {
+  flex: none;
+  font-size: 16px;
+  color: #2271b1;
+}
+.pagenest-folder-select[aria-current],
+.pagenest-folder-select:hover {
+  background: #f0f6fc;
+  color: #135e96;
+  border-radius: 3px;
+}
+.pagenest-folder-count {
+  margin-inline-start: auto;
+  padding: 0 5px;
+  border-radius: 12px;
+  background: #f0f6fc;
+  color: #135e96;
+  font-size: 11px;
+}
+.pagenest-folder-sidebar > .button {
+  margin-top: 16px;
+}
+.pagenest-folder-sidebar button:focus-visible {
+  outline: 2px solid #2271b1;
+  outline-offset: -2px;
+}
+@media (max-width: 1100px) {
+  body.upload-php .pagenest-has-folder-sidebar {
+    margin-inline-start: 0;
+  }
+  .pagenest-folder-sidebar {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: auto;
+    max-height: 260px;
+    margin-bottom: 16px;
+  }
+}

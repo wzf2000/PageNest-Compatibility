@@ -13,8 +13,8 @@ return [
     'media_js' => 'media-compatibility-316e82718e17.js',
     'media_css' => 'media-compatibility-5ae4834f4169.css',
     'media_editor_js' => 'media-editor-6cff8e866482.js',
-    'media_library_js' => 'media-library-6b6f92e9ef02.js',
-    'media_library_css' => 'media-library-59e31cbc8f03.css',
+    'media_library_js' => 'media-library-1e16f79bb2c1.js',
+    'media_library_css' => 'media-library-b4b676c91eda.css',
     'media_folders_js' => 'media-folders-a8dbb859120f.js',
     'media_folders_css' => 'media-folders-028a2146f80f.css',
 ];

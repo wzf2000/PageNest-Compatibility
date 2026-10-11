@@ -38,6 +38,7 @@ function pagenest_companion_media_library_terms(object $taxonomy): array
             'parent' => (int) $term->parent,
             'name' => $term->name,
             'slug' => $term->slug,
+            'count' => (int) $term->count,
         ],
         $terms,
     );
@@ -83,6 +84,11 @@ add_action('admin_enqueue_scripts', static function ($hook): void {
     wp_localize_script('pagenest-media-library', 'pagenestMediaLibrary', [
         'taxonomy' => $taxonomy->name,
         'terms' => $terms,
+        'manageUrl' => current_user_can($taxonomy->cap->manage_terms)
+            ? admin_url(
+                'edit-tags.php?taxonomy=' . rawurlencode($taxonomy->name) . '&post_type=attachment',
+            )
+            : '',
         'nonce' => wp_create_nonce('pagenest-media-folders'),
         'labels' => pagenest_companion_media_labels(),
     ]);
