@@ -2,7 +2,7 @@
 namespace PageNest\Tools;
 defined('ABSPATH') || exit();
 if (!defined(__NAMESPACE__ . '\\VERSION')) {
-    define(__NAMESPACE__ . '\\VERSION', '1.2.0-rc.1');
+    define(__NAMESPACE__ . '\\VERSION', '1.2.0');
 }
 
 /** The explicit module switch is independent of the legacy profile constant. */

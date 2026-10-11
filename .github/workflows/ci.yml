@@ -57,6 +57,7 @@ jobs:
           npm test
           npm run test:content
           npm run test:media
+          npm run test:tools
       - name: Install pinned Chromium
         run: npx playwright install --with-deps --only-shell chromium
       - name: Run frontend regressions

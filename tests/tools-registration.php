@@ -15,7 +15,7 @@ function wp_parse_url($url)
 }
 require dirname(__DIR__) . '/modules/tools/providers.php';
 require dirname(__DIR__) . '/modules/tools/registry.php';
-require dirname(__DIR__, 2) . '/integration/providers/implementations.php';
+require __DIR__ . '/fixtures/tools/provider.php';
 use PageNest\Tools\Providers;
 use PageNest\Tools\Registry;
 function check($label, $condition)
@@ -34,12 +34,12 @@ function rejects($fn)
     }
     return false;
 }
-$root = dirname(__DIR__, 2) . '/integration';
-SiteTools\Implementations::register('basic', $root, 'https://example.invalid/basic');
+$root = __DIR__ . '/fixtures/tools';
+CompanionToolFixture\Implementations::register('basic', $root, 'https://example.invalid/basic');
 check(
     'duplicate provider rejected',
     rejects(
-        fn() => SiteTools\Implementations::register(
+        fn() => CompanionToolFixture\Implementations::register(
             'basic',
             $root,
             'https://example.invalid/basic',
@@ -72,8 +72,8 @@ $bad['handlers']['good']['render'] = 'undefined_callable';
 check('invalid callbacks rejected', rejects(fn() => Providers::register('bad-callback', $bad)));
 Providers::register('valid-after-errors', $provider);
 check('atomic registration retained', Providers::has('good'));
-SiteTools\Implementations::register('games', $root, 'https://example.invalid/games');
-SiteTools\Implementations::register('private', $root, 'https://example.invalid/private');
+CompanionToolFixture\Implementations::register('games', $root, 'https://example.invalid/games');
+CompanionToolFixture\Implementations::register('private', $root, 'https://example.invalid/private');
 $data = [
     'games' => ['runs_table' => ['invalid' => 'type']],
     'services' => [

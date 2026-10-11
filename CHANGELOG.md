@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.2.0-rc.1
+## 1.2.0
 
 - Experimental, default-off generic tools host with trusted implementation providers; optional tools ship separately.
 

@@ -1,0 +1,1 @@
+/* Generic provider test fixture. */

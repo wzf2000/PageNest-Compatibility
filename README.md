@@ -71,7 +71,7 @@ MathJax 2.7.7 按主题特性从 cdnjs 加载，会产生第三方请求，库�
 
 ## Experimental optional tools host
 
-Version 1.2.0-rc.1 adds a default-off generic tools host. Browser tools, games and private
+Version 1.2.0 adds a default-off generic tools host. Browser tools, games and private
 services are separate optional implementation plugins and are excluded from this ZIP.
 See [tools API and configuration](docs/tools.md) for explicit enablement, profile contracts
 and the old-owner guard.

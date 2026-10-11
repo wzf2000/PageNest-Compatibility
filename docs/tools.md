@@ -1,6 +1,6 @@
 # Optional tools host
 
-The experimental tools host in Companion 1.2.0-rc.1 is disabled by default. It provides bound
+The experimental tools host in Companion 1.2.0 is disabled by default. It provides bound
 page rendering, the public index contract, shortcode/block aliases, safe editor previews,
 access checks and provider asset loading. It ships no browser tools, games, Node verifier,
 private storage, installers or implementation discovery service.
@@ -77,7 +77,7 @@ a nonce never grants access by itself.
 
 The `SiteTools\Profile`, `Registry`, `Host`, `Assets` and `Providers` aliases preserve existing
 content and XP/maintenance consumers when Companion owns the host. `SiteTools\VERSION`
-identifies the host (1.2.0-rc.1); provider manifests independently identify pack versions.
+identifies the host (1.2.0); provider manifests independently identify pack versions.
 The catalog/index contract does not gain internal availability fields.
 
 ## Trusted PHP provider API
@@ -111,8 +111,7 @@ private services use it without loading game maintenance.
 
 ## Local verification
 
-Run `npm run test:tools` in the candidate source layout (the provider contract tests use the
-sibling integration tree). It covers empty/external/basic catalogs, missing handlers, public
+Run `npm run test:tools` in this repository (generic provider fixtures are self-contained). It covers empty/external/basic catalogs, missing handlers, public
 and private page access, registration/path constraints, invalid pack isolation, default-off
 and old-owner discovery. Real WordPress migration/browser tests belong to the isolated task
 harness. Official Companion packaging still requires committed source HEAD; this feature

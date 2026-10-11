@@ -163,14 +163,18 @@ try {
         'missing handler render safe',
         str_contains(Host::render('missing', true), 'site-tools-unavailable'),
     );
-    $packRoot = dirname(__DIR__, 2) . '/integration';
-    require $packRoot . '/providers/implementations.php';
-    SiteTools\Implementations::register('basic', $packRoot, 'https://example.invalid/basic');
+    $packRoot = __DIR__ . '/fixtures/tools';
+    require $packRoot . '/provider.php';
+    CompanionToolFixture\Implementations::register(
+        'basic',
+        $packRoot,
+        'https://example.invalid/basic',
+    );
     Providers::validateProfile(['catalog' => $catalog([])]);
     Providers::start();
     check(
         'basic starts without games or private runtime',
-        class_exists(SiteTools\TextCount::class) &&
+        ($GLOBALS['fixture_started'] ?? []) === ['basic'] &&
             !class_exists(SiteTools\Games::class, false) &&
             !class_exists(SiteTools\PrivateServices::class, false),
     );
@@ -227,7 +231,7 @@ try {
     check(
         'late provider registration rejected',
         rejects(
-            fn() => SiteTools\Implementations::register(
+            fn() => CompanionToolFixture\Implementations::register(
                 'basic',
                 $packRoot,
                 'https://example.invalid/basic',
