@@ -144,7 +144,9 @@ def main():
     # paths resolve to the same files WordPress has already loaded.
     results = {}
     for mode in ["seed", "verify"]:
-        results[mode] = json.loads(wp("eval-file", str(installed / "tests/wp-wordpress.php"), mode=mode))
+        results[mode] = json.loads(
+            wp("eval-file", str(installed / "tests/wp-wordpress.php"), mode=mode)
+        )
     results["settings"] = json.loads(wp("eval-file", str(installed / "tests/wp-settings.php")))
     results["social_settings"] = json.loads(
         wp("eval-file", str(installed / "tests/social-settings-wordpress.php"))
@@ -191,7 +193,14 @@ def main():
     server_env = dict(env, COMPONENT_LAB_SITE=str(site), COMPONENT_LAB_HTTP_HOST="127.0.0.1:18841")
     with (lab / "http.log").open("w") as log:
         process = subprocess.Popen(
-            ["php", "-S", "127.0.0.1:18841", "-t", str(site), str(installed / "tools/wp-router.php")],
+            [
+                "php",
+                "-S",
+                "127.0.0.1:18841",
+                "-t",
+                str(site),
+                str(installed / "tools/wp-router.php"),
+            ],
             env=server_env,
             stdout=log,
             stderr=log,
