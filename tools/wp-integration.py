@@ -94,9 +94,10 @@ def main():
         "--role=subscriber",
         "--user_pass=synthetic-local-only",
     )
+    installed = site / "wp-content/plugins/pagenest-compatibility"
     shutil.copytree(
         ROOT,
-        site / "wp-content/plugins/pagenest-compatibility",
+        installed,
         ignore=shutil.ignore_patterns(
             ".git",
             "node_modules",
@@ -139,20 +140,22 @@ def main():
     (lab / "profile.json").write_text(json.dumps(profile))
     wp("config", "set", "PAGENEST_COMPATIBILITY_PROFILE_FILE", str(lab / "profile.json"))
     wp("plugin", "activate", "pagenest-compatibility")
+    # Run fixtures and workers from the activated copy so relative require_once
+    # paths resolve to the same files WordPress has already loaded.
     results = {}
     for mode in ["seed", "verify"]:
-        results[mode] = json.loads(wp("eval-file", str(ROOT / "tests/wp-wordpress.php"), mode=mode))
-    results["settings"] = json.loads(wp("eval-file", str(ROOT / "tests/wp-settings.php")))
+        results[mode] = json.loads(wp("eval-file", str(installed / "tests/wp-wordpress.php"), mode=mode))
+    results["settings"] = json.loads(wp("eval-file", str(installed / "tests/wp-settings.php")))
     results["social_settings"] = json.loads(
-        wp("eval-file", str(ROOT / "tests/social-settings-wordpress.php"))
+        wp("eval-file", str(installed / "tests/social-settings-wordpress.php"))
     )
     results["social_account_security"] = json.loads(
-        wp("eval-file", str(ROOT / "tests/social-security-wordpress.php"))
+        wp("eval-file", str(installed / "tests/social-security-wordpress.php"))
     )
     subprocess.run(
         [
             "python3",
-            str(ROOT / "tools/social-security-concurrency.py"),
+            str(installed / "tools/social-security-concurrency.py"),
             "--lab",
             str(lab),
             "--wp-cli",
@@ -169,7 +172,7 @@ def main():
     subprocess.run(
         [
             "python3",
-            str(ROOT / "tools/concurrency.py"),
+            str(installed / "tools/concurrency.py"),
             "--lab",
             str(lab),
             "--wp-cli",
@@ -183,12 +186,12 @@ def main():
     results["concurrency"] = json.loads((lab / "concurrency-results.json").read_text())
     session = lab / "session.json"
     env["COMPONENT_LAB_SESSION"] = str(session)
-    wp("eval-file", str(ROOT / "tests/wp-session.php"))
+    wp("eval-file", str(installed / "tests/wp-session.php"))
     # Verify WordPress cookie authentication and nonce protection over actual HTTP.
     server_env = dict(env, COMPONENT_LAB_SITE=str(site), COMPONENT_LAB_HTTP_HOST="127.0.0.1:18841")
     with (lab / "http.log").open("w") as log:
         process = subprocess.Popen(
-            ["php", "-S", "127.0.0.1:18841", "-t", str(site), str(ROOT / "tools/wp-router.php")],
+            ["php", "-S", "127.0.0.1:18841", "-t", str(site), str(installed / "tools/wp-router.php")],
             env=server_env,
             stdout=log,
             stderr=log,
