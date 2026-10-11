@@ -90,6 +90,8 @@ async function format() {
     media_editor_js: 'media-editor.js',
     media_library_js: 'media-library.js',
     media_library_css: 'media-library.css',
+    media_folders_js: 'media-folders.js',
+    media_folders_css: 'media-folders.css',
   })) {
     const content = fs.readFileSync(path.join(assets, name));
     const hash = crypto.createHash('sha256').update(content).digest('hex').slice(0, 12);

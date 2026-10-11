@@ -30,6 +30,10 @@ function add_action($name, $callback, $priority = 10, $args = 1)
 {
     $GLOBALS['hooks'][$name][] = $callback;
 }
+function add_filter(...$args)
+{
+    add_action(...$args);
+}
 function get_option($name, $default = false)
 {
     if ($name !== 'pagenest_companion_media') {

@@ -49,6 +49,7 @@ function pagenest_companion_media_validate($input): array
             'enabled',
             'galleries',
             'library_taxonomy',
+            'library_provider',
         ])
     ) {
         throw new InvalidArgumentException('Invalid media configuration header.');
@@ -60,7 +61,19 @@ function pagenest_companion_media_validate($input): array
     if (!is_array($galleries) || count($galleries) > 1000) {
         throw new InvalidArgumentException('Invalid media galleries.');
     }
-    $taxonomy = $input['library_taxonomy'] ?? '';
+    $provider = $input['library_provider'] ?? 'external';
+    if (!in_array($provider, ['external', 'native'], true)) {
+        throw new InvalidArgumentException('Invalid library provider.');
+    }
+    $taxonomy =
+        $input['library_taxonomy'] ?? ($provider === 'native' ? 'pagenest_media_folder' : '');
+    if (
+        $provider === 'native' &&
+        ($taxonomy === '' ||
+            in_array($taxonomy, ['category', 'post_tag', 'nav_menu', 'post_format'], true))
+    ) {
+        throw new InvalidArgumentException('Reserved or empty folder taxonomy.');
+    }
     if (
         !is_string($taxonomy) ||
         ($taxonomy !== '' && !preg_match('/^[a-zA-Z0-9_-]{1,32}$/D', $taxonomy))
@@ -72,6 +85,7 @@ function pagenest_companion_media_validate($input): array
         'enabled' => $input['enabled'],
         'galleries' => [],
         'library_taxonomy' => $taxonomy,
+        'library_provider' => $provider,
     ];
     foreach ($galleries as $id => $gallery) {
         if (is_object($gallery)) {

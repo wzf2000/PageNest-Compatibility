@@ -32,9 +32,16 @@ add_action('admin_init', static function (): void {
                 );
                 return $stored;
             }
-            // The form can change only the toggle, never gallery sources or identities.
+            // Provider changes keep all folder identities and gallery mappings intact.
             $current['enabled'] = is_array($input) && ($input['enabled'] ?? '') === '1';
-            return $current;
+            $current['library_provider'] =
+                is_array($input) && ($input['native_library'] ?? '') === '1'
+                    ? 'native'
+                    : 'external';
+            if ($current['library_provider'] === 'native' && empty($current['library_taxonomy'])) {
+                $current['library_taxonomy'] = 'pagenest_media_folder';
+            }
+            return pagenest_companion_media_validate($current);
         },
     ]);
 });
@@ -49,7 +56,7 @@ function pagenest_companion_media_settings_page(): void
         esc_html__('Media compatibility', 'pagenest-companion') .
         '</h1><p>' .
         esc_html__(
-            'Display existing gallery and PDF blocks. Advanced gallery mappings are supplied by your migration administrator; media files and source folders remain editable through WordPress Media and your organization plugin.',
+            'Display existing gallery and PDF blocks. Advanced gallery mappings are supplied by your migration administrator; media files remain in WordPress Media. Native media folders can replace an external organization plugin without moving files.',
             'pagenest-companion',
         ) .
         '</p><form method="post" action="options.php">';
@@ -62,6 +69,23 @@ function pagenest_companion_media_settings_page(): void
         esc_html__(
             'Existing shortcode or block owners take precedence. Disabling this module preserves the gallery mappings.',
             'pagenest-companion',
+        ) .
+        '</p>';
+    echo '<p><label><input type="checkbox" name="pagenest_companion_media[native_library]" value="1" ' .
+        checked(($config['library_provider'] ?? 'external') === 'native', true, false) .
+        '> ' .
+        esc_html(
+            pagenest_companion_folder_text(
+                'Use Companion native media folders',
+                '使用 Companion 自有媒体文件夹',
+            ),
+        ) .
+        '</label></p><p>' .
+        esc_html(
+            pagenest_companion_folder_text(
+                'An existing provider keeps ownership until it is disabled. Back up and validate existing folders before switching. Disabling preserves all files and folder relationships.',
+                '原管理插件停用前仍由其管理目录。切换前请备份并验证现有目录；关闭功能不会删除文件或目录归属。',
+            ),
         ) .
         '</p>';
     submit_button();

@@ -1,0 +1,20 @@
+.pagenest-folder-toolbar .media-toolbar-secondary {
+  display: grid;
+  grid-template-columns: repeat(var(--pagenest-assign-column), minmax(0, auto));
+}
+.pagenest-folder-toolbar .pagenest-folder-label {
+  grid-column: var(--pagenest-folder-column);
+  grid-row: 1;
+}
+.media-frame .pagenest-folder-toolbar select.pagenest-folder-filter {
+  grid-column: var(--pagenest-folder-column);
+  grid-row: 2;
+  max-width: 160px;
+  margin-right: 0;
+}
+.pagenest-folder-toolbar .media-toolbar-secondary > .pagenest-folder-assign {
+  grid-column: var(--pagenest-assign-column);
+  grid-row: 2;
+  margin: 0;
+  white-space: nowrap;
+}

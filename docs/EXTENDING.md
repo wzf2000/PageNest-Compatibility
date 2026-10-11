@@ -165,6 +165,8 @@ GitHub 和 Google 使用每次授权独立的 S256 PKCE；Google 同时绑定 no
 
 可选根字段 `library_taxonomy`（默认空字符串）指定附件层级分类法。启用后仅对具备上传和该分类法分配权限的用户显示媒体库网格文件夹导航；分类法提供者必须支持媒体集合的同名 slug 筛选属性。导航不写分类关系，刷新接口校验 nonce 和权限，最多显示 5000 个目录。
 
+`library_provider` 默认为 `external`，保持原组织插件负责目录。显式设为 `native` 时由 Companion 注册附件层级分类法；未指定名称时使用 `pagenest_media_folder`，接管既有目录则保留原 `library_taxonomy`。不复制或改号，不覆盖已注册的分类法，不自动停用原插件。自有分类法不公开查询、不暴露 REST；管理员管理目录，上传者仅能分配自己有编辑权限的附件。分配页使用 WordPress nonce，先完整校验所选附件与目录，再追加／移除关系；中途失败保留已完成部分并明确提示。筛选与原查询条件取交集，原有媒体权限保持有效。目录归属仍是 WordPress 标准 term relationship，关闭或移除本功能不删除数据。
+
 媒体模块使用 WordPress option `pagenest_companion_media`。迁移工具在 WP-CLI 中先调用 `pagenest_companion_media_validate($input)`，再以 `update_option()` 保存验证后的配置。后台设置只修改启用开关并保留映射；没有配置或配置非法时关闭模块。不要在前台请求中执行迁移。
 
 ```json

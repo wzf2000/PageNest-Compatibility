@@ -147,6 +147,9 @@ def main():
         results[mode] = json.loads(
             wp("eval-file", str(installed / "tests/wp-wordpress.php"), mode=mode)
         )
+    results["media_folders"] = json.loads(
+        wp("eval-file", str(installed / "tests/media-folders-wordpress.php"))
+    )
     results["settings"] = json.loads(wp("eval-file", str(installed / "tests/wp-settings.php")))
     results["social_settings"] = json.loads(
         wp("eval-file", str(installed / "tests/social-settings-wordpress.php"))

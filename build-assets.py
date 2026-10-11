@@ -21,6 +21,8 @@ for key, name in [
     ("media_editor_js", "media-editor.js"),
     ("media_library_js", "media-library.js"),
     ("media_library_css", "media-library.css"),
+    ("media_folders_js", "media-folders.js"),
+    ("media_folders_css", "media-folders.css"),
 ]:
     content = (assets / name).read_bytes()
     path = Path(name)
