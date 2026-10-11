@@ -14,6 +14,11 @@ npm run format:check
 npm test
 npx playwright install --only-shell chromium
 npm run test:frontend
+npm run test:content
+npm run test:content-browser
+npm run test:media
+npm run test:media-browser
+npm run test:service-browser
 npm run package
 npm run package:check
 ```

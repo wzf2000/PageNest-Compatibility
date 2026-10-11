@@ -191,7 +191,8 @@
         'pagenest-media-pause',
       );
       pauseButton.setAttribute('aria-pressed', String(paused));
-      controls.append(previous, next, pauseButton);
+      viewport.append(previous, next);
+      controls.append(pauseButton);
       gallery.append(controls);
       gallery.addEventListener('mouseenter', stop);
       gallery.addEventListener('mouseleave', start);
@@ -235,7 +236,13 @@
       image.src = link.href;
       image.alt = link.querySelector('img')?.alt || '';
       caption.textContent = link.dataset.caption || '';
+      caption.scrollTop = 0;
       counter.textContent = `${lightboxIndex + 1} / ${links.length}`;
+      requestAnimationFrame(() => {
+        // Long descriptions remain keyboard-readable without adding a stop for short captions.
+        if (caption.scrollHeight > caption.clientHeight) caption.tabIndex = 0;
+        else caption.removeAttribute('tabindex');
+      });
       if (!motion.matches) {
         image.getAnimations().forEach((animation) => animation.cancel());
         image.animate(
@@ -268,15 +275,18 @@
       counter = document.createElement('p');
       counter.className = 'pagenest-media-counter';
       counter.setAttribute('aria-live', 'polite');
-      dialog.append(controls, image, caption, counter);
+      const details = document.createElement('div');
+      details.className = 'pagenest-media-lightbox-details';
+      details.append(caption, counter);
+      dialog.append(controls, image, details);
       dialog.addEventListener('click', (event) => {
         if (event.target === dialog) close();
       });
       dialog.addEventListener('keydown', (event) => {
         if (event.key === 'Tab') {
-          const buttons = Array.from(dialog.querySelectorAll('button'));
-          const first = buttons[0];
-          const last = buttons[buttons.length - 1];
+          const focusable = Array.from(dialog.querySelectorAll('button, [tabindex="0"]'));
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
           if (event.shiftKey && document.activeElement === first) {
             event.preventDefault();
             last.focus();

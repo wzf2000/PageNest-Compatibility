@@ -4,7 +4,7 @@
 
 要求 WordPress 6.0+、PHP 8.0+。
 
-1. 在 [GitHub Releases](RELEASING.md) 下载发行附件中的 `pagenest-compatibility-版本号.zip`，选择安装包，而非自动生成的 Source code ZIP。
+1. 在 [GitHub Releases](https://github.com/wzf2000/PageNest-Compatibility/releases) 下载发行附件中的 `pagenest-compatibility-版本号.zip`，选择安装包，而非自动生成的 Source code ZIP。
 2. 在后台打开 “插件 → 安装插件 → 上传插件”，上传 ZIP，安装并启用。
 3. 打开 “设置 → PageNest Companion”，选择所需功能。段落评论还需要逐篇文章明确启用；新文章默认关闭。
 4. 用不同账号验证公开评论、作者操作、点赞，以及站点现有邮件服务。无需复制数据库。
@@ -111,7 +111,7 @@ GitHub、Google 和微信网站应用均需管理员自行创建并控制对应�
 
 ## 可选媒体展示
 
-开发候选提供默认关闭的媒体兼容模块。在迁移管理员验证画廊映射后，通过 “设置 → Companion Media” 启用。它接管没有其他负责人注册的 `[wpmfgallery]`、`[wpmfpdf]` 及对应旧区块；保留正文中的原始标记，不自动改写文章。
+插件提供默认关闭的媒体兼容模块。在迁移管理员验证画廊映射后，通过 “设置 → Companion Media” 启用。它接管没有其他负责人注册的 `[wpmfgallery]`、`[wpmfpdf]` 及对应旧区块；保留正文中的原始标记，不自动改写文章。
 
 画廊保留配置的图片集合、排序方式、列数、间距、自动轮播和灯箱。轮播使用缓动滑动与首尾循环，箭头叠放在两侧；窄屏显示一列并支持手势；悬停、键盘焦点、暂停按钮和减少动态效果偏好可以暂停自动切换。没有 JavaScript 时显示图片链接。PDF 查看器支持翻页、缩放、搜索和打印，下方保留原文件链接。查看器来自随包提供的 PDF.js，资源不依赖旧媒体插件或 CDN。
 

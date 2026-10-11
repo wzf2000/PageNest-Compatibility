@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.0
+
+- 首个稳定主版本，汇总自公开版 0.6.1 以来的可选站点服务、内容与媒体模块，保留段落评论、私人记录保护、作者操作、章节与点赞接口。
+- 提供默认关闭的浏览计数、Brevo 邮件、原生表单 Turnstile、QQ／百度／微博／GitHub／Google／微信网站应用登录与本地分享；身份按供应商／应用隔离，不按邮箱合并。
+- 社交管理包含近期身份确认、验证恢复邮箱、首次注册资料、管理员配置与会话绑定提示；配置及凭据仅由授权管理员管理。
+- 配置驱动的资源目录、通用内容导览、阅读跳转、归档与章节展示保留正文、来源、历史锚点和权限；无 JavaScript 时原生内容仍可用。
+- 画廊／PDF 兼容保留旧正文标记，提供平滑轮播、键盘／触摸灯箱、本地 PDF 查看器及可选媒体文件夹浏览；改善控件、说明区与文件链接样式。媒体上传和目录编辑仍由 WordPress／媒体组织插件负责。
+- 从 0.6.1 或后续候选原位升级，目录仍为 pagenest-compatibility；新模块不自动启用，不自动迁移、删除旧数据或卸载旧插件。先备份并在隔离环境验证旧功能负责人和显式配置。
+- Existing identities, private records and content remain intact. Optional services, content and media modules require explicit configuration; view counting does not support full-page caches.
+
 ## 0.11.0-rc.1
 
 - 新增默认关闭的画廊／PDF 兼容模块，保留旧标记与正文，独立提供轮播、灯箱及本地 PDF 查看器。
