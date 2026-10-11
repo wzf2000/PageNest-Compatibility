@@ -68,3 +68,10 @@ MathJax 2.7.7 按主题特性从 cdnjs 加载，会产生第三方请求，库�
 [使用指南](docs/USAGE.md) 介绍配置、权限、编辑器和升级；[扩展接口](docs/EXTENDING.md) 记录服务器配置 schema；[贡献指南](CONTRIBUTING.md) 说明格式、真实 WordPress/数据库/并发及浏览器测试；[发行指南](docs/RELEASING.md) 说明校验与安装包。
 
 采用 **GPL-2.0-or-later**，详见 [LICENSE](LICENSE)。版权归 PageNest Contributors（2026）所有；外部插件与远端加载库保留各自许可证。
+
+## Experimental optional tools host
+
+Version 1.2.0-rc.1 adds a default-off generic tools host. Browser tools, games and private
+services are separate optional implementation plugins and are excluded from this ZIP.
+See [tools API and configuration](docs/tools.md) for explicit enablement, profile contracts
+and the old-owner guard.

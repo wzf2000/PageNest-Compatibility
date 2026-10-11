@@ -69,6 +69,8 @@ def source_files():
 
 def installation_name(name):
     path = Path(name)
+    if path.parts[:3] == ("modules", "tools", "assets"):
+        return name == "modules/tools/assets/classic-preview.js"
     if path.parts[:2] == ("assets", "vendor"):
         return path.parts[:3] == ("assets", "vendor", "pdfjs-6.4.299") and (
             (path.name == "LICENSE" or path.name.startswith("LICENSE_") or path.name == "NOTICE.md")
@@ -132,7 +134,13 @@ def build(version, sha, repository):
     out = ROOT / "dist"
     out.mkdir(exist_ok=True)
     files = {name: digest((ROOT / name).read_bytes()) for name in source_files()}
-    manifest = {"schema": 1, "slug": SLUG, "version": version, "source_commit": sha, "files": files}
+    manifest = {
+        "schema": 1,
+        "slug": SLUG,
+        "version": version,
+        "source_commit": sha,
+        "files": files,
+    }
     manifest_bytes = (json.dumps(manifest, indent=2, sort_keys=True) + "\n").encode()
     prefix = f"{SLUG}-{version}"
     archive_path = out / f"{prefix}.zip"

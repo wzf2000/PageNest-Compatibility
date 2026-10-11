@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0-rc.1
+
+- Experimental, default-off generic tools host with trusted implementation providers; optional tools ship separately.
+
 ## 1.1.1
 
 - 媒体库网格补回左侧文件夹导航，支持层级展开、搜索、全部文件与未分类快捷入口、目录直接归属数量和管理入口。
