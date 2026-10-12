@@ -307,11 +307,10 @@ function config(filename) {
   const origin = normalizeOrigin(data.origin);
   const dir = privateDirectory(data.queue_dir);
   if (
-    data.browser_executable !== undefined &&
-    (typeof data.browser_executable !== 'string' ||
-      !path.isAbsolute(data.browser_executable) ||
-      fs.realpathSync(data.browser_executable) !== data.browser_executable ||
-      !fs.statSync(data.browser_executable).isFile())
+    typeof data.browser_executable !== 'string' ||
+    !path.isAbsolute(data.browser_executable) ||
+    fs.realpathSync(data.browser_executable) !== data.browser_executable ||
+    !fs.statSync(data.browser_executable).isFile()
   )
     throw new Error('invalid_browser');
   return {

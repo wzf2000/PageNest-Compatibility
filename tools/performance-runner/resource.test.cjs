@@ -51,6 +51,45 @@ async function main() {
     assert.equal(readJson(filename).status, 'queued');
     assert.equal(fs.existsSync(path.join(dir, 'worker.lock')), false);
     fs.unlinkSync(config);
+    const alreadyCancelled = new AbortController();
+    alreadyCancelled.abort();
+    assert.deepEqual(
+      await processOnce(
+        { dir, policy },
+        () => {
+          throw new Error('cancelled preflight cannot claim');
+        },
+        { signal: alreadyCancelled.signal },
+      ),
+      { status: 'cancelled' },
+    );
+    assert.equal(fs.existsSync(path.join(dir, 'worker.lock')), false);
+    const beforeWaiting = fs.readFileSync(filename);
+    const waitingController = new AbortController();
+    const releaseWaitingLock = acquire(dir, 'queue.lock');
+    let released = false;
+    const abortWhileWaiting = setTimeout(() => waitingController.abort(), 20);
+    const releaseAfterAbort = setTimeout(() => {
+      released = true;
+      releaseWaitingLock();
+    }, 80);
+    try {
+      assert.deepEqual(
+        await processOnce(
+          { dir, policy },
+          () => {
+            throw new Error('cancelled lock waiter cannot claim');
+          },
+          { signal: waitingController.signal },
+        ),
+        { status: 'cancelled' },
+      );
+      assert.deepEqual(fs.readFileSync(filename), beforeWaiting);
+    } finally {
+      clearTimeout(abortWhileWaiting);
+      clearTimeout(releaseAfterAbort);
+      if (!released) releaseWaitingLock();
+    }
     for (const mode of ['marker', 'signal']) {
       const controller = new AbortController();
       atomicWrite(dir, path.basename(filename), job());

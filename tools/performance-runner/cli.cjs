@@ -4,14 +4,17 @@ const { config, readJson, atomicWrite, acquire, locked, reports } = require('./q
 const { runMeasurements } = require('./measure.cjs');
 const { LIMITS } = require('./budget.cjs');
 const { assertRuntime } = require('./runtime.cjs');
+const { immutableBrowser, assertChromiumSandbox } = require('./sandbox.cjs');
 
 async function processOnce(settings, engine, { signal } = {}) {
   const { dir, policy, executablePath, runtimeLimits } = settings;
+  if (signal?.aborted) return { status: 'cancelled' };
   const release = acquire(dir, 'worker.lock');
   let job;
   let cancelled = () => signal?.aborted === true;
   try {
     job = await locked(dir, () => {
+      if (signal?.aborted) return null;
       const available = reports(dir, policy);
       for (const entry of available) {
         if (
@@ -37,7 +40,7 @@ async function processOnce(settings, engine, { signal } = {}) {
       atomicWrite(dir, `job-${selected.id}.json`, selected);
       return selected;
     });
-    if (!job) return { status: 'idle' };
+    if (!job) return { status: signal?.aborted ? 'cancelled' : 'idle' };
     cancelled = () => {
       if (signal?.aborted) return true;
       const filename = path.join(dir, `cancel-${job.id}`);
@@ -107,6 +110,7 @@ async function main() {
   const settings = config(process.argv[4]);
   settings.runtimeLimits = runtimeLimits;
   // This development runner has no daemon, scheduler, FPM child command or auto-install.
+  immutableBrowser(settings.executablePath);
   const { chromium } = require('playwright-core');
   const controller = new AbortController();
   let exitCode = 0;
@@ -121,14 +125,21 @@ async function main() {
   process.once('SIGTERM', terminate);
   process.once('SIGINT', interrupt);
   try {
+    // Prove a live sandbox under these exact limits before opening any queue lock or report.
+    await assertChromiumSandbox({
+      chromium,
+      executablePath: settings.executablePath,
+      signal: controller.signal,
+    });
+    if (controller.signal.aborted) return;
     const output = await processOnce(
       settings,
       (job, policy, options) => runMeasurements(job, policy, { ...options, chromium }),
       { signal: controller.signal },
     );
     process.stdout.write(JSON.stringify(output) + '\n');
-    if (exitCode) process.exitCode = exitCode;
   } finally {
+    if (exitCode) process.exitCode = exitCode;
     process.removeListener('SIGTERM', terminate);
     process.removeListener('SIGINT', interrupt);
   }
@@ -150,11 +161,17 @@ function reportFailure(error) {
     'runtime_not_private',
     'runtime_wrong_user',
     'runtime_unavailable',
+    'sandbox_unverified',
   ];
   process.stderr.write((allowed.includes(error.message) ? error.message : 'runner_failed') + '\n');
-  process.exitCode = 1;
+  if (!process.exitCode) process.exitCode = 1;
 }
 
-if (require.main === module) main().catch(reportFailure);
+if (require.main === module)
+  main().catch((error) => {
+    reportFailure(error);
+    // RuntimeMaxSec is a last resort; a failed guard must end the main process now.
+    process.stderr.write('', () => process.exit(process.exitCode || 1));
+  });
 
 module.exports = { processOnce, main, reportFailure };

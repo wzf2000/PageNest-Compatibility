@@ -18,7 +18,7 @@
     "test:media-browser": "playwright test --config tests/media-playwright.config.cjs",
     "test:tools": "php tests/tools-contracts.php && php tests/tools-registration.php && php tests/tools-bootstrap.php && php tests/tools-bootstrap.php legacy-first && php tests/tools-bootstrap.php legacy-late && php tests/tools-bootstrap.php active && php tests/tools-bootstrap.php network && php tests/tools-bootstrap.php missing-profile && python3 -m unittest discover -s tests -p \"test_tools_package.py\"",
     "test:performance": "php tests/performance.php && php tests/performance.php disabled",
-    "test:performance-runner": "node tools/performance-runner/test.cjs && node tools/performance-runner/runtime.test.cjs && node tools/performance-runner/resource.test.cjs",
+    "test:performance-runner": "node tools/performance-runner/test.cjs && node tools/performance-runner/runtime.test.cjs && node tools/performance-runner/resource.test.cjs && node tools/performance-runner/sandbox.test.cjs",
     "test:performance-browser": "node tools/performance-runner/browser.test.cjs && node tools/performance-runner/resource.browser.test.cjs",
     "test:performance-kernel": "node tools/performance-runner/resource.kernel.test.cjs"
   },

@@ -149,6 +149,17 @@ async function main() {
       JSON.stringify({ schema_version: 1, queue_dir: dir, origin, asset_hosts: [] }),
       { mode: 0o600 },
     );
+    assert.throws(() => config(configFile), { message: 'invalid_browser' });
+    fs.writeFileSync(
+      configFile,
+      JSON.stringify({
+        schema_version: 1,
+        queue_dir: dir,
+        origin,
+        asset_hosts: [],
+        browser_executable: fs.realpathSync(process.execPath),
+      }),
+    );
     assert.equal(config(configFile).dir, dir);
     fs.writeFileSync(
       configFile,

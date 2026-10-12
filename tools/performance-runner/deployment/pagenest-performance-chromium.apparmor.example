@@ -1,0 +1,11 @@
+# Example only; not installed or loaded by the runner.
+# Match the exact, root-owned executable configured in runner.json.
+# Ubuntu/AppArmor 5 userns exception, following the vendor Chrome profile.
+# Automatic executable attachment: do not apply this profile to Node via AppArmorProfile.
+abi <abi/5.0>,
+include <tunables/global>
+
+profile pagenest-performance-chromium /opt/pagenest-browser/chromium-headless-shell/chrome-linux/headless_shell flags=(unconfined) {
+  userns,
+  @{exec_path} mr,
+}
