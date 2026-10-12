@@ -17,7 +17,7 @@ const { processOnce } = require('./cli.cjs');
 const origin = 'https://example.test';
 function job() {
   return {
-    schema_version: 1,
+    schema_version: 2,
     id: 'a'.repeat(32),
     status: 'queued',
     created_at: new Date().toISOString(),
@@ -28,6 +28,39 @@ function job() {
     pages: [{ key: 'home', post_id: 0, url: origin + '/', title: 'Synthetic', reason: 'fixture' }],
     versions: { wordpress: 'synthetic', companion: 'development', theme: 'synthetic' },
     results: [],
+    error: null,
+  };
+}
+function environment(cacheMode = 'fresh-context') {
+  return {
+    runner: 'playwright-navigation-v2',
+    node_version: process.version,
+    chromium_version: 'synthetic',
+    network: 'server-local',
+    cache_mode: cacheMode,
+    sample_window_ms: 1500,
+    policy_hash: 'f'.repeat(64),
+  };
+}
+function sample(pageKey = 'home', phase = 'fresh') {
+  return {
+    page_key: pageKey,
+    run: 1,
+    cache_phase: phase,
+    status: 'ok',
+    http_status: 200,
+    ttfb_ms: 1,
+    fcp_ms: 2,
+    lcp_ms: 3,
+    cls: 0,
+    long_task_blocking_ms: 0,
+    request_count: 2,
+    transfer_bytes: 100,
+    failed_requests: 0,
+    blocked_requests: 0,
+    browser_cache_requests: phase === 'warm' ? 1 : 0,
+    cache_header: 'HIT',
+    duration_ms: 1500,
     error: null,
   };
 }
@@ -141,6 +174,40 @@ async function main() {
     const duplicate = structuredClone(j);
     duplicate.pages.push(duplicate.pages[0]);
     assert.equal(validJob(duplicate, policy), false);
+    const paired = job();
+    paired.profile.cache_mode = 'paired';
+    paired.results = [sample(), sample('home', 'warm')];
+    paired.environment = environment('paired');
+    assert.equal(validJob(paired, policy), true);
+    paired.results.push(sample('home', 'warm'));
+    assert.equal(validJob(paired, policy), false, 'duplicate phase rejected');
+    paired.results.pop();
+    paired.results[1].browser_cache_requests = 3;
+    assert.equal(validJob(paired, policy), false, 'cache count cannot exceed request count');
+    paired.results[1].browser_cache_requests = 1;
+    paired.environment.cache_mode = 'fresh-context';
+    assert.equal(validJob(paired, policy), false, 'environment cannot mislabel cache mode');
+    paired.environment = environment('paired');
+    paired.results[1].error = 'warmup_failed';
+    paired.results[1].status = 'failed';
+    assert.equal(
+      validJob(paired, policy),
+      false,
+      'successful fresh phase cannot report failed warmup',
+    );
+    paired.results[0].status = 'failed';
+    paired.results[0].error = 'navigation_failed';
+    assert.equal(validJob(paired, policy), true);
+    paired.results[0].error = 'warmup_failed';
+    assert.equal(validJob(paired, policy), false, 'warmup failure only applies to warm phase');
+    const legacy = job();
+    legacy.schema_version = 1;
+    legacy.results = [sample()];
+    delete legacy.results[0].cache_phase;
+    delete legacy.results[0].browser_cache_requests;
+    assert.equal(validJob(legacy, policy), true, 'legacy reports remain readable');
+    legacy.profile.cache_mode = 'paired';
+    assert.equal(validJob(legacy, policy), false, 'legacy format cannot silently contain pairs');
     atomicWrite(dir, `job-${j.id}.json`, j);
     assert.deepEqual(readJson(path.join(dir, `job-${j.id}.json`)), j);
     const output = await processOnce({ dir, policy }, async (entry, _, options) => {
@@ -148,7 +215,7 @@ async function main() {
       assert.equal(options.cancelled(), false);
       atomicWrite(dir, `cancel-${entry.id}`, { schema_version: 1, id: entry.id });
       assert.equal(options.cancelled(), true);
-      return { results: [], environment: {}, cancelled: true };
+      return { results: [], environment: environment(), cancelled: true };
     });
     assert.equal(output.status, 'cancelled');
     assert.equal(readJson(path.join(dir, `job-${j.id}.json`)).status, 'cancelled');
@@ -157,7 +224,7 @@ async function main() {
     atomicWrite(dir, `job-${j.id}.json`, j);
     const lateCancel = await processOnce({ dir, policy }, async (entry) => {
       atomicWrite(dir, `cancel-${entry.id}`, { schema_version: 1, id: entry.id });
-      return { results: [], environment: {}, cancelled: false };
+      return { results: [], environment: environment(), cancelled: false };
     });
     assert.equal(lateCancel.status, 'cancelled', 'last-sample cancellation wins completion');
     assert.deepEqual(
@@ -187,59 +254,49 @@ async function main() {
     assert.equal(failed.error, 'runner_failed');
     // Real PHP producer and validator, using the same in-memory WordPress fixture,
     // verify the shared wire format rather than two independent JS/PHP mocks.
-    const bridge = path.join(dir, 'bridge');
-    fs.mkdirSync(bridge, { mode: 0o700 });
     const fixture = path.resolve(__dirname, '../../tests/performance.php');
     const phpProducer =
-      '$queueDir=$argv[1];$fixture=$argv[2];$argv[1]="disabled";ob_start();require $fixture;ob_end_clean();$queue=new \\PageNest\\Performance\\Queue($queueDir);echo json_encode($queue->start(["post:1"],"desktop",1));';
-    const produced = JSON.parse(
-      execFileSync('php', ['-r', phpProducer, bridge, fixture], { encoding: 'utf8' }),
-    );
-    assert.equal(
-      validJob(produced, policy),
-      true,
-      'PHP-generated queued job meets worker protocol',
-    );
-    const environment = {
-      runner: 'playwright-navigation-v1',
-      node_version: process.version,
-      chromium_version: 'synthetic',
-      network: 'server-local',
-      cache_mode: 'fresh-context',
-    };
-    await processOnce({ dir: bridge, policy }, async (entry, _, options) => {
-      const sample = {
-        page_key: entry.pages[0].key,
-        run: 1,
-        status: 'ok',
-        http_status: 200,
-        ttfb_ms: 1,
-        fcp_ms: 2,
-        lcp_ms: 3,
-        cls: 0,
-        long_task_blocking_ms: 0,
-        request_count: 2,
-        transfer_bytes: 100,
-        failed_requests: 0,
-        blocked_requests: 0,
-        cache_header: 'HIT',
-        duration_ms: 1500,
-        error: null,
-      };
-      await options.onResult(sample, environment);
-      return { results: [sample], environment, cancelled: false };
-    });
+      '$queueDir=$argv[1];$fixture=$argv[2];$cacheMode=$argv[3];$argv[1]="disabled";ob_start();require $fixture;ob_end_clean();$queue=new \\PageNest\\Performance\\Queue($queueDir);echo json_encode($queue->start(["post:1"],"desktop",1,$cacheMode));';
     const phpValidator =
       '$report=$argv[1];$fixture=$argv[2];$argv[1]="disabled";ob_start();require $fixture;ob_end_clean();echo \\PageNest\\Performance\\Queue::valid(json_decode(file_get_contents($report),true))?"valid":"invalid";';
-    assert.equal(
-      execFileSync(
-        'php',
-        ['-r', phpValidator, path.join(bridge, `job-${produced.id}.json`), fixture],
-        { encoding: 'utf8' },
-      ),
-      'valid',
-      'worker result accepted by PHP admin validator',
-    );
+    for (const mode of ['fresh-context', 'paired']) {
+      const bridge = path.join(dir, 'bridge-' + mode);
+      fs.mkdirSync(bridge, { mode: 0o700 });
+      const produced = JSON.parse(
+        execFileSync('php', ['-r', phpProducer, bridge, fixture, mode], { encoding: 'utf8' }),
+      );
+      assert.equal(
+        validJob(produced, policy),
+        true,
+        'PHP-generated job meets worker protocol: ' + mode,
+      );
+      const executionEnvironment = environment(mode);
+      await processOnce({ dir: bridge, policy }, async (entry, _, options) => {
+        const rows = [
+          sample(entry.pages[0].key),
+          ...(mode === 'paired' ? [sample(entry.pages[0].key, 'warm')] : []),
+        ];
+        for (const row of rows) await options.onResult(row, executionEnvironment);
+        return { results: rows, environment: executionEnvironment, cancelled: false };
+      });
+      assert.equal(
+        execFileSync(
+          'php',
+          ['-r', phpValidator, path.join(bridge, `job-${produced.id}.json`), fixture],
+          { encoding: 'utf8' },
+        ),
+        'valid',
+        'worker result accepted by PHP admin validator: ' + mode,
+      );
+    }
+    const legacyQueued = job();
+    legacyQueued.schema_version = 1;
+    atomicWrite(dir, `job-${legacyQueued.id}.json`, legacyQueued);
+    await processOnce({ dir, policy }, async (entry) => {
+      assert.equal(entry.schema_version, 2, 'queued legacy job upgraded under the claim lock');
+      return { results: [sample()], environment: environment(), cancelled: false };
+    });
+    assert.equal(validJob(readJson(path.join(dir, `job-${legacyQueued.id}.json`)), policy), true);
     const large = path.join(dir, 'large.json');
     fs.writeFileSync(large, 'x'.repeat(524289), { mode: 0o600 });
     assert.throws(() => readJson(large));

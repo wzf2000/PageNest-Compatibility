@@ -1,4 +1,5 @@
 const { performance } = require('node:perf_hooks');
+const { createHash } = require('node:crypto');
 const { UA_TOKEN, startProxy } = require('./policy.cjs');
 const { startGuard } = require('./guard.cjs');
 
@@ -82,6 +83,25 @@ function collect() {
   });
 }
 
+function sampleRow(target, run, phase) {
+  return {
+    page_key: target.key,
+    run,
+    cache_phase: phase,
+    status: 'failed',
+    http_status: null,
+    ...Object.fromEntries(METRICS.map((key) => [key, null])),
+    request_count: 0,
+    transfer_bytes: 0,
+    failed_requests: 0,
+    blocked_requests: 0,
+    browser_cache_requests: 0,
+    cache_header: 'unknown',
+    duration_ms: 0,
+    error: null,
+  };
+}
+
 async function runMeasurements(
   job,
   policy,
@@ -97,6 +117,19 @@ async function runMeasurements(
   const proxy = await startProxy(policy);
   let browser, server, guard, watchdog, sampleTimer;
   const results = [];
+  async function closeBounded(object) {
+    let timer;
+    try {
+      await Promise.race([
+        object.close(),
+        new Promise((resolve) => {
+          timer = setTimeout(() => server.kill().then(resolve, resolve), 1500);
+        }),
+      ]);
+    } finally {
+      clearTimeout(timer);
+    }
+  }
   try {
     server = await chromium.launchServer({
       headless: true,
@@ -123,39 +156,41 @@ async function runMeasurements(
     const browserInfo = await browserSession.send('Browser.getVersion');
     guard = await startGuard(browser, policy);
     const environment = {
-      runner: 'playwright-navigation-v1',
+      runner: 'playwright-navigation-v2',
       node_version: process.version,
       chromium_version: browser.version(),
       network: 'server-local',
-      cache_mode: 'fresh-context',
+      cache_mode: job.profile.cache_mode,
+      sample_window_ms: 1500,
+      policy_hash: createHash('sha256')
+        .update(
+          JSON.stringify({
+            guard: 'cdp-anonymous-v2',
+            origin: policy.origin,
+            hosts: [...policy.hosts].sort(),
+            fixture: policy.fixture,
+          }),
+        )
+        .digest('hex'),
     };
+    const phases = job.profile.cache_mode === 'paired' ? ['fresh', 'warm'] : ['fresh'];
     for (const target of job.pages) {
       for (let run = 1; run <= job.profile.repeats; run++) {
         if (cancelled()) return { results, environment, cancelled: true };
         if (Date.now() >= deadline) throw new Error('job_timeout');
-        const started = performance.now();
-        const row = {
-          page_key: target.key,
-          run,
-          status: 'failed',
-          http_status: null,
-          ...Object.fromEntries(METRICS.map((key) => [key, null])),
-          request_count: 0,
-          transfer_bytes: 0,
-          failed_requests: 0,
-          blocked_requests: 0,
-          cache_header: 'unknown',
-          duration_ms: 0,
-          error: null,
-        };
         if (!policy.allowedUrl(target.url, true)) {
-          row.error = 'target_blocked';
-          results.push(row);
-          await onResult(row, environment);
+          for (const phase of phases) {
+            const row = sampleRow(target, run, phase);
+            row.error = phase === 'fresh' ? 'target_blocked' : 'warmup_failed';
+            results.push(row);
+            await onResult(row, environment);
+          }
           continue;
         }
         const canonicalUrl = new URL(target.url).href;
         const mobile = job.profile.device === 'mobile';
+        // A pair shares only its anonymous HTTP cache. Every repeated pair starts
+        // in a new context; warm navigation never consumes another page's cache.
         const context = await browser.newContext({
           viewport: mobile ? { width: 390, height: 844 } : { width: 1365, height: 768 },
           deviceScaleFactor: mobile ? 2 : 1,
@@ -167,71 +202,125 @@ async function runMeasurements(
           ignoreHTTPSErrors: policy.fixture,
           userAgent: `${mobile ? `Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${browser.version()} Mobile Safari/537.36` : browserInfo.userAgent} ${UA_TOKEN}`,
         });
-        await context.routeWebSocket('**/*', (socket) => {
-          row.blocked_requests++;
-          socket.close();
-        });
-        await context.addInitScript(collect);
-        const page = await context.newPage();
-        const cdp = await context.newCDPSession(page);
-        await cdp.send('Network.enable');
-        const targetId = (await cdp.send('Target.getTargetInfo')).targetInfo.targetId;
-        const frameId = (await cdp.send('Page.getFrameTree')).frameTree.frame.id;
-        await guard.bind(cdp, { targetId, frameId, url: canonicalUrl, row });
-        let timedOut = false;
-        sampleTimer = setTimeout(
-          () => {
-            timedOut = true;
-            context.close().catch(() => {});
-          },
-          Math.max(1, Math.min(sampleTimeoutMs, deadline - Date.now())),
-        );
-        cdp.on('Network.loadingFinished', (event) => {
-          row.transfer_bytes += Math.max(0, event.encodedDataLength || 0);
-        });
-        page.on('request', () => {
-          row.request_count++;
-        });
-        page.on('requestfailed', () => {
-          row.failed_requests++;
-        });
-        page.on('popup', (popup) => popup.close().catch(() => {}));
-        page.on('download', (download) => download.cancel().catch(() => {}));
+        let currentRow = null;
+        let freshSucceeded = false;
         try {
-          const timeout = Math.max(1, Math.min(28500, deadline - Date.now() - 1500));
-          const response = await page.goto(canonicalUrl, { waitUntil: 'load', timeout });
-          row.http_status = response?.status() ?? null;
-          const header = response ? (await response.allHeaders())['x-wzf-blog-cache'] : null;
-          row.cache_header = ['HIT', 'MISS', 'BYPASS'].includes(header) ? header : 'unknown';
-          await page.waitForTimeout(Math.max(0, Math.min(1500, deadline - Date.now())));
-          const sample = await page.evaluate(() => window.__pagenestPerformanceRead());
-          if (page.url() !== canonicalUrl || !guard.healthy())
-            throw new Error('navigation_changed');
-          for (const key of METRICS) row[key] = finite(sample[key]);
-          if (row.http_status >= 200 && row.http_status < 300) row.status = 'ok';
-          else row.error = 'http_error';
-        } catch (error) {
-          row.error =
-            timedOut || error.name === 'TimeoutError' ? 'navigation_timeout' : 'navigation_failed';
-        } finally {
-          clearTimeout(sampleTimer);
-          sampleTimer = null;
-          guard.activate(null);
-          let closing;
-          try {
-            await Promise.race([
-              context.close(),
-              new Promise((resolve) => {
-                closing = setTimeout(() => server.kill().then(resolve, resolve), 1500);
-              }),
-            ]);
-          } finally {
-            clearTimeout(closing);
+          await context.routeWebSocket('**/*', (socket) => {
+            if (currentRow) currentRow.blocked_requests++;
+            socket.close();
+          });
+          await context.addInitScript(collect);
+          for (const phase of phases) {
+            if (cancelled()) return { results, environment, cancelled: true };
+            if (Date.now() >= deadline) throw new Error('job_timeout');
+            const started = performance.now();
+            const row = sampleRow(target, run, phase);
+            currentRow = row;
+            if (phase === 'warm' && !freshSucceeded) {
+              row.error = 'warmup_failed';
+              results.push(row);
+              await onResult(row, environment);
+              continue;
+            }
+            // Use a new document/page for warm navigation, retaining the context's
+            // HTTP cache, but no DOM or sessionStorage from the first navigation.
+            const page = await context.newPage();
+            let timedOut = false;
+            try {
+              const cdp = await context.newCDPSession(page);
+              await cdp.send('Network.enable');
+              if (phase === 'warm') {
+                await cdp.send('Storage.clearDataForOrigin', {
+                  origin: new URL(canonicalUrl).origin,
+                  // Origin storage clearing is separate from Network.clearBrowserCache.
+                  storageTypes: 'all',
+                });
+              }
+              const targetId = (await cdp.send('Target.getTargetInfo')).targetInfo.targetId;
+              const frameId = (await cdp.send('Page.getFrameTree')).frameTree.frame.id;
+              await guard.bind(cdp, { targetId, frameId, url: canonicalUrl, row });
+              sampleTimer = setTimeout(
+                () => {
+                  timedOut = true;
+                  context.close().catch(() => {});
+                },
+                Math.max(1, Math.min(sampleTimeoutMs, deadline - Date.now())),
+              );
+              const cached = new Set();
+              let mainRequestId = null;
+              let mainRevalidated = false;
+              cdp.on('Network.requestWillBeSent', (event) => {
+                if (event.type === 'Document' && event.request.url === canonicalUrl)
+                  mainRequestId = event.requestId;
+              });
+              cdp.on('Network.responseReceivedExtraInfo', (event) => {
+                if (event.requestId === mainRequestId && event.statusCode === 304)
+                  mainRevalidated = true;
+              });
+              const cacheHit = (id) => {
+                cached.add(id);
+                row.browser_cache_requests = cached.size;
+              };
+              cdp.on('Network.requestServedFromCache', (event) => cacheHit(event.requestId));
+              cdp.on('Network.responseReceived', (event) => {
+                if (event.response.fromDiskCache || event.response.fromPrefetchCache)
+                  cacheHit(event.requestId);
+              });
+              cdp.on('Network.loadingFinished', (event) => {
+                row.transfer_bytes += Math.max(0, event.encodedDataLength || 0);
+              });
+              page.on('request', () => {
+                row.request_count++;
+              });
+              page.on('requestfailed', () => {
+                row.failed_requests++;
+              });
+              page.on('popup', (popup) => popup.close().catch(() => {}));
+              page.on('download', (download) => download.cancel().catch(() => {}));
+              const timeout = Math.max(
+                1,
+                Math.min(28500, sampleTimeoutMs - 1500, deadline - Date.now() - 1500),
+              );
+              const response = await page.goto(canonicalUrl, { waitUntil: 'load', timeout });
+              row.http_status = response?.status() ?? null;
+              const header = response ? (await response.allHeaders())['x-wzf-blog-cache'] : null;
+              row.cache_header =
+                cached.has(mainRequestId) || mainRevalidated
+                  ? 'unknown'
+                  : ['HIT', 'MISS', 'BYPASS'].includes(header)
+                    ? header
+                    : 'unknown';
+              if (Date.now() + 1500 >= deadline) throw new Error('job_timeout');
+              await page.waitForTimeout(1500);
+              const sample = await page.evaluate(() => window.__pagenestPerformanceRead());
+              if (cached.has(mainRequestId) || mainRevalidated) row.cache_header = 'unknown';
+              if (page.url() !== canonicalUrl || !guard.healthy())
+                throw new Error('navigation_changed');
+              for (const key of METRICS) row[key] = finite(sample[key]);
+              if (row.http_status >= 200 && row.http_status < 300) row.status = 'ok';
+              else row.error = 'http_error';
+            } catch (error) {
+              if (error.message === 'job_timeout') throw error;
+              row.error =
+                timedOut || error.name === 'TimeoutError'
+                  ? 'navigation_timeout'
+                  : 'navigation_failed';
+            } finally {
+              clearTimeout(sampleTimer);
+              sampleTimer = null;
+              guard.activate(null);
+              await closeBounded(page);
+            }
+            row.duration_ms = finite(performance.now() - started);
+            results.push(row);
+            await onResult(row, environment);
+            if (phase === 'fresh') freshSucceeded = row.status === 'ok';
           }
+        } finally {
+          currentRow = null;
+          guard.activate(null);
+          await closeBounded(context);
         }
-        row.duration_ms = finite(performance.now() - started);
-        results.push(row);
-        await onResult(row, environment);
       }
     }
     return { results, environment, cancelled: false };

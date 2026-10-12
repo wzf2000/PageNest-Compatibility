@@ -83,7 +83,11 @@ async function startGuard(browser, policy) {
               event.request.url === current.url &&
               policy.allowedUrl(event.request.url, true)
             : policy.allowedRequest(request));
-        const redirect = event.responseStatusCode >= 300 && event.responseStatusCode < 400;
+        // 304 revalidates the same HTTP cache entry; it is not a navigation redirect.
+        const redirect =
+          event.responseStatusCode >= 300 &&
+          event.responseStatusCode < 400 &&
+          event.responseStatusCode !== 304;
         if (!allowed || redirect) {
           if (current) current.row.blocked_requests++;
           await session.send('Fetch.failRequest', {

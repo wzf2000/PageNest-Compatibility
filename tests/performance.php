@@ -129,6 +129,7 @@ eval(
 require __DIR__ . '/../modules/performance/bootstrap.php';
 use PageNest\Performance\Pages;
 use PageNest\Performance\Queue;
+use PageNest\Performance\Reports;
 $checks = 0;
 function check($ok, $name)
 {
@@ -161,6 +162,12 @@ try {
         check(
             $reads === 0 && str_contains($html, '尚未启用'),
             'disabled screen avoids choices and queue',
+        );
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST['_wpnonce'] = 'good';
+        reject(
+            fn() => PageNest\Performance\export_data(new Queue($dir), str_repeat('a', 32)),
+            'disabled export guarded',
         );
         echo "Performance disabled: $checks checks\n";
     } else {
@@ -270,12 +277,23 @@ try {
             'expired recovery',
         );
         $q->cancel($next['id']);
+        $newPair = $q->start(['post:1'], 'desktop', 1, 'paired');
+        check(
+            $newPair['schema_version'] === 2 &&
+                $newPair['profile']['cache_mode'] === 'paired' &&
+                Queue::valid($newPair),
+            'paired job creation',
+        );
+        $q->cancel($newPair['id']);
+        reject(fn() => $q->start(['post:1'], 'desktop', 1, 'arbitrary'), 'invalid cache mode');
         $j['status'] = 'completed';
         $j['error'] = null;
         $j['pages'][0]['title'] = '<script>alert(1)</script>';
         $j['results'] = [
             [
                 'page_key' => 'post:5',
+                'cache_phase' => 'fresh',
+                'browser_cache_requests' => 0,
                 'run' => 1,
                 'status' => 'ok',
                 'http_status' => 200,
@@ -313,6 +331,183 @@ try {
         $bad = $j;
         $bad['results'][0]['fcp_ms'] = '<script>';
         check(!Queue::valid($bad), 'invalid metric rejected');
+        $legacy = $j;
+        $legacy['schema_version'] = 1;
+        unset(
+            $legacy['results'][0]['cache_phase'],
+            $legacy['results'][0]['browser_cache_requests'],
+        );
+        check(Queue::valid($legacy), 'legacy report readable');
+        $legacy['profile']['cache_mode'] = 'paired';
+        check(!Queue::valid($legacy), 'legacy paired rejected');
+        $pair = $j;
+        $pair['profile']['cache_mode'] = 'paired';
+        $pair['profile']['repeats'] = 3;
+        $pair['environment'] = [
+            'runner' => 'playwright-navigation-v2',
+            'node_version' => 'v24',
+            'chromium_version' => 'synthetic',
+            'network' => 'server-local',
+            'cache_mode' => 'paired',
+            'sample_window_ms' => 1500,
+            'policy_hash' => str_repeat('a', 64),
+        ];
+        $row = $pair['results'][0];
+        $warm = $row;
+        $warm['cache_phase'] = 'warm';
+        $warm['ttfb_ms'] = 5;
+        $warm['browser_cache_requests'] = 2;
+        $pair['results'][] = $warm;
+        $fresh2 = $row;
+        $fresh2['run'] = 2;
+        $fresh2['ttfb_ms'] = 100;
+        $warm2 = $warm;
+        $warm2['run'] = 2;
+        $warm2['status'] = 'failed';
+        $warm2['error'] = 'navigation_failed';
+        $pair['results'][] = $fresh2;
+        $pair['results'][] = $warm2;
+        check(Queue::valid($pair), 'paired phases valid');
+        $stats = Reports::paired($pair, 'post:5', 'ttfb_ms');
+        check(
+            $stats['fresh'] === 10.0 &&
+                $stats['warm'] === 5.0 &&
+                $stats['difference'] === -5.0 &&
+                $stats['n'] === 1 &&
+                $stats['total'] === 3,
+            'paired only both successful',
+        );
+        check(
+            Reports::stats($pair, 'post:5', 'fresh', 'ttfb_ms')['median'] === 55.0,
+            'fresh median independent',
+        );
+        check(
+            Reports::stats($pair, 'post:5', 'warm', 'ttfb_ms')['median'] === 5.0,
+            'warm median independent',
+        );
+        $missing = $pair;
+        unset($missing['results'][0]['cache_phase']);
+        check(!Queue::valid($missing), 'v2 requires phase');
+        $invalid = $pair;
+        $invalid['results'][1]['browser_cache_requests'] = 5;
+        check(!Queue::valid($invalid), 'cache requests bounded');
+        $invalid = $pair;
+        $invalid['results'][] = $invalid['results'][1];
+        check(!Queue::valid($invalid), 'duplicate phase rejected');
+        $invalid = $pair;
+        $invalid['results'][0]['status'] = 'failed';
+        $invalid['results'][0]['error'] = 'navigation_failed';
+        check(!Queue::valid($invalid), 'warm success cannot follow failed fresh');
+        $orphan = $pair;
+        array_shift($orphan['results']);
+        check(!Queue::valid($orphan), 'warm requires fresh same run');
+        $invalid['results'][1]['status'] = 'failed';
+        $invalid['results'][1]['error'] = 'warmup_failed';
+        check(Queue::valid($invalid), 'warmup failure accepted');
+        $null = $pair;
+        $null['results'][1]['ttfb_ms'] = null;
+        check(
+            Reports::paired($null, 'post:5', 'ttfb_ms')['n'] === 0 &&
+                Reports::paired($null, 'post:5', 'ttfb_ms')['fresh'] === null,
+            'paired null stays unavailable',
+        );
+        check(
+            Reports::delta(0.0, 5.0) === ['absolute' => 5.0, 'percent' => null],
+            'zero baseline no percentage',
+        );
+        check(
+            Reports::delta(null, 5.0) === ['absolute' => null, 'percent' => null],
+            'null baseline no delta',
+        );
+        $after = $pair;
+        $after['id'] = str_repeat('b', 32);
+        $after['versions']['theme'] = 'updated';
+        $after['results'][1]['ttfb_ms'] = 3;
+        $comparison = Reports::compare($pair, $after);
+        check(
+            $comparison['comparable'] &&
+                $comparison['versions_changed'] &&
+                count($comparison['pages']) === 2,
+            'strict historical comparison allows versions changes',
+        );
+        foreach (
+            [
+                'runner',
+                'node_version',
+                'chromium_version',
+                'network',
+                'cache_mode',
+                'sample_window_ms',
+                'policy_hash',
+            ]
+            as $field
+        ) {
+            $different = $after;
+            $different['environment'][$field] = 'different';
+            check(
+                !Reports::compare($pair, $different)['comparable'],
+                'environment difference ' . $field,
+            );
+        }
+        $different = $after;
+        $different['profile']['device'] = 'desktop';
+        check(!Reports::compare($pair, $different)['comparable'], 'device difference');
+        $different = $after;
+        $different['pages'][0]['url'] = 'https://example.test/different/';
+        check(!Reports::compare($pair, $different)['comparable'], 'URL difference');
+        $different = $after;
+        $different['status'] = 'failed';
+        check(!Reports::compare($pair, $different)['comparable'], 'completed required');
+        $different = $after;
+        unset($different['environment']);
+        check(!Reports::compare($pair, $different)['comparable'], 'environment required');
+        check(!Reports::compare($j, $j)['comparable'], 'legacy environment insufficient');
+        $noData = $pair;
+        foreach ($noData['results'] as &$r) {
+            $r['status'] = 'failed';
+            $r['error'] = 'navigation_failed';
+        }
+        unset($r);
+        check(
+            !Reports::compare($noData, $noData)['comparable'],
+            'failed samples cannot form comparison',
+        );
+        $poison = $pair;
+        $poison['cookie'] = 'secret';
+        $poison['profile']['password'] = 'secret';
+        $poison['versions']['token'] = 'secret';
+        $poison['pages'][0]['private_note'] = 'secret';
+        $poison['results'][0]['raw_headers'] = 'secret';
+        $poison['environment']['authorization'] = 'secret';
+        $projection = Reports::export($poison);
+        check(
+            !str_contains(json_encode($projection), 'secret') && Queue::valid($projection),
+            'export whitelist ignores nested injected secrets',
+        );
+        reject(
+            fn() => Reports::export(array_replace($pair, ['status' => 'queued'])),
+            'export terminal only',
+        );
+        file_put_contents($dir . '/job-' . $j['id'] . '.json', json_encode($j));
+        $no_store = false;
+        check(
+            PageNest\Performance\export_data($q, $j['id'])['id'] === $j['id'] && $no_store,
+            'private export no-store',
+        );
+        $can = false;
+        reject(fn() => PageNest\Performance\export_data($q, $j['id']), 'export permission');
+        $can = true;
+        $nonce = false;
+        reject(fn() => PageNest\Performance\export_data($q, $j['id']), 'export nonce');
+        $nonce = true;
+        reject(fn() => PageNest\Performance\export_data($q, '../../secret'), 'export strict id');
+        ob_start();
+        PageNest\Performance\comparison($pair, $after);
+        $html = ob_get_clean();
+        check(
+            !str_contains($html, '<script>') && str_contains($html, '&lt;script&gt;'),
+            'comparison XSS escaped',
+        );
         for ($i = count($q->reports()); $i < 10; $i++) {
             $copy = $j;
             $copy['id'] = bin2hex(random_bytes(16));

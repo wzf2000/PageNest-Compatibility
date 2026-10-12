@@ -1,6 +1,6 @@
 # 页面测速
 
-本模块处于开发第一阶段，尚未合并、进行 WordPress 集成验收或上线。管理员可在 “工具 → 页面测速” 选择公开代表页，提交给独立的服务器端 Playwright 执行器；PHP 不启动 shell，不发起 HTTP 请求，不注册 REST、前台资源或定时任务。默认关闭。
+本模块处于隔离开发第二阶段，尚未合并、进行 WordPress 集成验收或上线。合并、集成验收和发布均须等待维护者明确通知；其他任务发布结束不自动解除此限制。管理员可在 “工具 → 页面测速” 选择公开代表页，提交给独立的服务器端 Playwright 执行器；PHP 不启动 shell，不发起 HTTP 请求，不注册 REST、前台资源或定时任务。默认关闭。
 
 ## 显式配置
 
@@ -11,7 +11,7 @@ define('PAGENEST_COMPANION_PERFORMANCE_ENABLED', true);
 define('PAGENEST_COMPANION_PERFORMANCE_DIR', '/private/performance-queue');
 ```
 
-路径仅为示例。目录必须已经存在，绝对路径必须等于 realpath；目录及其父路径、现有文件不能有符号链接。目录必须位于 ABSPATH、服务器 Web 根、插件目录之外，不能赋予 others 权限（0700、0750 或 0770）；文件使用 0600。PHP 和执行器须以同一 UID 运行；0700/0600 为首版创建权限，组共享目录权限不意味着不同 UID 可以读取任务文件。后台不能配置路径或命令，模块不会创建运行目录。未启用时不读取选择 option、不访问队列磁盘，也不注册提交处理。
+路径仅为示例。目录必须已经存在，绝对路径必须等于 realpath；目录及其父路径、现有文件不能有符号链接。目录必须位于 ABSPATH、服务器 Web 根、插件目录之外，不能赋予 others 权限（0700、0750 或 0770）；文件使用 0600。PHP 和执行器须以同一 UID 运行；0700/0600 为创建权限，组共享目录权限不意味着不同 UID 可以读取任务文件。后台不能配置路径或命令，模块不会创建运行目录。未启用时不读取选择 option、不访问队列磁盘，也不注册提交处理。
 
 ## 页面选择
 
@@ -23,23 +23,31 @@ define('PAGENEST_COMPANION_PERFORMANCE_DIR', '/private/performance-queue');
 
 目录中的 queue.lock 以 flock 对提交、取消和执行器状态变更互斥；worker.lock 由执行器全局非阻塞独占持有。PHP 无法取得 worker.lock 或已有有效 queued/running 任务时拒绝新任务。不能仅因时间过期就启动第二个执行器。worker.lock 无人持有时，过期 queued/running 记录安全标记为 failed、worker_expired，允许后续任务。
 
-报告名为 job-<32 位小写十六进制 ID>.json；schema_version=1，包含 id、status、created_at/updated_at/expires_at（UTC ISO8601）、profile、origin、pages、versions、results、error。状态为 queued/running/completed/failed/cancelled。profile 包含 device=desktop/mobile、cache_mode=fresh-context、repeats=1/3。pages 项为 key=home/blog/post:<ID>、post_id、url、title、reason；versions 为 wordpress、companion、theme。
+报告名为 job-<32 位小写十六进制 ID>.json；新任务 schema_version=2，包含 id、status、created_at/updated_at/expires_at（UTC ISO8601）、profile、origin、pages、versions、results、error。状态为 queued/running/completed/failed/cancelled。profile 包含 device=desktop/mobile、cache_mode=fresh-context/paired、repeats=1/3。fresh-context 每轮仅首次访问；paired 每轮包含 fresh 首次访问和 warm 再次访问，同一对共享 HTTP 缓存，不跨页面或轮次共享。pages 项为 key=home/blog/post:<ID>、post_id、url、title、reason；versions 为 wordpress、companion、theme。
 
-每次导航最多 30 秒，任务最多 12 分钟，记录有效期为创建后 30 分钟。单报告上限 512 KiB，最多保留 10 份，队列目录总文件预算严格小于 5 MiB。超预算时拒绝提交并显示管理员清理提示，不自动删除报告，也没有后台删除入口。写入使用同目录独占临时文件、flush/fsync（支持时）和原子 rename，不接受符号链接文件。
+最多 8 页、3 轮；成对模式最多 48 次导航，每次导航最多 30 秒，任务总预算仍为 12 分钟，记录有效期为创建后 30 分钟。单报告上限 512 KiB，最多保留 10 份，队列目录总文件预算严格小于 5 MiB。超预算时拒绝提交并显示管理员清理提示，不自动删除报告，也没有后台删除入口。写入使用同目录独占临时文件、flush/fsync（支持时）和原子 rename，不接受符号链接文件。
 
 queued 取消直接更新 cancelled。running 取消写 cancel-<ID> 文件，内容仅为 schema_version=1 与 id；执行器在导航之间及最终写入终态的 queue.lock 内检查，避免最后一次采样期间的取消被完成状态覆盖。后台采用手动刷新，没有轮询。
 
-results 为扁平逐轮数组，每项包含 page_key、run、status=ok/failed、http_status、ttfb_ms、fcp_ms、lcp_ms、cls、long_task_blocking_ms、request_count、transfer_bytes、failed_requests、blocked_requests、cache_header、duration_ms、error。时间和 CLS 可为 null，HTTP 状态可为 null；cache_header 仅 HIT/MISS/BYPASS/unknown，来自 X-Wzf-Blog-Cache。error 仅安全错误码。environment 可包含 runner=playwright-navigation-v1、node_version、chromium_version、network=server-local、cache_mode=fresh-context。不会保留 DOM、HAR、截图、原始头、console、异常文本或敏感 URL。
+results 为扁平逐轮数组，每项包含 page_key、run、cache_phase=fresh/warm、status=ok/failed、http_status、ttfb_ms、fcp_ms、lcp_ms、cls、long_task_blocking_ms、request_count、transfer_bytes、failed_requests、blocked_requests、browser_cache_requests、cache_header、duration_ms、error。时间和 CLS 可为 null，HTTP 状态可为 null；browser_cache_requests 是 CDP 观察到的浏览器 HTTP 缓存请求数，与 origin 缓存独立。cache_header 仅 HIT/MISS/BYPASS/unknown，来自本轮网络主文档的 X-Wzf-Blog-Cache；主文档由浏览器缓存返回或 304 再验证时置 unknown，不复用存储的旧响应头。error 仅安全错误码；fresh 失败时 warm 标记 warmup_failed 且不再导航。environment 包含 runner=playwright-navigation-v2、node_version、chromium_version、network=server-local、cache_mode（与 profile 一致）、sample_window_ms=1500 和 policy_hash（网络保护版本、origin、批准 host 集合的 SHA-256 摘要）。不会保留 DOM、HAR、截图、原始头、console、异常文本或敏感 URL。
 
-completed 表示任务执行完成，个别页面仍可能 failed。后台展示每轮结果和每项成功有效样本的中位数及 N/3。不同设备配置不合并比较。
+completed 表示任务执行完成，个别页面仍可能 failed。后台分 fresh/warm 展示每轮结果，每项成功有效样本各自的中位数及 N/重复次数。成对摘要仅使用同页同轮两个阶段都成功、且该指标都非 null 的配对，展示首次与再次值及逐对差值的中位数；不会把独立阶段中位数之差冒称配对差值。指标缺失保留为 null，不能当作零。
+
+schema_version=1 的已有首次访问报告仍可查看、导出；不参与第二阶段历史对照。未执行的旧 queued 记录只在执行器取得两种锁后升级至 schema 2；含已有结果或执行环境的 queued 旧记录被拒绝。报告保留预算不变。
+
+## 历史对照与导出
+
+管理员可选择两份终态报告；只有两份均 completed、使用 schema 2、有环境记录，并且 origin、device、repeats、cache_mode 与全部执行环境字段一致才允许数值对照。页面逐项要求 key 与 URL 相同，按同一阶段成功有效样本的中位数显示前后值、绝对变化与百分比及各自 N；不匹配或缺样本给出原因。基线为零或缺失时不计算百分比。组件版本允许变更，并同时展示前后版本；内容、DNS、供应商和机器负载未固定，差值不能证明某项改动的因果效果，也不产生全站评分。
+
+导出沿用私有 admin-post POST 操作，须 manage_options、nonce、模块启用及严格 32 位 ID；仅能导出 completed/failed/cancelled 终态报告。JSON 逐层只投影协议中的页面、数值、版本与安全环境字段，未知附加字段不导出，重新验证后以固定 job-ID.json 文件名返回 private, no-store 与 nosniff。不创建磁盘副本、公开下载 URL 或报告删除入口。
 
 ## 测量限制
 
-执行器使用匿名隔离浏览器，通过独立 CDP Fetch 的 request 与 response 阶段拦截实施网络保护。主文档严格锁定任务目标 URL，所有服务端 3xx 重定向直接阻止；写方法、敏感页面、API、XHR/fetch/beacon、iframe、worker、WebSocket 与未批准资源请求均禁用。请求前清除 Cookie 存储并移除 Cookie header，响应剔除 Set-Cookie，同时禁用脚本读写 Cookie、弹窗、点击与表单提交。
+执行器使用匿名隔离浏览器，通过独立 CDP Fetch 的 request 与 response 阶段拦截实施网络保护。主文档严格锁定任务目标 URL，服务端 3xx 重定向直接阻止，304 同 URL 缓存再验证除外；写方法、敏感页面、API、XHR/fetch/beacon、iframe、worker、WebSocket 与未批准资源请求均禁用。请求前清除 Cookie 存储并移除 Cookie header，响应剔除 Set-Cookie，同时禁用脚本读写 Cookie、弹窗、点击与表单提交。
 
-每轮创建全新 browser context，记录为 fresh-context 首次访问；浏览器进程及操作系统 DNS 等不保证是冷状态。HTTP 缓存保持浏览器正常行为，不主动注入 no-cache/Pragma 请求头；没有温缓存模式。若强制禁用浏览器缓存，Chromium 会附带请求指令，可能令严格的匿名 origin 缓存绕过，因此不能以这种请求判定缓存无效。服务端缓存状态仅观察允许的响应头，不触发清理或改变缓存策略。结果体现服务器本地网络与受控资源环境，不代表真实用户的完整浏览旅程。
+每轮创建全新 browser context，首次访问记录为 fresh。paired 模式在同一 context 新建页面再次导航到相同 URL，记录为 warm；开始再次导航前清除该 origin 的全部非 HTTP 存储（包含 Cookie、localStorage、IndexedDB、CacheStorage 等），不保留 DOM 或 sessionStorage，网络保护继续生效。浏览器缓存仍服从服务器 Cache-Control；再次访问不保证命中。浏览器进程及操作系统 DNS 等不保证是冷状态。HTTP 缓存保持浏览器正常行为，不主动注入 no-cache/Pragma 请求头。若强制禁用浏览器缓存，Chromium 会附带请求指令，可能令严格的匿名 origin 缓存绕过，因此不能以这种请求判定缓存无效。服务端缓存状态仅观察允许的响应头，不触发清理或改变缓存策略。结果体现服务器本地网络与受控资源环境，不代表真实用户的完整浏览旅程。
 
-默认等待 load 后再采样 1.5 秒；FCP/LCP/CLS 是这段观察窗口内的值。长任务阻塞代理值不是 Lighthouse TBT。本阶段没有 Lighthouse 评分或 INP。PageNestPerformance/1.0 精确空白分隔 User-Agent token 被 Companion 浏览计数忽略，与机器人排除开关无关；该 token 不赋予登录、权限或缓存豁免。第三方分析网络因控制策略可能被拦截。
+默认等待 load 后再采样 1.5 秒；FCP/LCP/CLS 是这段观察窗口内的值。长任务阻塞代理值不是 Lighthouse TBT。目前没有 Lighthouse 评分或 INP。PageNestPerformance/1.0 精确空白分隔 User-Agent token 被 Companion 浏览计数忽略，与机器人排除开关无关；该 token 不赋予登录、权限或缓存豁免。第三方分析网络因控制策略可能被拦截。
 
 本地检查使用合成 WordPress 函数与临时私有目录：
 
@@ -56,7 +64,7 @@ npm run test:performance-runner
 npm run test:performance-browser
 ```
 
-开发依赖可通过已有工作区的 node_modules 复用，不自动下载浏览器。本地检查包含 PHP 与 Node 任务／报告往返、文件锁互斥、HTTP/TLS 重定向、Cookie、脚本弹窗与无限循环脚本收尾，不访问生产页面。PHP 合约及本地页面测试不替代合并后的 WordPress 集成与浏览器验收。
+开发依赖可通过已有工作区的 node_modules 复用，不自动下载浏览器。本地检查包含 PHP 与 Node 任务／报告往返、文件锁互斥、HTTP/TLS 重定向、Cookie、脚本弹窗与无限循环脚本收尾、首次／再次缓存命中、304 再验证、存储隔离、成对取消、可比条件和导出白名单，不访问生产页面。TLS fixture 仅在测试入口匹配临时证书公钥使用 SPKI 例外，避免通用证书错误绕过影响缓存测试；CLI 不提供此选项。PHP 合约及本地页面测试不替代合并后的 WordPress 集成与浏览器验收。
 
 ## 手动执行器
 
@@ -68,4 +76,4 @@ node tools/performance-runner/cli.cjs --once --config /absolute/private/runner.j
 
 命令仅单次手动处理队列，不创建定时任务。执行器依赖 Linux 的 /usr/bin/flock，并与 PHP 使用同一 UID，保证 worker.lock 和 queue.lock 为同一套内核锁。浏览器控制入口和安全代理只监听回环，DNS 解析结果全部校验后固定目标 IP，拒绝私网、回环、链路本地与 IPv6 保留地址；CLI 不支持本地 fixture 放行。默认不批准第三方资源，需服务器明确指定 asset_hosts。
 
-上线前必须核对进程 CPU、内存与 cgroup 限制、队列持久化和 FPM 路径许可、Chromium 低权限执行与依赖版本，保持明确的手动入口；本阶段没有创建服务或定时调度。手动启动一次 CLI 才处理一次排队任务，后台按钮本身不运行浏览器。执行器源码仅在开发目录 tools/performance-runner，未进入 WordPress 安装 ZIP；需要单独的受限运行环境，不能假设现有 PHP 镜像已经包含执行器。
+上线前必须核对进程 CPU、内存与 cgroup 限制、队列持久化和 FPM 路径许可、Chromium 低权限执行与依赖版本，保持明确的手动入口；开发期间没有创建服务或定时调度。手动启动一次 CLI 才处理一次排队任务，后台按钮本身不运行浏览器。执行器源码仅在开发目录 tools/performance-runner，未进入 WordPress 安装 ZIP；需要单独的受限运行环境，不能假设现有 PHP 镜像已经包含执行器。

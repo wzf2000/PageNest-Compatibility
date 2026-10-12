@@ -23,6 +23,12 @@ async function processOnce(settings, engine) {
       }
       const selected = available.find((entry) => entry.status === 'queued');
       if (!selected) return null;
+      // The unpublished v1 queue is readable, but all new execution uses v2 rows.
+      // A queued legacy job has no browser environment or samples to preserve.
+      if (selected.schema_version === 1) {
+        if (selected.results.length || selected.environment) throw new Error('invalid_report');
+        selected.schema_version = 2;
+      }
       selected.status = 'running';
       selected.updated_at = new Date().toISOString();
       atomicWrite(dir, `job-${selected.id}.json`, selected);

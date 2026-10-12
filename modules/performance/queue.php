@@ -68,7 +68,7 @@ final class Queue
     public static function valid(array $j): bool
     {
         if (
-            ($j['schema_version'] ?? null) !== 1 ||
+            !in_array($j['schema_version'] ?? null, [1, 2], true) ||
             !is_string($j['id'] ?? null) ||
             !preg_match('/^[a-f0-9]{32}$/D', $j['id']) ||
             !in_array(
@@ -80,10 +80,21 @@ final class Queue
             !$j['pages'] ||
             count($j['pages']) > 8 ||
             !is_array($j['results'] ?? null) ||
-            count($j['results']) > 24 ||
+            count($j['results']) > 48 ||
             !in_array($j['profile']['repeats'] ?? null, [1, 3], true) ||
             !in_array($j['profile']['device'] ?? '', ['desktop', 'mobile'], true) ||
-            ($j['profile']['cache_mode'] ?? '') !== 'fresh-context'
+            !in_array(
+                $j['profile']['cache_mode'] ?? '',
+                $j['schema_version'] === 1 ? ['fresh-context'] : ['fresh-context', 'paired'],
+                true,
+            )
+        ) {
+            return false;
+        }
+        $paired = $j['profile']['cache_mode'] === 'paired';
+        if (
+            count($j['results']) >
+            count($j['pages']) * $j['profile']['repeats'] * ($paired ? 2 : 1)
         ) {
             return false;
         }
@@ -124,10 +135,22 @@ final class Queue
                     'chromium_version',
                     'network',
                     'cache_mode',
+                    ...$j['schema_version'] === 2 ? ['sample_window_ms', 'policy_hash'] : [],
                 ]) ||
-                ($env['runner'] ?? '') !== 'playwright-navigation-v1' ||
+                ($env['runner'] ?? '') !==
+                    ($j['schema_version'] === 2
+                        ? 'playwright-navigation-v2'
+                        : 'playwright-navigation-v1') ||
                 ($env['network'] ?? '') !== 'server-local' ||
-                ($env['cache_mode'] ?? '') !== 'fresh-context'
+                ($env['cache_mode'] ?? '') !== $j['profile']['cache_mode']
+            ) {
+                return false;
+            }
+            if (
+                $j['schema_version'] === 2 &&
+                (($env['sample_window_ms'] ?? null) !== 1500 ||
+                    !is_string($env['policy_hash'] ?? null) ||
+                    !preg_match('/^[a-f0-9]{64}$/D', $env['policy_hash']))
             ) {
                 return false;
             }
@@ -176,7 +199,8 @@ final class Queue
         foreach ($j['results'] as $r) {
             if (
                 !is_array($r) ||
-                !isset($keys[$r['page_key'] ?? '']) ||
+                !is_string($r['page_key'] ?? null) ||
+                !isset($keys[$r['page_key']]) ||
                 !is_int($r['run'] ?? null) ||
                 $r['run'] < 1 ||
                 $r['run'] > $j['profile']['repeats'] ||
@@ -186,17 +210,50 @@ final class Queue
                     ($r['error'] ?? null) === null ||
                     in_array(
                         $r['error'],
-                        ['target_blocked', 'http_error', 'navigation_timeout', 'navigation_failed'],
+                        [
+                            'target_blocked',
+                            'http_error',
+                            'navigation_timeout',
+                            'navigation_failed',
+                            ...$j['schema_version'] === 2 ? ['warmup_failed'] : [],
+                        ],
                         true,
                     )
                 )
             ) {
                 return false;
             }
-            if (isset($seen[$r['page_key'] . ':' . $r['run']])) {
+            if (
+                !array_key_exists('error', $r) ||
+                (array_key_exists('browser_cache_requests', $r) &&
+                    (!is_int($r['browser_cache_requests']) ||
+                        $r['browser_cache_requests'] < 0 ||
+                        $r['browser_cache_requests'] > ($r['request_count'] ?? -1)))
+            ) {
                 return false;
             }
-            $seen[$r['page_key'] . ':' . $r['run']] = true;
+            $phase = $r['cache_phase'] ?? 'fresh';
+            if (
+                !in_array($phase, $paired ? ['fresh', 'warm'] : ['fresh'], true) ||
+                ($j['schema_version'] === 2 &&
+                    (!array_key_exists('cache_phase', $r) ||
+                        !is_int($r['browser_cache_requests'] ?? null) ||
+                        $r['browser_cache_requests'] < 0 ||
+                        $r['browser_cache_requests'] > ($r['request_count'] ?? -1))) ||
+                ($j['schema_version'] === 1 && array_key_exists('cache_phase', $r))
+            ) {
+                return false;
+            }
+            if (
+                ($r['error'] ?? null) === 'warmup_failed' &&
+                (!$paired || $phase !== 'warm' || $r['status'] !== 'failed')
+            ) {
+                return false;
+            }
+            if (isset($seen[$r['page_key'] . ':' . $r['run'] . ':' . $phase])) {
+                return false;
+            }
+            $seen[$r['page_key'] . ':' . $r['run'] . ':' . $phase] = true;
             foreach (['ttfb_ms', 'fcp_ms', 'lcp_ms', 'cls', 'long_task_blocking_ms'] as $k) {
                 if (
                     !array_key_exists($k, $r) ||
@@ -233,6 +290,28 @@ final class Queue
                 )
             ) {
                 return false;
+            }
+        }
+        if ($paired) {
+            $fresh = [];
+            foreach ($j['results'] as $r) {
+                if ($r['cache_phase'] === 'fresh') {
+                    $fresh[$r['page_key'] . ':' . $r['run']] = $r;
+                }
+            }
+            foreach ($j['results'] as $r) {
+                if ($r['cache_phase'] !== 'warm') {
+                    continue;
+                }
+                $first = $fresh[$r['page_key'] . ':' . $r['run']] ?? null;
+                if (
+                    !$first ||
+                    ($first['status'] === 'failed' &&
+                        ($r['status'] !== 'failed' || $r['error'] !== 'warmup_failed')) ||
+                    ($first['status'] === 'ok' && $r['error'] === 'warmup_failed')
+                ) {
+                    return false;
+                }
             }
         }
         return true;
@@ -315,10 +394,18 @@ final class Queue
             }
         }
     }
-    public function start(array $keys, string $device, int $repeats): array
-    {
+    public function start(
+        array $keys,
+        string $device,
+        int $repeats,
+        string $cacheMode = 'fresh-context',
+    ): array {
         $pages = Pages::selection($keys);
-        if (!in_array($device, ['desktop', 'mobile'], true) || !in_array($repeats, [1, 3], true)) {
+        if (
+            !in_array($device, ['desktop', 'mobile'], true) ||
+            !in_array($repeats, [1, 3], true) ||
+            !in_array($cacheMode, ['fresh-context', 'paired'], true)
+        ) {
             throw new \RuntimeException('invalid_profile');
         }
         $lock = $this->lock('queue.lock', LOCK_EX | LOCK_NB);
@@ -351,7 +438,7 @@ final class Queue
             global $wp_version;
             $now = time();
             $j = [
-                'schema_version' => 1,
+                'schema_version' => 2,
                 'id' => bin2hex(random_bytes(16)),
                 'status' => 'queued',
                 'created_at' => gmdate('Y-m-d\TH:i:s\Z', $now),
@@ -359,7 +446,7 @@ final class Queue
                 'expires_at' => gmdate('Y-m-d\TH:i:s\Z', $now + 1800),
                 'profile' => [
                     'device' => $device,
-                    'cache_mode' => 'fresh-context',
+                    'cache_mode' => $cacheMode,
                     'repeats' => $repeats,
                 ],
                 'origin' => Pages::origin(),

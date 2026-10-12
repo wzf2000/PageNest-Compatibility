@@ -9,7 +9,6 @@ const TOTAL_LIMIT = 5 * 1024 * 1024;
 const ID = /^[a-f0-9]{32}$/;
 const DATE = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{3})?Z$/;
 const STATES = ['queued', 'running', 'completed', 'failed', 'cancelled'];
-const ERROR = /^[a-z][a-z0-9_]{0,63}$/;
 const FORBIDDEN = new Set(['__proto__', 'prototype', 'constructor']);
 
 function privateDirectory(dir) {
@@ -115,7 +114,7 @@ async function locked(dir, callback) {
 function validJob(job, policy) {
   if (
     !job ||
-    job.schema_version !== 1 ||
+    ![1, 2].includes(job.schema_version) ||
     !ID.test(job.id) ||
     !STATES.includes(job.status) ||
     !['created_at', 'updated_at', 'expires_at'].every(
@@ -125,18 +124,53 @@ function validJob(job, policy) {
         Number.isFinite(Date.parse(job[key])),
     ) ||
     job.origin !== policy.origin ||
-    job.profile?.cache_mode !== 'fresh-context' ||
+    !['fresh-context', 'paired'].includes(job.profile?.cache_mode) ||
+    (job.schema_version === 1 && job.profile.cache_mode !== 'fresh-context') ||
     !['desktop', 'mobile'].includes(job.profile?.device) ||
     ![1, 3].includes(job.profile?.repeats) ||
     !Array.isArray(job.pages) ||
     job.pages.length < 1 ||
     job.pages.length > 8 ||
     !Array.isArray(job.results) ||
-    job.results.length > 24 ||
+    job.results.length >
+      job.pages.length * job.profile.repeats * (job.profile.cache_mode === 'paired' ? 2 : 1) ||
     !job.versions ||
-    !(job.error === null || (typeof job.error === 'string' && ERROR.test(job.error)))
+    !(
+      job.error === null || ['worker_expired', 'job_timeout', 'runner_failed'].includes(job.error)
+    ) ||
+    !['wordpress', 'companion', 'theme'].every(
+      (key) => typeof job.versions[key] === 'string' && Buffer.byteLength(job.versions[key]) <= 100,
+    )
   )
     return false;
+  if (job.environment !== undefined) {
+    const env = job.environment;
+    if (
+      !env ||
+      Object.keys(env).some(
+        (key) =>
+          ![
+            'runner',
+            'node_version',
+            'chromium_version',
+            'network',
+            'cache_mode',
+            ...(job.schema_version === 2 ? ['sample_window_ms', 'policy_hash'] : []),
+          ].includes(key),
+      ) ||
+      !['node_version', 'chromium_version'].every(
+        (key) => typeof env[key] === 'string' && Buffer.byteLength(env[key]) <= 100,
+      ) ||
+      env.network !== 'server-local' ||
+      env.cache_mode !== job.profile.cache_mode ||
+      env.runner !== `playwright-navigation-v${job.schema_version}` ||
+      (job.schema_version === 2 &&
+        (env.sample_window_ms !== 1500 ||
+          typeof env.policy_hash !== 'string' ||
+          !/^[a-f0-9]{64}$/.test(env.policy_hash)))
+    )
+      return false;
+  }
   const keys = new Set();
   for (const page of job.pages) {
     if (
@@ -156,15 +190,29 @@ function validJob(job, policy) {
   }
   const samples = new Set();
   for (const row of job.results) {
+    const phase = job.schema_version === 1 ? 'fresh' : row?.cache_phase;
     if (
       !row ||
       !keys.has(row.page_key) ||
       !Number.isInteger(row.run) ||
       row.run < 1 ||
       row.run > job.profile.repeats ||
+      !['fresh', 'warm'].includes(phase) ||
+      (job.profile.cache_mode === 'fresh-context' && phase !== 'fresh') ||
+      (job.schema_version === 1 && row.cache_phase !== undefined) ||
+      (job.schema_version === 2 &&
+        (!Number.isSafeInteger(row.browser_cache_requests) ||
+          row.browser_cache_requests < 0 ||
+          row.browser_cache_requests > row.request_count)) ||
       !['ok', 'failed'].includes(row.status) ||
       !['HIT', 'MISS', 'BYPASS', 'unknown'].includes(row.cache_header) ||
-      !(row.error === null || (typeof row.error === 'string' && ERROR.test(row.error))) ||
+      !(
+        row.error === null ||
+        ['target_blocked', 'http_error', 'navigation_timeout', 'navigation_failed'].includes(
+          row.error,
+        ) ||
+        (phase === 'warm' && row.status === 'failed' && row.error === 'warmup_failed')
+      ) ||
       !(
         row.http_status === null ||
         (Number.isInteger(row.http_status) && row.http_status >= 100 && row.http_status <= 599)
@@ -177,10 +225,26 @@ function validJob(job, policy) {
       ) ||
       !Number.isFinite(row.duration_ms) ||
       row.duration_ms < 0 ||
-      samples.has(`${row.page_key}:${row.run}`)
+      samples.has(`${row.page_key}:${row.run}:${phase}`)
     )
       return false;
-    samples.add(`${row.page_key}:${row.run}`);
+    samples.add(`${row.page_key}:${row.run}:${phase}`);
+  }
+  if (job.profile.cache_mode === 'paired') {
+    const fresh = new Map(
+      job.results
+        .filter((row) => row.cache_phase === 'fresh')
+        .map((row) => [`${row.page_key}:${row.run}`, row]),
+    );
+    for (const row of job.results.filter((row) => row.cache_phase === 'warm')) {
+      const first = fresh.get(`${row.page_key}:${row.run}`);
+      if (
+        !first ||
+        (first.status === 'failed' && (row.status !== 'failed' || row.error !== 'warmup_failed')) ||
+        (first.status === 'ok' && row.error === 'warmup_failed')
+      )
+        return false;
+    }
   }
   return true;
 }
