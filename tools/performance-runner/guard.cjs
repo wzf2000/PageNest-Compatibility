@@ -102,7 +102,9 @@ async function startGuard(browser, policy) {
           await session.send('Fetch.continueResponse', {
             requestId: event.requestId,
             responseCode: event.responseStatusCode,
-            responsePhrase: event.responseStatusText || '',
+            // HTTP/2 has no reason phrase. Omit the optional field so Chromium
+            // supplies its standard phrase instead of rejecting an empty value.
+            ...(event.responseStatusText ? { responsePhrase: event.responseStatusText } : {}),
             responseHeaders: headers,
           });
         } else {

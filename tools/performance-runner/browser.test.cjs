@@ -1,5 +1,6 @@
 const assert = require('node:assert/strict');
 const http = require('node:http');
+const http2 = require('node:http2');
 const https = require('node:https');
 const fs = require('node:fs');
 const os = require('node:os');
@@ -42,6 +43,7 @@ async function main() {
       validator: request.headers['if-none-match'],
       pragma: request.headers.pragma,
       ua: request.headers['user-agent'],
+      httpVersion: request.httpVersion,
     });
     if (request.url === '/redirect/') {
       response.writeHead(302, { location: '/wp-login.php' });
@@ -149,6 +151,14 @@ async function main() {
       },
       handler,
     ),
+    http2.createSecureServer(
+      {
+        key: fs.readFileSync(path.join(certificates, 'key.pem')),
+        cert: fs.readFileSync(path.join(certificates, 'cert.pem')),
+        allowHTTP1: false,
+      },
+      handler,
+    ),
   ];
   for (const server of servers)
     await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
@@ -170,7 +180,54 @@ async function main() {
     connect: (...args) => chromium.connect(...args),
   };
   try {
-    for (let i = 0; i < servers.length; i++) {
+    const h2Origin = `https://127.0.0.1:${servers[2].address().port}`;
+    const h2Fixture = job();
+    h2Fixture.origin = h2Origin;
+    h2Fixture.profile.cache_mode = 'paired';
+    h2Fixture.pages[0].url = h2Origin + '/cache-pair/';
+    h2Fixture.pages.push({
+      key: 'post:2',
+      post_id: 2,
+      url: h2Origin + '/redirect/',
+      title: 'HTTP/2 redirect safety',
+      reason: 'fixture',
+    });
+    const h2Offset = requests.length;
+    const h2Results = await runMeasurements(h2Fixture, makePolicy(h2Origin, [], true), {
+      chromium: fixtureChromium,
+      deadline: Date.now() + 15000,
+    });
+    const h2Requests = requests.slice(h2Offset);
+    assert.ok(h2Requests.length > 0);
+    assert.ok(h2Requests.every((entry) => entry.httpVersion === '2.0'));
+    const h2First = h2Results.results.find(
+      (row) => row.page_key === h2Fixture.pages[0].key && row.cache_phase === 'fresh',
+    );
+    const h2Warm = h2Results.results.find(
+      (row) => row.page_key === h2Fixture.pages[0].key && row.cache_phase === 'warm',
+    );
+    assert.equal(h2First.status, 'ok', 'HTTP/2 has no response reason phrase');
+    assert.equal(h2Warm.status, 'ok');
+    assert.equal(h2First.http_status, 200);
+    assert.equal(h2First.cache_header, 'HIT');
+    assert.equal(h2Warm.cache_header, 'HIT');
+    assert.ok(h2First.fcp_ms > 0);
+    assert.ok(h2Warm.browser_cache_requests >= 1);
+    assert.ok(h2First.transfer_bytes > h2Warm.transfer_bytes);
+    assert.equal(h2Requests.filter((entry) => entry.path === '/cached.css').length, 1);
+    assert.equal(
+      h2Requests.filter(
+        (entry) => entry.path === '/revalidate.css' && entry.validator === '"fixture-v1"',
+      ).length,
+      1,
+      'HTTP/2 warm cache revalidation accepts 304 without a reason phrase',
+    );
+    const h2Redirect = h2Results.results.filter((row) => row.page_key === h2Fixture.pages[1].key);
+    assert.equal(h2Redirect.length, 2);
+    assert.equal(h2Redirect[0].status, 'failed');
+    assert.equal(h2Redirect[1].error, 'warmup_failed');
+    assert.equal(h2Requests.filter((entry) => entry.path === '/redirect/').length, 1);
+    for (let i = 0; i < 2; i++) {
       const origin = `${i ? 'https' : 'http'}://127.0.0.1:${servers[i].address().port}`;
       const policy = makePolicy(origin, [], true);
       const testChromium = i ? fixtureChromium : chromium;
@@ -380,7 +437,7 @@ async function main() {
       JSON.stringify(requests),
     );
     console.log(
-      'Performance browser fresh/warm HTTP+TLS rendering, anonymous/cache isolation, cancellation and infinite-script timeout: passed (loopback fixtures only)',
+      'Performance browser fresh/warm HTTP/1+TLS+HTTP/2 rendering, anonymous/cache isolation, cancellation and infinite-script timeout: passed (loopback fixtures only)',
     );
   } finally {
     for (const server of servers) await new Promise((resolve) => server.close(resolve));
