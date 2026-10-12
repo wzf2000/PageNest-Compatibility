@@ -6,6 +6,7 @@ import hashlib
 assets = Path(__file__).resolve().parent / "assets"
 mapping = {}
 for key, name in [
+    ("discovery_admin_js", "discovery-admin.js"),
     ("comments_js", "paragraph-comments.js"),
     ("comments_css", "paragraph-comments.css"),
     ("likes_js", "likes.js"),

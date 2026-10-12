@@ -1,6 +1,6 @@
 # 页面测速
 
-本模块处于隔离开发第三阶段，尚未合并、进行 WordPress 集成验收或上线。合并、集成验收和发布均须等待维护者明确通知；其他任务发布结束不自动解除此限制。管理员可在 “工具 → 页面测速” 选择公开代表页，提交给独立的服务器端 Playwright 执行器；PHP 不启动 shell，不发起 HTTP 请求，不注册 REST、前台资源或定时任务。默认关闭。
+本模块已整合至 Companion 1.4.0，待目标 WordPress FPM／容器集成验收后发布。启用前须核对实际运行身份、私有队列映射与受限执行器；插件安装不自动部署服务或打开功能。管理员可在 “工具 → 页面测速” 选择公开代表页，提交给独立的服务器端 Playwright 执行器；PHP 不启动 shell，不发起 HTTP 请求，不注册 REST、前台资源或定时任务。默认关闭。
 
 ## 显式配置
 
@@ -104,7 +104,7 @@ SIGTERM／SIGINT 转为取消信号，测量中主动停止浏览器，终态在
 
 修复在唯一、root 所有的临时 Chromium 副本上验证：仅加载与宿主官方 Chrome 同型的精确路径 userns 例外，不修改全局 sysctl、不覆盖既有 profile、不使用 no-sandbox 或特权浏览器。完整 service 保护开关、CPU 50%、内存 768 MiB、零 swap、96 tasks、Node heap 128 MiB、256 MiB 私有 tmpfs 与 PrivateNetwork=yes 下，本地固定页面正常渲染。宿主只读验收确认 browser／renderer UID 1000、NoNewPrivs=1、CapEff=CapAmb=0；renderer 的 user／pid／net 命名空间均与执行器不同，seccomp 过滤器由 browser 的 17 个增加至 renderer 的 18 个。服务 UID 本身可读取 uid_map、NSpid 和 seccomp 状态，无须 CAP_SYS_PTRACE。新的独立预检及空队列单次执行器在同一完整保护条件下通过；未匹配规则时独立预检与执行器均拒绝且不生成队列锁。合成启动挂起和 SIGTERM 用于检验失败期限与控制组收尾：独立预检和 CLI／entry 的挂起失败均约 13.8 秒退出，信号取消保留 143；未发现存活的测试进程，队列哨兵保持不变。
 
-这次验证属于 ubuntu 隔离身份与该锁定浏览器的本机实验，不替代拟部署的确切 WordPress FPM UID、容器映射、配置与生产网页验收。AppArmor 模板仍待后续发布授权才安装；全部临时策略、服务和独立浏览器副本已移除，共用浏览器缓存未改。合成 fixture 关闭 OS 沙箱的测试仍只覆盖测量逻辑。
+这次验证属于 ubuntu 隔离身份与该锁定浏览器的本机实验，不替代拟部署的确切 WordPress FPM UID、容器映射、配置与生产网页验收。AppArmor 模板须由服务器管理员核对目标路径后显式安装；本次实验的全部临时策略、服务和独立浏览器副本已移除，共用浏览器缓存未改。合成 fixture 关闭 OS 沙箱的测试仍只覆盖测量逻辑。
 
 内核验证是独立、显式调用的本地实验，需 Linux cgroup v2、systemd 及非 root 账户的 sudo 权限；仅创建自动回收的临时单位，使用小额有限资源，不纳入常规 CI，也不访问网站：
 
@@ -112,4 +112,4 @@ SIGTERM／SIGINT 转为取消信号，测量中主动停止浏览器，终态在
 npm run test:performance-kernel
 ```
 
-模板语法检查、合成 PHP／浏览器／内核实验与真实 WordPress 集成／生产性能验收是不同层次；合并、集成与发布仍须等待用户通知。
+模板语法检查、合成 PHP／浏览器／内核实验与真实 WordPress 集成／生产性能验收是不同层次；目标 FPM／容器集成验收通过后才能发布并显式启用。

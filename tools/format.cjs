@@ -75,6 +75,7 @@ async function format() {
     ),
   );
   for (const [key, name] of Object.entries({
+    discovery_admin_js: 'discovery-admin.js',
     comments_js: 'paragraph-comments.js',
     comments_css: 'paragraph-comments.css',
     likes_js: 'likes.js',

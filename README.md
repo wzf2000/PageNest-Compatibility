@@ -27,6 +27,12 @@ Companion plugin for PageNest: reading interactions, social accounts, content gu
 - **评论邮件**：审核通过的普通 WordPress 留言通知作者，回复通知原评论者，避免本人通知、重复投递和原生通知重复。默认使用站点现有邮件服务；可由服务器配置启用 Brevo API 传输，不提供历史通知补发。
 - **编辑兼容**：保留逐篇编辑器选择及 Markdown 公式保护；配合支持的主题适配 Prism 和 MathJax。
 
+## 搜索与分享信息
+
+“设置 → 内容发现与 SEO” 可启用公开搜索建议和基础 SEO。支持文章、页面与已公开登记的工具；分享卡片优先使用特色图片，描述优先使用手写摘要。可从媒体库选择站点默认分享图。两项功能默认关闭，不改写正文或创建索引表。
+
+> [搜索边界与 SEO 配置](docs/USAGE.md#内容发现与基础-seo)
+
 ## 浏览计数
 
 浏览计数默认关闭；在设置页明确启用后，每次公开文章或页面加载计数一次，显示在 PageNest 文章底栏。可选所有人、访客或登录用户，以及已知机器人排除；`%VIEW_COUNT%` 模板只支持纯文本。读取或重复渲染不计数，计数不参与经验奖励。
@@ -76,9 +82,9 @@ services are separate optional implementation plugins and are excluded from this
 See [tools API and configuration](docs/tools.md) for explicit enablement, profile contracts
 and the old-owner guard.
 
-## 页面测速开发模块
+## 可选页面测速模块
 
-开发模块提供默认关闭的管理员公开代表页选择、手动队列与独立浏览器执行器，支持首次／再次访问成对测量、同条件历史对照和私有 JSON 导出。
-执行器增加真实内核限额启动检查、请求与流量预算、活动取消和独立手动服务模板，以及领取任务前的真实 Chromium 沙箱预检。隔离环境已验证精确浏览器路径的 AppArmor userns 例外和完整 service 保护；模板未安装，拟部署 FPM 身份、容器映射及 WordPress 集成仍待后续授权验收。
-结果属于受控环境的导航采样；每轮首次访问使用全新环境，再次访问仅复用本对的 HTTP 缓存。当前尚未合并验收或上线，须等待维护者明确通知。
+模块提供默认关闭的管理员公开代表页选择、手动队列与独立浏览器执行器，支持首次／再次访问成对测量、同条件历史对照和私有 JSON 导出。
+执行器增加真实内核限额启动检查、请求与流量预算、活动取消和独立手动服务模板，以及领取任务前的真实 Chromium 沙箱预检。隔离环境已验证精确浏览器路径的 AppArmor userns 例外和完整 service 保护；目标部署的 FPM 身份、容器映射及 WordPress 集成须在启用前验收。
+结果属于受控环境的导航采样；每轮首次访问使用全新环境，再次访问仅复用本对的 HTTP 缓存。模块已整合至 Companion 1.4.0，待目标 FPM／容器集成验收后发布；默认关闭，须显式配置启用。
 配置、指标范围和运行边界见 [页面测速](docs/performance.md)。
