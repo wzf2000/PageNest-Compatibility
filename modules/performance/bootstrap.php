@@ -140,7 +140,7 @@ function screen(): void
         wp_die('没有页面测速权限。', '', ['response' => 403]);
     }
     no_store();
-    echo '<div class="wrap"><h1>页面测速（隔离开发）</h1><p>默认关闭，管理员专用。仅有限公开代表样本，不代表全站。独立执行器需要由服务器管理员手动运行；本工具不会启动命令或定时任务。</p>';
+    echo '<div class="wrap"><h1>页面测速</h1><p>默认关闭，管理员专用。仅有限公开代表样本，不代表全站。独立执行器需要由服务器管理员手动运行；本工具不会启动命令或定时任务。</p>';
     if (!enabled()) {
         echo '<p>尚未启用。服务器需要显式设置 PAGENEST_COMPANION_PERFORMANCE_ENABLED=true 和 Web 根之外已存在的私有 PAGENEST_COMPANION_PERFORMANCE_DIR。</p></div>';
         return;
@@ -156,7 +156,7 @@ function screen(): void
     $notices = [
         'saved' => '固定选择已保存。',
         'queued' => '任务已排队，等待独立执行器。',
-        'cancel_requested' => '取消请求已保存，运行任务会在导航间检查。',
+        'cancel_requested' => '取消请求已保存，执行器会检查并中止测量。',
         'request_rejected' => '请求被拒绝：请检查公开页面、配置、任务状态与执行器锁。',
         'budget_cleanup_required' =>
             '报告达到保留预算；请服务器管理员在私有目录归档或清理报告后再试。',
