@@ -72,6 +72,27 @@ async function main() {
       );
       return;
     }
+    if (request.url === '/child-targets/') {
+      response.writeHead(200, { 'content-type': 'text/html' });
+      response.end(`<!doctype html><h1>Child target fixture</h1><script>
+        const workerSource = 'postMessage("worker-executed"); fetch("/worker-leak.css");';
+        setTimeout(() => {
+          for (const name of ['Worker', 'SharedWorker']) {
+            for (const script of [URL.createObjectURL(new Blob([workerSource], {type:'text/javascript'})), 'data:text/javascript,' + encodeURIComponent(workerSource), '/late.js']) {
+              try { new window[name](script); }
+              catch (error) { if (error.name === 'SecurityError') console.log('synthetic-blocked-' + name); }
+            }
+          }
+          window.addEventListener('message', event => {
+            if (['synthetic-blocked-frame-worker', 'synthetic-blocked-frame-restore'].includes(event.data)) console.log(event.data);
+          });
+          const frame = document.createElement('iframe');
+          frame.srcdoc = '<script>for(const name of ["Worker", "SharedWorker"]) { const fixed = window[name]; window[name] = function () {}; const replaced = Reflect.defineProperty(window, name, {value:function(){}}); const deleted = Reflect.deleteProperty(window, name); const descriptor = Object.getOwnPropertyDescriptor(window, name); if(window[name] === fixed && !replaced && !deleted && !descriptor.writable && !descriptor.configurable) parent.postMessage("synthetic-blocked-frame-restore", "*"); try { new window[name]("data:text/javascript,postMessage(1)"); } catch(error) { if(error.name === "SecurityError") parent.postMessage("synthetic-blocked-frame-worker", "*"); } }<\\/script>';
+          document.body.appendChild(frame);
+        }, 100);
+      </script>`);
+      return;
+    }
     if (request.url === '/asset.css') {
       response.writeHead(200, {
         'content-type': 'text/css',
@@ -180,6 +201,72 @@ async function main() {
     connect: (...args) => chromium.connect(...args),
   };
   try {
+    const childOrigin = `https://127.0.0.1:${servers[1].address().port}`;
+    const targetTypes = [];
+    const childSignals = [];
+    const childChromium = {
+      ...fixtureChromium,
+      connect: async (...args) => {
+        const browser = await fixtureChromium.connect(...args);
+        const newContext = browser.newContext.bind(browser);
+        browser.newContext = async (...contextArgs) => {
+          const context = await newContext(...contextArgs);
+          const newPage = context.newPage.bind(context);
+          const newCDPSession = context.newCDPSession.bind(context);
+          context.newPage = async (...pageArgs) => {
+            const page = await newPage(...pageArgs);
+            page.on('console', (message) => {
+              if (message.text().startsWith('synthetic-blocked-'))
+                childSignals.push(message.text());
+            });
+            return page;
+          };
+          context.newCDPSession = async (...sessionArgs) => {
+            const session = await newCDPSession(...sessionArgs);
+            session.on('Target.attachedToTarget', ({ targetInfo }) =>
+              targetTypes.push(targetInfo.type),
+            );
+            return session;
+          };
+          return context;
+        };
+        return browser;
+      },
+    };
+    const childFixture = job();
+    childFixture.origin = childOrigin;
+    childFixture.pages[0].url = childOrigin + '/child-targets/';
+    const childOffset = requests.length;
+    const childResults = await runMeasurements(childFixture, makePolicy(childOrigin, [], true), {
+      chromium: childChromium,
+      deadline: Date.now() + 15000,
+    });
+    assert.equal(childResults.results[0].http_status, 200);
+    assert.equal(
+      childResults.results[0].status,
+      'ok',
+      'worker creation must be blocked without closing the page: ' + JSON.stringify(targetTypes),
+    );
+    assert.equal(targetTypes.includes('worker'), false);
+    assert.equal(targetTypes.includes('shared_worker'), false);
+    assert.equal(childSignals.filter((signal) => signal === 'synthetic-blocked-Worker').length, 3);
+    assert.equal(
+      childSignals.filter((signal) => signal === 'synthetic-blocked-SharedWorker').length,
+      3,
+    );
+    assert.equal(
+      childSignals.filter((signal) => signal === 'synthetic-blocked-frame-worker').length,
+      2,
+    );
+    assert.equal(
+      childSignals.filter((signal) => signal === 'synthetic-blocked-frame-restore').length,
+      2,
+    );
+    assert.deepEqual(
+      requests.slice(childOffset).map((entry) => entry.path),
+      ['/child-targets/'],
+      'no worker script or worker execution can reach the fixture server',
+    );
     const h2Origin = `https://127.0.0.1:${servers[2].address().port}`;
     const h2Fixture = job();
     h2Fixture.origin = h2Origin;
@@ -417,6 +504,7 @@ async function main() {
           '/late.js',
           '/hang/',
           '/client-redirect/',
+          '/child-targets/',
           '/cache-pair/',
           '/cached.css',
           '/revalidate.css',

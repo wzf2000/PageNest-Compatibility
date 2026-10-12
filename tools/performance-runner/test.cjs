@@ -95,6 +95,12 @@ async function main() {
     assert.throws(() => normalizeOrigin(value));
   const policy = makePolicy(origin, ['cdn.example.test']);
   assert.equal(policy.cacheHeaderName, 'x-pagenest-page-cache');
+  // Frozen v2 digest for the same inputs: pre-construction worker blocking changes
+  // lab behavior, so old reports must not compare as the same policy environment.
+  assert.notEqual(
+    policyHash(policy),
+    '6cad3b7c990f8763eec982d906c6be92764fe3f44ea485ac36302ff52ec26807',
+  );
   assert.equal(
     policyHash(policy),
     policyHash(makePolicy(origin, ['cdn.example.test'], false, 'X-PageNest-Page-Cache')),

@@ -17,6 +17,18 @@ function collect() {
     writable: false,
     configurable: false,
   });
+  // Worker targets lack Fetch interception. Block construction in every frame
+  // before page scripts can create blob/data or network workers outside the guard.
+  for (const name of ['Worker', 'SharedWorker']) {
+    if (!(name in window)) continue;
+    Object.defineProperty(window, name, {
+      value: function () {
+        throw new DOMException('Workers are disabled', 'SecurityError');
+      },
+      writable: false,
+      configurable: false,
+    });
+  }
   for (const name of ['submit', 'requestSubmit'])
     Object.defineProperty(HTMLFormElement.prototype, name, {
       value: () => {},
@@ -408,7 +420,7 @@ function policyHash(policy) {
   return createHash('sha256')
     .update(
       JSON.stringify({
-        guard: 'cdp-anonymous-v2',
+        guard: 'cdp-anonymous-v3',
         origin: policy.origin,
         hosts: [...policy.hosts].sort(),
         fixture: policy.fixture,
