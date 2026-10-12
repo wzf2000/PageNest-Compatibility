@@ -1,6 +1,8 @@
 <?php
 return [
-    'discovery_admin_js' => 'discovery-admin-767a4e81a293.js',
+    'admin_design_css' => 'admin-design-e58d21d7275b.css',
+    'admin_design_js' => 'admin-design-265c754cfccf.js',
+    'discovery_admin_js' => 'discovery-admin-83b901380405.js',
     'comments_js' => 'paragraph-comments-feb29c5c5e1e.js',
     'comments_css' => 'paragraph-comments-7f7810bd5e02.css',
     'likes_js' => 'likes-cce4367790d5.js',

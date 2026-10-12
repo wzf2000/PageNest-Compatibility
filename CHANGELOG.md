@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.1-rc.1
+
+Unreleased settings design candidate. Reading, discovery, media and social settings
+share a restrained layout, task navigation and responsive controls. Unsaved edits
+and description length are visible; inactive social providers can be expanded as
+needed. Option names, validation, permissions and existing records are unchanged.
+Design assets load only on the four Companion settings pages.
+
 ## 1.3.0
 
 - 新增默认关闭的内容发现模块：公开文章／页面建议、原生搜索筛选和公开工具索引接入，密码、私人、草稿及受限工具不会进入建议。

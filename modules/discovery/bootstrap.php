@@ -1,6 +1,7 @@
 <?php
 /** Optional public discovery and metadata; no migration or content writes. */
 defined('ABSPATH') || exit();
+require_once dirname(__DIR__, 2) . '/admin-design.php';
 function pagenest_discovery_options(): array
 {
     $value = get_option('pagenest_companion_discovery', []);
@@ -92,34 +93,42 @@ function pagenest_discovery_settings_page(): void
         return;
     }
     $options = pagenest_discovery_options();
-    echo '<div class="wrap"><h1>内容发现与 SEO</h1><p>新模块默认关闭；启用不会改写文章、媒体、链接或私人记录。外部 SEO 插件接管时自动停止基础元信息输出。</p><form method="post" action="options.php">';
+    pagenest_companion_admin_header(
+        '搜索与分享',
+        '帮助读者找到内容，也让页面在搜索和分享时呈现清晰的信息。',
+        'pagenest-discovery',
+    );
+    echo '<div class="pn-admin-layout"><form class="pn-admin-main" method="post" action="options.php">';
     settings_fields('pagenest_discovery');
+    echo '<section class="pn-admin-section"><h2>内容发现</h2>';
     foreach (
         [
-            'search' => '启用公开内容搜索建议与工具筛选',
-            'seo' => '启用基础描述、分享卡片和结构化数据',
+            'search' => ['公开搜索建议', '输入关键词时提供公开文章、页面与有效工具的建议。'],
+            'seo' => ['基础 SEO 与分享卡片', '输出页面描述、分享卡片和结构化数据。'],
         ]
-        as $key => $label
+        as $key => [$label, $help]
     ) {
-        echo '<p><label><input type="checkbox" name="pagenest_companion_discovery[' .
+        echo '<div class="pn-admin-setting"><label><input type="checkbox" name="pagenest_companion_discovery[' .
             esc_attr($key) .
             ']" value="1" ' .
             checked(!empty($options[$key]), true, false) .
-            '> ' .
+            '><span>' .
             esc_html($label) .
-            '</label></p>';
+            '</span></label><p class="pn-admin-description">' .
+            esc_html($help) .
+            '</p></div>';
     }
-    echo '<p><label for="pagenest-description">站点描述（留空使用站点副标题）</label><br><textarea id="pagenest-description" name="pagenest_companion_discovery[description]" rows="3" class="large-text" maxlength="160">' .
+    echo '</section><section class="pn-admin-section"><h2>默认分享信息</h2><p>当文章没有单独提供摘要或封面时，使用这里的站点信息。</p><div class="pn-admin-field"><label for="pagenest-description">站点描述</label><textarea id="pagenest-description" name="pagenest_companion_discovery[description]" rows="4" class="large-text" maxlength="160" aria-describedby="pn-description-help">' .
         esc_textarea($options['description']) .
-        '</textarea></p><p><label for="pagenest-share-image">默认分享图片（未选择时使用站点 Logo）</label><br><input id="pagenest-share-image" type="hidden" name="pagenest_companion_discovery[image]" value="' .
+        '</textarea><div class="pn-admin-meta"><span id="pn-description-help">留空使用站点副标题</span><span data-pn-description-count></span></div></div><div class="pn-admin-field"><label for="pagenest-select-share-image">默认分享图片</label><input id="pagenest-share-image" type="hidden" name="pagenest_companion_discovery[image]" value="' .
         esc_attr($options['image']) .
-        '"><button type="button" class="button" id="pagenest-select-share-image">从媒体库选择</button> <button type="button" class="button" id="pagenest-clear-share-image">使用站点 Logo</button><span id="pagenest-share-image-status" role="status">' .
+        '"><div class="pn-admin-image-actions"><button type="button" class="button" id="pagenest-select-share-image">从媒体库选择</button><button type="button" class="button" id="pagenest-clear-share-image">使用站点 Logo</button><span id="pagenest-share-image-status" role="status">' .
         ($options['image']
             ? '已选择：' . esc_html(get_the_title($options['image']))
             : '使用站点 Logo') .
-        '</span></p><p>文章描述优先使用手写摘要；没有摘要时使用站点描述，不从正文提取可能含有私人信息或短代码参数的文本。</p>';
-    submit_button();
-    echo '</form></div>';
+        '</span></div></div></section>';
+    submit_button('保存搜索与分享设置');
+    echo '</form><aside class="pn-admin-help"><h2>内容优先</h2><p>文章描述优先使用手写摘要，再使用站点描述。不会从正文提取短代码或私人信息。</p><h2>保留已有设置</h2><p>启用不会改写文章、媒体或链接。关闭功能保留这里的配置。</p><h2>与 WordPress 协作</h2><p>核心继续处理标题、标准地址和站点地图。其他 SEO 插件接管时，基础元信息会自动停止输出。</p></aside></div></div>';
 }
 require_once __DIR__ . '/search.php';
 require_once __DIR__ . '/seo.php';
