@@ -1,6 +1,6 @@
 # 页面测速
 
-本模块处于隔离开发第二阶段，尚未合并、进行 WordPress 集成验收或上线。合并、集成验收和发布均须等待维护者明确通知；其他任务发布结束不自动解除此限制。管理员可在 “工具 → 页面测速” 选择公开代表页，提交给独立的服务器端 Playwright 执行器；PHP 不启动 shell，不发起 HTTP 请求，不注册 REST、前台资源或定时任务。默认关闭。
+本模块处于隔离开发第三阶段，尚未合并、进行 WordPress 集成验收或上线。合并、集成验收和发布均须等待维护者明确通知；其他任务发布结束不自动解除此限制。管理员可在 “工具 → 页面测速” 选择公开代表页，提交给独立的服务器端 Playwright 执行器；PHP 不启动 shell，不发起 HTTP 请求，不注册 REST、前台资源或定时任务。默认关闭。
 
 ## 显式配置
 
@@ -27,13 +27,13 @@ define('PAGENEST_COMPANION_PERFORMANCE_DIR', '/private/performance-queue');
 
 最多 8 页、3 轮；成对模式最多 48 次导航，每次导航最多 30 秒，任务总预算仍为 12 分钟，记录有效期为创建后 30 分钟。单报告上限 512 KiB，最多保留 10 份，队列目录总文件预算严格小于 5 MiB。超预算时拒绝提交并显示管理员清理提示，不自动删除报告，也没有后台删除入口。写入使用同目录独占临时文件、flush/fsync（支持时）和原子 rename，不接受符号链接文件。
 
-queued 取消直接更新 cancelled。running 取消写 cancel-<ID> 文件，内容仅为 schema_version=1 与 id；执行器在导航之间及最终写入终态的 queue.lock 内检查，避免最后一次采样期间的取消被完成状态覆盖。后台采用手动刷新，没有轮询。
+queued 取消直接更新 cancelled。running 取消写 cancel-<ID> 文件，内容仅为 schema_version=1 与 id；执行器在测量中每 200 ms、导航之间及最终写入终态的 queue.lock 内检查；取消会中止正在执行的页面，异常收尾也重新检查取消标记，避免最后一次采样期间的取消被完成状态覆盖。后台采用手动刷新，没有轮询。
 
-results 为扁平逐轮数组，每项包含 page_key、run、cache_phase=fresh/warm、status=ok/failed、http_status、ttfb_ms、fcp_ms、lcp_ms、cls、long_task_blocking_ms、request_count、transfer_bytes、failed_requests、blocked_requests、browser_cache_requests、cache_header、duration_ms、error。时间和 CLS 可为 null，HTTP 状态可为 null；browser_cache_requests 是 CDP 观察到的浏览器 HTTP 缓存请求数，与 origin 缓存独立。cache_header 仅 HIT/MISS/BYPASS/unknown，来自本轮网络主文档的 X-Wzf-Blog-Cache；主文档由浏览器缓存返回或 304 再验证时置 unknown，不复用存储的旧响应头。error 仅安全错误码；fresh 失败时 warm 标记 warmup_failed 且不再导航。environment 包含 runner=playwright-navigation-v2、node_version、chromium_version、network=server-local、cache_mode（与 profile 一致）、sample_window_ms=1500 和 policy_hash（网络保护版本、origin、批准 host 集合的 SHA-256 摘要）。不会保留 DOM、HAR、截图、原始头、console、异常文本或敏感 URL。
+results 为扁平逐轮数组，每项包含 page_key、run、cache_phase=fresh/warm、status=ok/failed、http_status、ttfb_ms、fcp_ms、lcp_ms、cls、long_task_blocking_ms、request_count、transfer_bytes、failed_requests、blocked_requests、browser_cache_requests、cache_header、duration_ms、error。时间和 CLS 可为 null，HTTP 状态可为 null；browser_cache_requests 是 CDP 观察到的浏览器 HTTP 缓存请求数，与 origin 缓存独立。cache_header 仅 HIT/MISS/BYPASS/unknown，来自本轮网络主文档的 X-Wzf-Blog-Cache；主文档由浏览器缓存返回或 304 再验证时置 unknown，不复用存储的旧响应头。error 仅安全错误码；资源超限使用 resource_limit，活动取消的采样使用 cancelled，整任务到期使用 job_timeout。fresh 失败时 warm 标记 warmup_failed 且不再导航。environment 包含 runner=playwright-navigation-v3、node_version、chromium_version、network=server-local、cache_mode（与 profile 一致）、sample_window_ms=1500 和 policy_hash（网络保护版本、origin、批准 host 集合的 SHA-256 摘要）与 limits_hash（固定应用预算、真实内核限制及可见祖先限制链、临时盘容量、Chromium 沙箱模式的 SHA-256 摘要）。祖先摘要不保存 cgroup 路径。不会保留 DOM、HAR、截图、原始头、console、异常文本或敏感 URL。
 
 completed 表示任务执行完成，个别页面仍可能 failed。后台分 fresh/warm 展示每轮结果，每项成功有效样本各自的中位数及 N/重复次数。成对摘要仅使用同页同轮两个阶段都成功、且该指标都非 null 的配对，展示首次与再次值及逐对差值的中位数；不会把独立阶段中位数之差冒称配对差值。指标缺失保留为 null，不能当作零。
 
-schema_version=1 的已有首次访问报告仍可查看、导出；不参与第二阶段历史对照。未执行的旧 queued 记录只在执行器取得两种锁后升级至 schema 2；含已有结果或执行环境的 queued 旧记录被拒绝。报告保留预算不变。
+schema_version=1 的已有首次访问报告，以及 runner=v2 的第二阶段报告仍可查看、导出；缺少 limits_hash 的报告不参与当前历史数值对照。未执行的旧 queued 记录只在执行器取得两种锁后升级至 schema 2；含已有结果或执行环境的 queued 旧记录被拒绝。报告保留预算不变。
 
 ## 历史对照与导出
 
@@ -64,16 +64,40 @@ npm run test:performance-runner
 npm run test:performance-browser
 ```
 
-开发依赖可通过已有工作区的 node_modules 复用，不自动下载浏览器。本地检查包含 PHP 与 Node 任务／报告往返、文件锁互斥、HTTP/TLS 重定向、Cookie、脚本弹窗与无限循环脚本收尾、首次／再次缓存命中、304 再验证、存储隔离、成对取消、可比条件和导出白名单，不访问生产页面。TLS fixture 仅在测试入口匹配临时证书公钥使用 SPKI 例外，避免通用证书错误绕过影响缓存测试；CLI 不提供此选项。PHP 合约及本地页面测试不替代合并后的 WordPress 集成与浏览器验收。
+开发依赖可通过已有工作区的 node_modules 复用，不自动下载浏览器。本地检查包含 PHP 与 Node 任务／报告往返、文件锁互斥、HTTP/TLS 重定向、Cookie、脚本弹窗与无限循环脚本收尾、首次／再次缓存命中、304 再验证、存储隔离、成对取消、可比条件和导出白名单，以及请求数、解码字节、HTTP/TLS 代理累计字节、并发连接上限、活动取消、总时限与进程／socket 收尾，不访问生产页面。成对缓存的 TLS fixture 在测试入口匹配临时证书公钥使用 SPKI 例外，避免通用证书错误绕过影响缓存测试；资源预算 TLS fixture 使用回环自签证书，不用于判断缓存命中。CLI 不提供这些测试例外。PHP 合约及本地页面测试不替代合并后的 WordPress 集成与浏览器验收。
 
-## 手动执行器
+## 资源限制与启动检查
 
-执行器配置文件位于私有绝对路径，JSON schema_version 为 1，包含 queue_dir、origin、asset_hosts（最多 16 个批准资源 host），可选 browser_executable。queue_dir 与 PHP 配置指向同一个私有目录，origin 与目标站点 HTTPS origin 一致。配置路径和资源白名单由服务器管理员维护，不能从后台请求传入。
+应用预算固定在 budget.cjs，不接受后台、配置文件或环境变量扩大：每次导航最多 256 个请求、16 MiB 响应体（CDP 逐块取解码长度与编码长度较大值）；每个任务最多 128 MiB 代理流量（TLS 密文双向累计，包含握手与请求）、16 个并发代理客户端连接。导航最多 30 秒，任务最多 12 分钟。任何预算触发后停止新请求、关闭当前 context、保留已完成采样并终止任务；关闭迟迟不返回时强制结束浏览器。应用预算是停止阈值，事件／socket 分块可能产生一个批次的超出，并非内核层逐字节限流。
+
+CLI 在读取配置、领取队列和加载浏览器依赖之前，读取真实 /proc 与 cgroup v2，确认非 root、NoNewPrivs=1、进程确实属于所读 cgroup。叶节点必须直接设置不超过 1 CPU、64–768 MiB 内存、零 swap、最多 128 个 task 的有限配额；只靠更上层限额不予放行。记录叶节点至已识别挂载根的可见祖先链，不能读取完整可见链时拒绝；隐藏于命名空间之外的祖先仍须部署者核对。TMPDIR 必须真实路径、无符号链接、自身 UID 所有、0700 等私有权限，文件系统须为容量不超过 256 MiB 的 tmpfs；普通宿主 /tmp 或 Web 目录被拒绝。环境变量不能模拟成功的内核检查，CLI 没有 fixture 放行选项。
+
+entry.cjs 供受限服务使用：先完成真实身份／cgroup 检查，确认父文件系统为有界 tmpfs，才在同一个进程与挂载命名空间创建私有 TMPDIR 子目录，再调用 CLI 重新验证。不会在普通宿主磁盘创建该目录，也不修复已存在目录的错误权限。不能把创建步骤放到 ExecStartPre：执行阶段的私有 tmpfs 可能不共享。
+
+SIGTERM／SIGINT 转为取消信号，测量中主动停止浏览器，终态在 queue.lock 内保存并退出（143／130）。后台取消标记与信号在异常终态也检查。无法正常写终态的 OOM／强杀留下 running 记录，只有 worker.lock 已释放后的下一次手动执行／提交才按原有协议标记 worker_expired；不自动重跑，不借时间过期越过仍被占用的锁。
+
+## 手动执行器与部署准备
+
+执行器配置文件位于私有绝对路径，JSON schema_version 为 1，包含 queue_dir、origin、asset_hosts（最多 16 个批准资源 host），可选 browser_executable。queue_dir 与 PHP 配置指向同一个私有目录，origin 与目标站点 HTTPS origin 一致。配置路径、浏览器路径和资源白名单由服务器管理员维护，不能从后台请求传入。示例在 tools/performance-runner/deployment/runner.json.example；示例不代表已配置或启用。
+
+独立 runtime/package.json 与锁文件固定 playwright-core 1.55.1，不含整个插件开发依赖，不自动下载 Chromium。隔离验证复用已有 Node 20.13.1、Playwright 1.55.1、Chromium 140.0.7339.186；上线须验证精确版本、Chromium 系统库与受限身份，不能仅因机器存在另一个版本就代替此验证。执行器源码、runtime 依赖和浏览器均在 Web 根与插件 ZIP 之外维护。后台按钮仅排队，PHP 不运行浏览器。
+
+部署例子 tools/performance-runner/deployment/pagenest-performance.service.example 未安装、未启用。后续获准时再落实：
+
+1. 为 Node 源码、runtime 依赖与 Chromium 分配服务 UID 不可写的 /opt 目录，配置文件放私有 /etc 目录；队列由 WordPress FPM 与执行器的同一非 root UID 维护，0700／0600。容器 FPM 须挂载同一目录，核对 UID 与现有 PHP 路径许可；不能把宿主 UID 名称相同当作映射成立。
+2. 以锁定 runtime/package-lock.json 安装最小依赖（npm ci --ignore-scripts），浏览器由管理员显式准备并指定 browser_executable。不复用可被服务 UID 修改的源码或浏览器，也不把开发 node_modules 拷进插件 ZIP。
+3. 替换示例的 User、Group 与路径，检查实际 cgroup v2 delegation／控制器和祖先限制。单次手动 service 配额为 CPU 50%、MemoryMax 768 MiB、MemorySwapMax 0、TasksMax 96、LimitNOFILE 1024、Node heap 128 MiB；/tmp 私有 tmpfs 256 MiB、/var/tmp 16 MiB。RuntimeMaxSec 750、KillMode=control-group、TimeoutStopSec 5、OOMPolicy=kill 负责异常收尾。服务没有 Restart、Timer 或 Install 自动启动目标。
+4. 检查只读源目录、仅队列与临时盘可写、NoNewPrivileges、Chromium namespace sandbox，以及静态批准资源 host 与 DNS/出口策略。生产入口强制 chromiumSandbox=true；不以 no-sandbox 或全局放宽系统策略绕过启动失败。代理与浏览器调试入口只监听回环，代理 DNS 全结果必须公网且使用已验证 IP，禁止私网／回环／链路本地及保留地址；本地 TLS／HTTP 放行仅存在于合成测试。
+5. 先做无任务的受限启动、沙箱和临时目录验收，再做经过授权的小量公开代表页任务、活动取消与资源终止验收。之后才在服务器配置中打开 PHP 模块。启用后以管理员手动 start 一次处理一个排队任务；没有守护或定时调度。
+
+2026-10-13 已在本机自动回收的瞬时合成服务验证真实 cgroup 配额、私有 tmpfs 同进程准备、CPU 节流、task 上限、内存 OOM 与停止服务后的整组清理。内核实验把 MemoryMax 降至 128 MiB，OOMPolicy=continue 仅用于保留测试父进程读取 oom_kill 证据；这不是生产部署例子的 OOMPolicy=kill 验收。普通磁盘临时路径与无配额进程拒绝且不领取任务。未安装生产服务、创建生产队列或下载新的浏览器。
+
+本机现有 Chromium 的沙箱启动探测失败，尚未满足真实部署的沙箱条件；合成浏览器 fixture 关闭 OS 沙箱的结果不能覆盖这个缺口。后续授权集成前须在拟部署的确切 UID／AppArmor／容器环境解决并通过沙箱启动检查，再验证 systemd 例子全部保护开关与 WordPress/FPM 挂载。当前不因本地资源合约通过而宣称可直接生产运行，也不修改宿主安全策略。
+
+内核验证是独立、显式调用的本地实验，需 Linux cgroup v2、systemd 及非 root 账户的 sudo 权限；仅创建自动回收的临时单位，使用小额有限资源，不纳入常规 CI，也不访问网站：
 
 ```sh
-node tools/performance-runner/cli.cjs --once --config /absolute/private/runner.json
+npm run test:performance-kernel
 ```
 
-命令仅单次手动处理队列，不创建定时任务。执行器依赖 Linux 的 /usr/bin/flock，并与 PHP 使用同一 UID，保证 worker.lock 和 queue.lock 为同一套内核锁。浏览器控制入口和安全代理只监听回环，DNS 解析结果全部校验后固定目标 IP，拒绝私网、回环、链路本地与 IPv6 保留地址；CLI 不支持本地 fixture 放行。默认不批准第三方资源，需服务器明确指定 asset_hosts。
-
-上线前必须核对进程 CPU、内存与 cgroup 限制、队列持久化和 FPM 路径许可、Chromium 低权限执行与依赖版本，保持明确的手动入口；开发期间没有创建服务或定时调度。手动启动一次 CLI 才处理一次排队任务，后台按钮本身不运行浏览器。执行器源码仅在开发目录 tools/performance-runner，未进入 WordPress 安装 ZIP；需要单独的受限运行环境，不能假设现有 PHP 镜像已经包含执行器。
+模板语法检查、合成 PHP／浏览器／内核实验与真实 WordPress 集成／生产性能验收是不同层次；合并、集成与发布仍须等待用户通知。

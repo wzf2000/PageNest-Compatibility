@@ -2,6 +2,7 @@ const { performance } = require('node:perf_hooks');
 const { createHash } = require('node:crypto');
 const { UA_TOKEN, startProxy } = require('./policy.cjs');
 const { startGuard } = require('./guard.cjs');
+const { budgets, limitsHash } = require('./budget.cjs');
 
 const METRICS = ['ttfb_ms', 'fcp_ms', 'lcp_ms', 'cls', 'long_task_blocking_ms'];
 function finite(value) {
@@ -112,16 +113,33 @@ async function runMeasurements(
     onResult = () => {},
     deadline = Date.now() + 720000,
     sampleTimeoutMs = 30000,
+    runtimeLimits,
+    fixtureLimits = {},
   } = {},
 ) {
-  const proxy = await startProxy(policy);
-  let browser, server, guard, watchdog, sampleTimer;
+  if (!policy.fixture && !runtimeLimits) throw new Error('runtime_unavailable');
+  const limits = budgets(policy, fixtureLimits);
+  sampleTimeoutMs = Math.min(sampleTimeoutMs, limits.page_timeout_ms);
+  deadline = Math.min(deadline, Date.now() + limits.job_timeout_ms);
+  let browser, server, guard, watchdog, sampleTimer, cancellationTimer, activeContext;
+  let stopped = null;
+  function stop(reason) {
+    if (stopped) return;
+    stopped = reason;
+    if (activeContext) closeBounded(activeContext).catch(() => server?.kill().catch(() => {}));
+    else if (server) server.kill().catch(() => {});
+  }
+  const proxy = await startProxy(policy, {
+    maxConnections: limits.connections,
+    maxBytes: limits.proxy_bytes_per_job,
+    onLimit: () => stop('resource_limit'),
+  });
   const results = [];
   async function closeBounded(object) {
     let timer;
     try {
       await Promise.race([
-        object.close(),
+        object.close().catch(() => server?.kill().catch(() => {})),
         new Promise((resolve) => {
           timer = setTimeout(() => server.kill().then(resolve, resolve), 1500);
         }),
@@ -133,6 +151,7 @@ async function runMeasurements(
   try {
     server = await chromium.launchServer({
       headless: true,
+      chromiumSandbox: !policy.fixture,
       executablePath,
       host: '127.0.0.1',
       timeout: Math.max(1, Math.min(30000, deadline - Date.now())),
@@ -147,6 +166,7 @@ async function runMeasurements(
     });
     watchdog = setTimeout(
       () => {
+        stop('job_timeout');
         server.kill().catch(() => {});
       },
       Math.max(1, deadline - Date.now()),
@@ -155,13 +175,21 @@ async function runMeasurements(
     const browserSession = await browser.newBrowserCDPSession();
     const browserInfo = await browserSession.send('Browser.getVersion');
     guard = await startGuard(browser, policy);
+    cancellationTimer = setInterval(() => {
+      try {
+        if (cancelled()) stop('cancelled');
+      } catch {
+        stop('runner_failed');
+      }
+    }, 200);
     const environment = {
-      runner: 'playwright-navigation-v2',
+      runner: 'playwright-navigation-v3',
       node_version: process.version,
       chromium_version: browser.version(),
       network: 'server-local',
       cache_mode: job.profile.cache_mode,
       sample_window_ms: 1500,
+      limits_hash: limitsHash(limits, runtimeLimits, !policy.fixture),
       policy_hash: createHash('sha256')
         .update(
           JSON.stringify({
@@ -177,6 +205,7 @@ async function runMeasurements(
     for (const target of job.pages) {
       for (let run = 1; run <= job.profile.repeats; run++) {
         if (cancelled()) return { results, environment, cancelled: true };
+        if (stopped) throw new Error(stopped);
         if (Date.now() >= deadline) throw new Error('job_timeout');
         if (!policy.allowedUrl(target.url, true)) {
           for (const phase of phases) {
@@ -202,6 +231,7 @@ async function runMeasurements(
           ignoreHTTPSErrors: policy.fixture,
           userAgent: `${mobile ? `Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${browser.version()} Mobile Safari/537.36` : browserInfo.userAgent} ${UA_TOKEN}`,
         });
+        activeContext = context;
         let currentRow = null;
         let freshSucceeded = false;
         try {
@@ -212,6 +242,7 @@ async function runMeasurements(
           await context.addInitScript(collect);
           for (const phase of phases) {
             if (cancelled()) return { results, environment, cancelled: true };
+            if (stopped) throw new Error(stopped);
             if (Date.now() >= deadline) throw new Error('job_timeout');
             const started = performance.now();
             const row = sampleRow(target, run, phase);
@@ -238,11 +269,17 @@ async function runMeasurements(
               }
               const targetId = (await cdp.send('Target.getTargetInfo')).targetInfo.targetId;
               const frameId = (await cdp.send('Page.getFrameTree')).frameTree.frame.id;
-              await guard.bind(cdp, { targetId, frameId, url: canonicalUrl, row });
+              await guard.bind(cdp, {
+                targetId,
+                frameId,
+                url: canonicalUrl,
+                row,
+                permitted: () => !stopped,
+              });
               sampleTimer = setTimeout(
                 () => {
                   timedOut = true;
-                  context.close().catch(() => {});
+                  closeBounded(context).catch(() => server.kill().catch(() => {}));
                 },
                 Math.max(1, Math.min(sampleTimeoutMs, deadline - Date.now())),
               );
@@ -269,14 +306,24 @@ async function runMeasurements(
               cdp.on('Network.loadingFinished', (event) => {
                 row.transfer_bytes += Math.max(0, event.encodedDataLength || 0);
               });
+              let bodyBytes = 0;
+              cdp.on('Network.dataReceived', (event) => {
+                bodyBytes += Math.max(event.dataLength || 0, event.encodedDataLength || 0);
+                if (bodyBytes > limits.bytes_per_navigation) stop('resource_limit');
+              });
               page.on('request', () => {
                 row.request_count++;
+                if (row.request_count > limits.requests_per_navigation) stop('resource_limit');
               });
               page.on('requestfailed', () => {
                 row.failed_requests++;
               });
               page.on('popup', (popup) => popup.close().catch(() => {}));
               page.on('download', (download) => download.cancel().catch(() => {}));
+              if (Date.now() + 1500 >= deadline) {
+                stop('job_timeout');
+                throw new Error('job_timeout');
+              }
               const timeout = Math.max(
                 1,
                 Math.min(28500, sampleTimeoutMs - 1500, deadline - Date.now() - 1500),
@@ -290,9 +337,13 @@ async function runMeasurements(
                   : ['HIT', 'MISS', 'BYPASS'].includes(header)
                     ? header
                     : 'unknown';
-              if (Date.now() + 1500 >= deadline) throw new Error('job_timeout');
+              if (Date.now() + 1500 >= deadline) {
+                stop('job_timeout');
+                throw new Error('job_timeout');
+              }
               await page.waitForTimeout(1500);
               const sample = await page.evaluate(() => window.__pagenestPerformanceRead());
+              if (stopped) throw new Error(stopped);
               if (cached.has(mainRequestId) || mainRevalidated) row.cache_header = 'unknown';
               if (page.url() !== canonicalUrl || !guard.healthy())
                 throw new Error('navigation_changed');
@@ -300,11 +351,16 @@ async function runMeasurements(
               if (row.http_status >= 200 && row.http_status < 300) row.status = 'ok';
               else row.error = 'http_error';
             } catch (error) {
-              if (error.message === 'job_timeout') throw error;
+              if (error.name === 'TimeoutError' && Date.now() + 1500 >= deadline)
+                stop('job_timeout');
               row.error =
-                timedOut || error.name === 'TimeoutError'
-                  ? 'navigation_timeout'
-                  : 'navigation_failed';
+                stopped === 'resource_limit' || stopped === 'cancelled'
+                  ? stopped
+                  : error.message === 'job_timeout' || stopped === 'job_timeout'
+                    ? 'navigation_timeout'
+                    : timedOut || error.name === 'TimeoutError'
+                      ? 'navigation_timeout'
+                      : 'navigation_failed';
             } finally {
               clearTimeout(sampleTimer);
               sampleTimer = null;
@@ -314,17 +370,26 @@ async function runMeasurements(
             row.duration_ms = finite(performance.now() - started);
             results.push(row);
             await onResult(row, environment);
+            if (stopped === 'cancelled' || cancelled())
+              return { results, environment, cancelled: true };
+            if (stopped) throw new Error(stopped);
+            if (Date.now() >= deadline) throw new Error('job_timeout');
             if (phase === 'fresh') freshSucceeded = row.status === 'ok';
           }
         } finally {
+          activeContext = null;
           currentRow = null;
           guard.activate(null);
           await closeBounded(context);
         }
       }
     }
+    if (stopped === 'cancelled' || cancelled()) return { results, environment, cancelled: true };
+    if (stopped) throw new Error(stopped);
+    if (Date.now() >= deadline) throw new Error('job_timeout');
     return { results, environment, cancelled: false };
   } finally {
+    clearInterval(cancellationTimer);
     clearTimeout(sampleTimer);
     try {
       if (guard) await guard.close();

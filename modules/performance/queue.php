@@ -113,7 +113,16 @@ final class Queue
             !preg_match('~^https://[a-zA-Z0-9.-]+$~D', $j['origin']) ||
             !(
                 ($j['error'] ?? null) === null ||
-                in_array($j['error'], ['worker_expired', 'job_timeout', 'runner_failed'], true)
+                in_array(
+                    $j['error'],
+                    [
+                        'worker_expired',
+                        'job_timeout',
+                        'runner_failed',
+                        ...$j['schema_version'] === 2 ? ['resource_limit'] : [],
+                    ],
+                    true,
+                )
             )
         ) {
             return false;
@@ -135,12 +144,17 @@ final class Queue
                     'chromium_version',
                     'network',
                     'cache_mode',
-                    ...$j['schema_version'] === 2 ? ['sample_window_ms', 'policy_hash'] : [],
+                    ...$j['schema_version'] === 2
+                        ? ['sample_window_ms', 'policy_hash', 'limits_hash']
+                        : [],
                 ]) ||
-                ($env['runner'] ?? '') !==
-                    ($j['schema_version'] === 2
-                        ? 'playwright-navigation-v2'
-                        : 'playwright-navigation-v1') ||
+                !in_array(
+                    $env['runner'] ?? '',
+                    $j['schema_version'] === 2
+                        ? ['playwright-navigation-v2', 'playwright-navigation-v3']
+                        : ['playwright-navigation-v1'],
+                    true,
+                ) ||
                 ($env['network'] ?? '') !== 'server-local' ||
                 ($env['cache_mode'] ?? '') !== $j['profile']['cache_mode']
             ) {
@@ -151,6 +165,14 @@ final class Queue
                 (($env['sample_window_ms'] ?? null) !== 1500 ||
                     !is_string($env['policy_hash'] ?? null) ||
                     !preg_match('/^[a-f0-9]{64}$/D', $env['policy_hash']))
+            ) {
+                return false;
+            }
+            if (
+                ($env['runner'] === 'playwright-navigation-v3' ||
+                    array_key_exists('limits_hash', $env)) &&
+                (!is_string($env['limits_hash'] ?? null) ||
+                    !preg_match('/^[a-f0-9]{64}$/D', $env['limits_hash']))
             ) {
                 return false;
             }
@@ -215,7 +237,9 @@ final class Queue
                             'http_error',
                             'navigation_timeout',
                             'navigation_failed',
-                            ...$j['schema_version'] === 2 ? ['warmup_failed'] : [],
+                            ...$j['schema_version'] === 2
+                                ? ['warmup_failed', 'resource_limit', 'cancelled']
+                                : [],
                         ],
                         true,
                     )

@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "queue_dir": "/var/lib/pagenest-performance/queue",
+  "origin": "https://wzf2000.top",
+  "asset_hosts": [],
+  "browser_executable": "/opt/pagenest-browser/chromium-headless-shell/chrome-linux/headless_shell"
+}

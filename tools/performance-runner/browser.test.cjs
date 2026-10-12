@@ -200,10 +200,11 @@ async function main() {
         assert.ok(success.blocked_requests >= 4);
         assert.equal(outcome.results[1].status, 'failed');
         assert.equal(outcome.environment.cache_mode, 'fresh-context');
-        assert.equal(outcome.environment.runner, 'playwright-navigation-v2');
+        assert.equal(outcome.environment.runner, 'playwright-navigation-v3');
         assert.equal(success.cache_phase, 'fresh');
         assert.equal(outcome.environment.sample_window_ms, 1500);
         assert.match(outcome.environment.policy_hash, /^[a-f0-9]{64}$/);
+        assert.match(outcome.environment.limits_hash, /^[a-f0-9]{64}$/);
       }
       const paired = job();
       paired.origin = origin;

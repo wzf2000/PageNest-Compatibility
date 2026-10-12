@@ -136,7 +136,13 @@ function validJob(job, policy) {
       job.pages.length * job.profile.repeats * (job.profile.cache_mode === 'paired' ? 2 : 1) ||
     !job.versions ||
     !(
-      job.error === null || ['worker_expired', 'job_timeout', 'runner_failed'].includes(job.error)
+      job.error === null ||
+      [
+        'worker_expired',
+        'job_timeout',
+        'runner_failed',
+        ...(job.schema_version === 2 ? ['resource_limit'] : []),
+      ].includes(job.error)
     ) ||
     !['wordpress', 'companion', 'theme'].every(
       (key) => typeof job.versions[key] === 'string' && Buffer.byteLength(job.versions[key]) <= 100,
@@ -155,7 +161,7 @@ function validJob(job, policy) {
             'chromium_version',
             'network',
             'cache_mode',
-            ...(job.schema_version === 2 ? ['sample_window_ms', 'policy_hash'] : []),
+            ...(job.schema_version === 2 ? ['sample_window_ms', 'policy_hash', 'limits_hash'] : []),
           ].includes(key),
       ) ||
       !['node_version', 'chromium_version'].every(
@@ -163,11 +169,17 @@ function validJob(job, policy) {
       ) ||
       env.network !== 'server-local' ||
       env.cache_mode !== job.profile.cache_mode ||
-      env.runner !== `playwright-navigation-v${job.schema_version}` ||
+      !(
+        job.schema_version === 1
+          ? ['playwright-navigation-v1']
+          : ['playwright-navigation-v2', 'playwright-navigation-v3']
+      ).includes(env.runner) ||
       (job.schema_version === 2 &&
         (env.sample_window_ms !== 1500 ||
           typeof env.policy_hash !== 'string' ||
-          !/^[a-f0-9]{64}$/.test(env.policy_hash)))
+          !/^[a-f0-9]{64}$/.test(env.policy_hash) ||
+          ((env.runner === 'playwright-navigation-v3' || env.limits_hash !== undefined) &&
+            (typeof env.limits_hash !== 'string' || !/^[a-f0-9]{64}$/.test(env.limits_hash)))))
     )
       return false;
   }
@@ -208,9 +220,13 @@ function validJob(job, policy) {
       !['HIT', 'MISS', 'BYPASS', 'unknown'].includes(row.cache_header) ||
       !(
         row.error === null ||
-        ['target_blocked', 'http_error', 'navigation_timeout', 'navigation_failed'].includes(
-          row.error,
-        ) ||
+        [
+          'target_blocked',
+          'http_error',
+          'navigation_timeout',
+          'navigation_failed',
+          ...(job.schema_version === 2 ? ['resource_limit', 'cancelled'] : []),
+        ].includes(row.error) ||
         (phase === 'warm' && row.status === 'failed' && row.error === 'warmup_failed')
       ) ||
       !(

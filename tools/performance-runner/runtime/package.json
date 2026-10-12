@@ -1,0 +1,9 @@
+{
+  "name": "pagenest-performance-runtime",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Independent server runner dependencies; excluded from WordPress installation ZIP",
+  "dependencies": {
+    "playwright-core": "1.55.1"
+  }
+}

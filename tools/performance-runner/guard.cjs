@@ -77,6 +77,7 @@ async function startGuard(browser, policy) {
         };
         const allowed =
           permittedTarget &&
+          current.permitted?.() !== false &&
           ['GET', 'HEAD'].includes(event.request.method) &&
           (document
             ? event.frameId === current.frameId &&
@@ -118,7 +119,15 @@ async function startGuard(browser, policy) {
                 ].includes(name.toLowerCase()),
             )
             .map(([name, value]) => ({ name, value: String(value) }));
-          await session.send('Fetch.continueRequest', { requestId: event.requestId, headers });
+          if (current.permitted?.() === false) {
+            current.row.blocked_requests++;
+            await session.send('Fetch.failRequest', {
+              requestId: event.requestId,
+              errorReason: 'BlockedByClient',
+            });
+          } else {
+            await session.send('Fetch.continueRequest', { requestId: event.requestId, headers });
+          }
         }
       })().catch(() => {
         fault = true;

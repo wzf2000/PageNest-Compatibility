@@ -117,6 +117,7 @@ final class Reports
                     'cache_mode',
                     'sample_window_ms',
                     'policy_hash',
+                    'limits_hash',
                 ]
                 as $k
             ) {
@@ -212,6 +213,7 @@ final class Reports
                 'cache_mode',
                 'sample_window_ms',
                 'policy_hash',
+                'limits_hash',
             ]);
         }
         $out['pages'] = array_map(

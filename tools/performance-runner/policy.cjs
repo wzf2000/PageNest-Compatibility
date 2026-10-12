@@ -1,6 +1,7 @@
 const http = require('node:http');
 const net = require('node:net');
 const dns = require('node:dns').promises;
+const { LIMITS } = require('./budget.cjs');
 
 const UA_TOKEN = 'PageNestPerformance/1.0';
 const SENSITIVE =
@@ -130,11 +131,36 @@ function makePolicy(origin, assetHosts = [], fixture = false) {
 
 // Chromium can only CONNECT to allowlisted TLS hosts. The socket uses the verified IP,
 // so a second browser DNS lookup cannot rebind it to a private service.
-async function startProxy(policy) {
+async function startProxy(
+  policy,
+  {
+    maxConnections = LIMITS.connections,
+    maxBytes = LIMITS.proxy_bytes_per_job,
+    onLimit = () => {},
+  } = {},
+) {
   const sockets = new Set();
+  const clients = new Set();
+  let bytes = 0;
+  let exhausted = false;
+  function limit() {
+    if (exhausted) return;
+    exhausted = true;
+    for (const socket of sockets) socket.destroy();
+    onLimit();
+  }
+  function received(chunk) {
+    bytes += chunk.length;
+    if (bytes > maxBytes) limit();
+  }
   const server = http.createServer(async (req, res) => {
     // Plain HTTP is exclusively for the synthetic loopback fixture; CLI never enables it.
-    if (!policy.fixture || !['GET', 'HEAD'].includes(req.method) || !policy.allowedUrl(req.url)) {
+    if (
+      exhausted ||
+      !policy.fixture ||
+      !['GET', 'HEAD'].includes(req.method) ||
+      !policy.allowedUrl(req.url)
+    ) {
       res.writeHead(403);
       res.end();
       return;
@@ -149,14 +175,18 @@ async function startProxy(policy) {
           port: url.port || 80,
           path: url.pathname + url.search,
           method: req.method,
+          agent: false,
           headers: { ...req.headers, host: url.host },
           timeout: 15000,
         },
         (incoming) => {
+          incoming.on('data', received);
           res.writeHead(incoming.statusCode, incoming.headers);
           incoming.pipe(res);
         },
       );
+      sockets.add(upstream);
+      upstream.on('close', () => sockets.delete(upstream));
       upstream.on('error', () => {
         if (!res.headersSent) res.writeHead(502);
         res.end();
@@ -169,24 +199,36 @@ async function startProxy(policy) {
     }
   });
   server.on('connection', (socket) => {
+    if (exhausted || clients.size >= maxConnections) {
+      socket.destroy();
+      limit();
+      return;
+    }
+    clients.add(socket);
     sockets.add(socket);
-    socket.on('close', () => sockets.delete(socket));
+    socket.on('data', received);
+    socket.on('close', () => {
+      clients.delete(socket);
+      sockets.delete(socket);
+    });
   });
   server.on('connect', async (req, client, head) => {
     try {
+      if (exhausted) throw new Error('resource_limit');
       const fixtureOrigin = new URL(policy.origin);
       const fixtureConnect =
         policy.fixture && fixtureOrigin.protocol === 'https:' && req.url === fixtureOrigin.host;
       if (!fixtureConnect && !/^[a-z0-9.-]+:443$/.test(req.url)) throw new Error('blocked');
       const host = fixtureConnect ? fixtureOrigin.hostname : req.url.slice(0, -4);
       const address = await policy.resolve(host);
-      if (client.destroyed) return;
+      if (exhausted || client.destroyed) return;
       const upstream = net.connect({
         host: address.address,
         family: address.family,
         port: fixtureConnect ? Number(fixtureOrigin.port || 443) : 443,
       });
       sockets.add(upstream);
+      upstream.on('data', received);
       upstream.on('close', () => sockets.delete(upstream));
       upstream.setTimeout(30000, () => upstream.destroy());
       upstream.on('error', () => client.destroy());

@@ -344,13 +344,14 @@ try {
         $pair['profile']['cache_mode'] = 'paired';
         $pair['profile']['repeats'] = 3;
         $pair['environment'] = [
-            'runner' => 'playwright-navigation-v2',
+            'runner' => 'playwright-navigation-v3',
             'node_version' => 'v24',
             'chromium_version' => 'synthetic',
             'network' => 'server-local',
             'cache_mode' => 'paired',
             'sample_window_ms' => 1500,
             'policy_hash' => str_repeat('a', 64),
+            'limits_hash' => str_repeat('b', 64),
         ];
         $row = $pair['results'][0];
         $warm = $row;
@@ -439,6 +440,7 @@ try {
                 'cache_mode',
                 'sample_window_ms',
                 'policy_hash',
+                'limits_hash',
             ]
             as $field
         ) {
@@ -449,6 +451,16 @@ try {
                 'environment difference ' . $field,
             );
         }
+        $different = $after;
+        $different['environment']['runner'] = 'playwright-navigation-v2';
+        unset($different['environment']['limits_hash']);
+        check(Queue::valid($different), 'previous runner remains readable');
+        check(
+            !Reports::compare($different, $different)['comparable'],
+            'unknown limits cannot compare',
+        );
+        $different['environment']['runner'] = 'playwright-navigation-v3';
+        check(!Queue::valid($different), 'new runner requires limits hash');
         $different = $after;
         $different['profile']['device'] = 'desktop';
         check(!Reports::compare($pair, $different)['comparable'], 'device difference');

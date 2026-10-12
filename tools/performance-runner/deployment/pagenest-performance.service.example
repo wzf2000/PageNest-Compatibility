@@ -1,0 +1,44 @@
+# Prepare and review all paths and the same UID as WordPress FPM before use.
+# Manual systemctl start only. This example is not installed or enabled by development.
+[Unit]
+Description=PageNest performance runner (manual single task)
+
+[Service]
+Type=exec
+# Replace this placeholder account/group with the existing non-root WordPress FPM identity.
+User=pagenest-fpm-placeholder
+Group=pagenest-fpm-placeholder
+WorkingDirectory=/opt/pagenest-performance
+Environment=NODE_PATH=/opt/pagenest-performance/runtime/node_modules
+Environment=TMPDIR=/tmp/pagenest-performance
+ExecStart=/usr/bin/node --max-old-space-size=128 /opt/pagenest-performance/entry.cjs --once --config /etc/pagenest-performance/runner.json
+CPUQuota=50%
+CPUQuotaPeriodSec=100ms
+MemoryMax=768M
+MemorySwapMax=0
+TasksMax=96
+LimitNOFILE=1024
+RuntimeMaxSec=750
+KillMode=control-group
+TimeoutStopSec=5
+OOMPolicy=kill
+NoNewPrivileges=yes
+UMask=0077
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+PrivateDevices=yes
+PrivateTmp=no
+# entry.cjs checks real cgroup limits and tmpfs before creating the private child in its own namespace.
+# Per-service mount namespace: /tmp is a bounded tmpfs. Its child is private to the FPM UID.
+TemporaryFileSystem=/tmp:size=256M,mode=1777
+TemporaryFileSystem=/var/tmp:size=16M,mode=1777
+ReadWritePaths=/var/lib/pagenest-performance/queue
+ReadOnlyPaths=/opt/pagenest-performance /etc/pagenest-performance /opt/pagenest-browser
+RestrictSUIDSGID=yes
+LockPersonality=yes
+# Chromium uses its unprivileged namespace sandbox: do not deny namespace creation.
+# No Restart, timer, FPM shell endpoint or [Install] auto-enable target.

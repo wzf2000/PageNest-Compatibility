@@ -33,13 +33,14 @@ function job() {
 }
 function environment(cacheMode = 'fresh-context') {
   return {
-    runner: 'playwright-navigation-v2',
+    runner: 'playwright-navigation-v3',
     node_version: process.version,
     chromium_version: 'synthetic',
     network: 'server-local',
     cache_mode: cacheMode,
     sample_window_ms: 1500,
     policy_hash: 'f'.repeat(64),
+    limits_hash: 'e'.repeat(64),
   };
 }
 function sample(pageKey = 'home', phase = 'fresh') {
@@ -313,4 +314,4 @@ if (require.main === module)
     console.error(error);
     process.exitCode = 1;
   });
-module.exports = { job };
+module.exports = { job, environment, sample };
