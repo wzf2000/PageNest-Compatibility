@@ -178,7 +178,7 @@ function screen(): void
         }
     }
     $selected = $saved ?: array_column($suggested, 'key');
-    echo '<p>候选仅从最近最多 100 篇公开无密码文章/页面及健康公开工具注册表生成。最多 8 页，单次导航最多 30 秒，整任务最多 12 分钟；排队有效期 30 分钟。手动刷新查看进度。</p><p>首次访问每轮创建全新浏览器环境；配对模式在同一环境再次访问目标页，首次失败会跳过再次导航。浏览器 HTTP 缓存保持正常行为，服务端缓存只读取 X-Wzf-Blog-Cache 的 HIT/MISS/BYPASS。禁用 XHR/fetch/beacon/API 网络，load 后采样 1.5 秒。长任务阻塞代理值不是 Lighthouse TBT；没有 Lighthouse 评分、INP 或完整用户旅程。</p>';
+    echo '<p>候选仅从最近最多 100 篇公开无密码文章/页面及健康公开工具注册表生成。最多 8 页，单次导航最多 30 秒，整任务最多 12 分钟；排队有效期 30 分钟。手动刷新查看进度。</p><p>首次访问每轮创建全新浏览器环境；配对模式在同一环境再次访问目标页，首次失败会跳过再次导航。浏览器 HTTP 缓存保持正常行为，服务端缓存观察仅记录配置响应头的 HIT/MISS/BYPASS，其他值不保留。禁用 XHR/fetch/beacon/API 网络，load 后采样 1.5 秒。长任务阻塞代理值不是 Lighthouse TBT；没有 Lighthouse 评分、INP 或完整用户旅程。</p>';
     form_start();
     foreach ($options as $p) {
         echo '<p><label><input type="checkbox" name="pages[]" value="' .

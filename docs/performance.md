@@ -29,7 +29,7 @@ define('PAGENEST_COMPANION_PERFORMANCE_DIR', '/private/performance-queue');
 
 queued 取消直接更新 cancelled。running 取消写 cancel-<ID> 文件，内容仅为 schema_version=1 与 id；执行器在测量中每 200 ms、导航之间及最终写入终态的 queue.lock 内检查；取消会中止正在执行的页面，异常收尾也重新检查取消标记，避免最后一次采样期间的取消被完成状态覆盖。后台采用手动刷新，没有轮询。
 
-results 为扁平逐轮数组，每项包含 page_key、run、cache_phase=fresh/warm、status=ok/failed、http_status、ttfb_ms、fcp_ms、lcp_ms、cls、long_task_blocking_ms、request_count、transfer_bytes、failed_requests、blocked_requests、browser_cache_requests、cache_header、duration_ms、error。时间和 CLS 可为 null，HTTP 状态可为 null；browser_cache_requests 是 CDP 观察到的浏览器 HTTP 缓存请求数，与 origin 缓存独立。cache_header 仅 HIT/MISS/BYPASS/unknown，来自本轮网络主文档的 X-Wzf-Blog-Cache；主文档由浏览器缓存返回或 304 再验证时置 unknown，不复用存储的旧响应头。error 仅安全错误码；资源超限使用 resource_limit，活动取消的采样使用 cancelled，整任务到期使用 job_timeout。fresh 失败时 warm 标记 warmup_failed 且不再导航。environment 包含 runner=playwright-navigation-v3、node_version、chromium_version、network=server-local、cache_mode（与 profile 一致）、sample_window_ms=1500 和 policy_hash（网络保护版本、origin、批准 host 集合的 SHA-256 摘要）与 limits_hash（固定应用预算、真实内核限制及可见祖先限制链、临时盘容量、Chromium 沙箱模式的 SHA-256 摘要）。祖先摘要不保存 cgroup 路径。不会保留 DOM、HAR、截图、原始头、console、异常文本或敏感 URL。
+results 为扁平逐轮数组，每项包含 page_key、run、cache_phase=fresh/warm、status=ok/failed、http_status、ttfb_ms、fcp_ms、lcp_ms、cls、long_task_blocking_ms、request_count、transfer_bytes、failed_requests、blocked_requests、browser_cache_requests、cache_header、duration_ms、error。时间和 CLS 可为 null，HTTP 状态可为 null；browser_cache_requests 是 CDP 观察到的浏览器 HTTP 缓存请求数，与 origin 缓存独立。cache_header 仅 HIT/MISS/BYPASS/unknown，来自本轮网络主文档中执行器配置的缓存响应头（默认 X-Pagenest-Page-Cache）；主文档由浏览器缓存返回或 304 再验证时置 unknown，不复用存储的旧响应头。error 仅安全错误码；资源超限使用 resource_limit，活动取消的采样使用 cancelled，整任务到期使用 job_timeout。fresh 失败时 warm 标记 warmup_failed 且不再导航。environment 包含 runner=playwright-navigation-v3、node_version、chromium_version、network=server-local、cache_mode（与 profile 一致）、sample_window_ms=1500 和 policy_hash（网络保护版本、origin、批准 host 集合和规范化缓存响应头名的 SHA-256 摘要）与 limits_hash（固定应用预算、真实内核限制及可见祖先限制链、临时盘容量、Chromium 沙箱模式的 SHA-256 摘要）。祖先摘要不保存 cgroup 路径。不会保留 DOM、HAR、截图、原始头、console、异常文本或敏感 URL。
 
 completed 表示任务执行完成，个别页面仍可能 failed。后台分 fresh/warm 展示每轮结果，每项成功有效样本各自的中位数及 N/重复次数。成对摘要仅使用同页同轮两个阶段都成功、且该指标都非 null 的配对，展示首次与再次值及逐对差值的中位数；不会把独立阶段中位数之差冒称配对差值。指标缺失保留为 null，不能当作零。
 
@@ -78,7 +78,7 @@ SIGTERM／SIGINT 转为取消信号，测量中主动停止浏览器，终态在
 
 ## 手动执行器与部署
 
-执行器配置文件位于私有绝对路径，JSON schema_version 为 1，包含 queue_dir、origin、asset_hosts（最多 16 个批准资源 host），必填 browser_executable。queue_dir 与 PHP 配置指向同一个私有目录，origin 与目标站点 HTTPS origin 一致。配置路径、浏览器路径和资源白名单由服务器管理员维护，不能从后台请求传入。按 tools/performance-runner/deployment/runner.json.example 创建实际配置，并核对每个目标路径与批准资源 host。
+执行器配置文件位于私有绝对路径，JSON schema_version 为 1，包含 queue_dir、origin、asset_hosts（最多 16 个批准资源 host），必填 browser_executable，可选 cache_header_name（默认 x-pagenest-page-cache）。响应头名须为 1–128 个合法 HTTP token 字符，不接受空白、冒号或控制字符，按小写规范化；只保留 HIT/MISS/BYPASS/unknown，不保留原始响应头值。更换响应头名会改变 policy_hash，因此报告不再满足同环境数值对照条件；已有报告仍可查看和导出。queue_dir 与 PHP 配置指向同一个私有目录，origin 与目标站点 HTTPS origin 一致。配置路径、浏览器路径和资源白名单由服务器管理员维护，不能从后台请求传入。按 tools/performance-runner/deployment/runner.json.example 创建实际配置，并核对每个目标路径与批准资源 host。
 
 独立 runtime/package.json 与锁文件固定 playwright-core 1.55.1，不含整个插件开发依赖，不自动下载 Chromium。前轮隔离验证复用已有 Node 20.13.1、Playwright 1.55.1、Chromium 140.0.7339.186；每个部署者须验证实际精确版本、Chromium 系统库与受限身份，不能仅因机器存在另一个版本就代替此验证。执行器源码、runtime 依赖和浏览器均在 Web 根与插件 ZIP 之外维护。后台按钮仅排队，PHP 不运行浏览器。
 

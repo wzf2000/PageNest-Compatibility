@@ -190,16 +190,7 @@ async function runMeasurements(
       cache_mode: job.profile.cache_mode,
       sample_window_ms: 1500,
       limits_hash: limitsHash(limits, runtimeLimits, !policy.fixture),
-      policy_hash: createHash('sha256')
-        .update(
-          JSON.stringify({
-            guard: 'cdp-anonymous-v2',
-            origin: policy.origin,
-            hosts: [...policy.hosts].sort(),
-            fixture: policy.fixture,
-          }),
-        )
-        .digest('hex'),
+      policy_hash: policyHash(policy),
     };
     const phases = job.profile.cache_mode === 'paired' ? ['fresh', 'warm'] : ['fresh'];
     for (const target of job.pages) {
@@ -330,7 +321,9 @@ async function runMeasurements(
               );
               const response = await page.goto(canonicalUrl, { waitUntil: 'load', timeout });
               row.http_status = response?.status() ?? null;
-              const header = response ? (await response.allHeaders())['x-wzf-blog-cache'] : null;
+              const header = response
+                ? (await response.allHeaders())[policy.cacheHeaderName]
+                : null;
               row.cache_header =
                 cached.has(mainRequestId) || mainRevalidated
                   ? 'unknown'
@@ -411,4 +404,17 @@ async function runMeasurements(
   }
 }
 
-module.exports = { METRICS, finite, runMeasurements };
+function policyHash(policy) {
+  return createHash('sha256')
+    .update(
+      JSON.stringify({
+        guard: 'cdp-anonymous-v2',
+        origin: policy.origin,
+        hosts: [...policy.hosts].sort(),
+        fixture: policy.fixture,
+        cache_header_name: policy.cacheHeaderName,
+      }),
+    )
+    .digest('hex');
+}
+module.exports = { METRICS, finite, runMeasurements, policyHash };

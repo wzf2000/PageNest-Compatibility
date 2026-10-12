@@ -65,7 +65,17 @@ function normalizeOrigin(value, fixture = false) {
   return url.origin;
 }
 
-function makePolicy(origin, assetHosts = [], fixture = false) {
+function makePolicy(
+  origin,
+  assetHosts = [],
+  fixture = false,
+  cacheHeaderName = 'x-pagenest-page-cache',
+) {
+  if (
+    typeof cacheHeaderName !== 'string' ||
+    !/^[!#$%&'*+.^_`|~0-9A-Za-z-]{1,128}$/.test(cacheHeaderName)
+  )
+    throw new Error('invalid_cache_header_name');
   const normalized = normalizeOrigin(origin, fixture);
   const home = new URL(normalized);
   if (
@@ -103,6 +113,7 @@ function makePolicy(origin, assetHosts = [], fixture = false) {
     origin: normalized,
     hosts,
     fixture,
+    cacheHeaderName: cacheHeaderName.toLowerCase(),
     allowedUrl,
     allowedRequest(request) {
       if (!['GET', 'HEAD'].includes(request.method())) return false;

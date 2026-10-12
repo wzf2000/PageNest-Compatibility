@@ -99,7 +99,7 @@ async function main() {
       response.writeHead(200, {
         'content-type': 'text/html',
         'cache-control': 'public,max-age=3600',
-        'x-wzf-blog-cache': 'MISS',
+        'x-pagenest-page-cache': 'MISS',
       });
       response.end(
         '<!doctype html><h1>Cached HTML fixture</h1><link rel="stylesheet" href="/cached.css">',
@@ -110,7 +110,7 @@ async function main() {
       response.writeHead(200, {
         'content-type': 'text/html',
         'cache-control': 'private,no-store',
-        'x-wzf-blog-cache': 'HIT',
+        'x-pagenest-page-cache': 'HIT',
         'set-cookie': 'synthetic=fixture; Path=/',
       });
       response.end(`<!doctype html><html><head><link rel="stylesheet" href="/cached.css"><link rel="stylesheet" href="/revalidate.css"></head><body><h1>Cache pair</h1><script>
@@ -125,7 +125,9 @@ async function main() {
     }
     response.writeHead(200, {
       'content-type': 'text/html',
-      'x-wzf-blog-cache': 'HIT',
+      'x-pagenest-page-cache': 'HIT',
+      'x-fixture-page-cache': 'BYPASS',
+      'x-fixture-raw-cache': 'synthetic-unrecognized-value',
       'set-cookie': 'synthetic=fixture; Path=/',
     });
     response.end(`<!doctype html><html><head><link rel="stylesheet" href="/asset.css"></head><body><h1>Synthetic representative page</h1><p>Browser rendering fixture.</p><iframe src="/wp-login.php"></iframe><img src="http://169.254.169.254/latest/meta-data/"><script src="/redirect.js"></script><script>
@@ -205,6 +207,21 @@ async function main() {
         assert.equal(outcome.environment.sample_window_ms, 1500);
         assert.match(outcome.environment.policy_hash, /^[a-f0-9]{64}$/);
         assert.match(outcome.environment.limits_hash, /^[a-f0-9]{64}$/);
+      }
+      for (const [name, expected] of [
+        ['X-Fixture-Page-Cache', 'BYPASS'],
+        ['x-fixture-raw-cache', 'unknown'],
+      ]) {
+        const custom = job();
+        custom.origin = origin;
+        custom.pages[0].url = origin + '/';
+        const measured = await runMeasurements(custom, makePolicy(origin, [], true, name), {
+          chromium: testChromium,
+          deadline: Date.now() + 60000,
+        });
+        assert.equal(measured.results[0].status, 'ok');
+        assert.equal(measured.results[0].cache_header, expected);
+        assert.equal(JSON.stringify(measured).includes('synthetic-unrecognized-value'), false);
       }
       const paired = job();
       paired.origin = origin;

@@ -297,9 +297,14 @@ function config(filename) {
     data.schema_version !== 1 ||
     Object.keys(data).some(
       (key) =>
-        !['schema_version', 'queue_dir', 'origin', 'asset_hosts', 'browser_executable'].includes(
-          key,
-        ),
+        ![
+          'schema_version',
+          'queue_dir',
+          'origin',
+          'asset_hosts',
+          'browser_executable',
+          'cache_header_name',
+        ].includes(key),
     ) ||
     (data.asset_hosts !== undefined && !Array.isArray(data.asset_hosts))
   )
@@ -315,7 +320,7 @@ function config(filename) {
     throw new Error('invalid_browser');
   return {
     dir,
-    policy: makePolicy(origin, data.asset_hosts || []),
+    policy: makePolicy(origin, data.asset_hosts || [], false, data.cache_header_name),
     executablePath: data.browser_executable,
   };
 }

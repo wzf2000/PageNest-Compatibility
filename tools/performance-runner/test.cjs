@@ -13,6 +13,7 @@ const {
   config,
 } = require('./queue.cjs');
 const { processOnce } = require('./cli.cjs');
+const { policyHash } = require('./measure.cjs');
 
 const origin = 'https://example.test';
 function job() {
@@ -93,6 +94,15 @@ async function main() {
   ])
     assert.throws(() => normalizeOrigin(value));
   const policy = makePolicy(origin, ['cdn.example.test']);
+  assert.equal(policy.cacheHeaderName, 'x-pagenest-page-cache');
+  assert.equal(
+    policyHash(policy),
+    policyHash(makePolicy(origin, ['cdn.example.test'], false, 'X-PageNest-Page-Cache')),
+  );
+  assert.notEqual(
+    policyHash(policy),
+    policyHash(makePolicy(origin, ['cdn.example.test'], false, 'X-Fixture-Page-Cache')),
+  );
   for (const value of [
     origin + '/wp-admin/',
     origin + '/wp-login.php',
@@ -161,6 +171,27 @@ async function main() {
       }),
     );
     assert.equal(config(configFile).dir, dir);
+    assert.equal(config(configFile).policy.cacheHeaderName, 'x-pagenest-page-cache');
+    const configured = JSON.parse(fs.readFileSync(configFile, 'utf8'));
+    fs.writeFileSync(
+      configFile,
+      JSON.stringify({ ...configured, cache_header_name: 'X-Fixture-Page-Cache' }),
+    );
+    assert.equal(config(configFile).policy.cacheHeaderName, 'x-fixture-page-cache');
+    for (const cache_header_name of [
+      null,
+      1,
+      [],
+      {},
+      '',
+      'x:y',
+      'x y',
+      'x\r\ny',
+      'x'.repeat(129),
+    ]) {
+      fs.writeFileSync(configFile, JSON.stringify({ ...configured, cache_header_name }));
+      assert.throws(() => config(configFile), { message: 'invalid_cache_header_name' });
+    }
     fs.writeFileSync(
       configFile,
       JSON.stringify({ schema_version: 1, queue_dir: dir, origin, fixture: true }),
