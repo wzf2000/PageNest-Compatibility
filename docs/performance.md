@@ -1,6 +1,6 @@
 # 页面测速
 
-本模块已整合至 Companion 1.4.0，待目标 WordPress FPM／容器集成验收后发布。启用前须核对实际运行身份、私有队列映射与受限执行器；插件安装不自动部署服务或打开功能。管理员可在 “工具 → 页面测速” 选择公开代表页，提交给独立的服务器端 Playwright 执行器；PHP 不启动 shell，不发起 HTTP 请求，不注册 REST、前台资源或定时任务。默认关闭。
+本模块自 Companion 1.4.0 提供，默认关闭。每个部署者须先完成实际 WordPress FPM／容器集成验收，核对运行身份、私有队列映射与受限执行器，再显式配置启用；安装插件不会自动部署或启用执行器服务、浏览器或系统策略。管理员可在 “工具 → 页面测速” 选择公开代表页，提交给独立的服务器端 Playwright 执行器；PHP 不启动 shell，不发起 HTTP 请求，不注册 REST、前台资源或定时任务。
 
 ## 显式配置
 
@@ -76,21 +76,21 @@ entry.cjs 供受限服务使用：先完成真实身份／cgroup 检查，确认
 
 SIGTERM／SIGINT 转为取消信号，测量中主动停止浏览器，终态在 queue.lock 内保存并退出（143／130）。后台取消标记与信号在异常终态也检查。无法正常写终态的 OOM／强杀留下 running 记录，只有 worker.lock 已释放后的下一次手动执行／提交才按原有协议标记 worker_expired；不自动重跑，不借时间过期越过仍被占用的锁。
 
-## 手动执行器与部署准备
+## 手动执行器与部署
 
-执行器配置文件位于私有绝对路径，JSON schema_version 为 1，包含 queue_dir、origin、asset_hosts（最多 16 个批准资源 host），必填 browser_executable。queue_dir 与 PHP 配置指向同一个私有目录，origin 与目标站点 HTTPS origin 一致。配置路径、浏览器路径和资源白名单由服务器管理员维护，不能从后台请求传入。示例在 tools/performance-runner/deployment/runner.json.example；示例不代表已配置或启用。
+执行器配置文件位于私有绝对路径，JSON schema_version 为 1，包含 queue_dir、origin、asset_hosts（最多 16 个批准资源 host），必填 browser_executable。queue_dir 与 PHP 配置指向同一个私有目录，origin 与目标站点 HTTPS origin 一致。配置路径、浏览器路径和资源白名单由服务器管理员维护，不能从后台请求传入。按 tools/performance-runner/deployment/runner.json.example 创建实际配置，并核对每个目标路径与批准资源 host。
 
-独立 runtime/package.json 与锁文件固定 playwright-core 1.55.1，不含整个插件开发依赖，不自动下载 Chromium。隔离验证复用已有 Node 20.13.1、Playwright 1.55.1、Chromium 140.0.7339.186；上线须验证精确版本、Chromium 系统库与受限身份，不能仅因机器存在另一个版本就代替此验证。执行器源码、runtime 依赖和浏览器均在 Web 根与插件 ZIP 之外维护。后台按钮仅排队，PHP 不运行浏览器。
+独立 runtime/package.json 与锁文件固定 playwright-core 1.55.1，不含整个插件开发依赖，不自动下载 Chromium。前轮隔离验证复用已有 Node 20.13.1、Playwright 1.55.1、Chromium 140.0.7339.186；每个部署者须验证实际精确版本、Chromium 系统库与受限身份，不能仅因机器存在另一个版本就代替此验证。执行器源码、runtime 依赖和浏览器均在 Web 根与插件 ZIP 之外维护。后台按钮仅排队，PHP 不运行浏览器。
 
-部署例子 tools/performance-runner/deployment/pagenest-performance.service.example 未安装、未启用。后续获准时再落实：
+以 tools/performance-runner/deployment/pagenest-performance.service.example 为模板，落实以下部署与验收步骤：
 
 1. 为 Node 源码、runtime 依赖与 Chromium 分配服务 UID 不可写的 /opt 目录，配置文件放私有 /etc 目录；队列由 WordPress FPM 与执行器的同一非 root UID 维护，0700／0600。容器 FPM 须挂载同一目录，核对 UID 与现有 PHP 路径许可；不能把宿主 UID 名称相同当作映射成立。
 2. 以锁定 runtime/package-lock.json 安装最小依赖（npm ci --ignore-scripts），浏览器由管理员显式准备并指定 browser_executable。不复用可被服务 UID 修改的源码或浏览器，也不把开发 node_modules 拷进插件 ZIP。
 3. 替换示例的 User、Group 与路径，检查实际 cgroup v2 delegation／控制器和祖先限制。单次手动 service 配额为 CPU 50%、MemoryMax 768 MiB、MemorySwapMax 0、TasksMax 96、LimitNOFILE 1024、Node heap 128 MiB；/tmp 私有 tmpfs 256 MiB、/var/tmp 16 MiB。RuntimeMaxSec 750、KillMode=control-group、TimeoutStopSec 5、OOMPolicy=kill 负责异常收尾。服务没有 Restart、Timer 或 Install 自动启动目标。
-4. 检查只读源目录、仅队列与临时盘可写、NoNewPrivileges、Chromium namespace sandbox，以及静态批准资源 host 与 DNS/出口策略。Ubuntu 启用 AppArmor 用户命名空间限制时，另行审查 deployment/pagenest-performance-chromium.apparmor.example：仅匹配独立、root 所有且服务 UID 不可写的 Chromium 可执行文件，路径须与 runner.json 完全一致。该 userns 例外按可执行路径自动附着，不给 Node 设置 AppArmorProfile，不需要特权 launcher，也不授予额外 capability。示例使用 flags=(unconfined)，不是完整的 AppArmor 文件访问隔离；文件写入边界仍由服务挂载保护，renderer 隔离由 Chromium namespace 与 seccomp 实现。示例没有被安装或加载到生产。生产入口强制 chromiumSandbox=true；不以 no-sandbox 或全局放宽系统策略绕过启动失败。代理与浏览器调试入口只监听回环，代理 DNS 全结果必须公网且使用已验证 IP，禁止私网／回环／链路本地及保留地址；本地 TLS／HTTP 放行仅存在于合成测试。
+4. 检查只读源目录、仅队列与临时盘可写、NoNewPrivileges、Chromium namespace sandbox，以及静态批准资源 host 与 DNS/出口策略。Ubuntu 启用 AppArmor 用户命名空间限制时，另行审查 deployment/pagenest-performance-chromium.apparmor.example：仅匹配独立、root 所有且服务 UID 不可写的 Chromium 可执行文件，路径须与 runner.json 完全一致。该 userns 例外按可执行路径自动附着，不给 Node 设置 AppArmorProfile，不需要特权 launcher，也不授予额外 capability。示例使用 flags=(unconfined)，不是完整的 AppArmor 文件访问隔离；文件写入边界仍由服务挂载保护，renderer 隔离由 Chromium namespace 与 seccomp 实现。核对精确可执行路径后显式安装并加载该策略，再验证实际受限身份。执行器入口强制 chromiumSandbox=true；不以 no-sandbox 或全局放宽系统策略绕过启动失败。代理与浏览器调试入口只监听回环，代理 DNS 全结果必须公网且使用已验证 IP，禁止私网／回环／链路本地及保留地址；本地 TLS／HTTP 放行仅存在于合成测试。
 5. 在相同 User／Group、目录与保护开关下，把手动 service 的 ExecStart 临时替换为下述 preflight 命令，先做无任务、无外网访问的沙箱和临时目录验收。此时额外设置 PrivateNetwork=yes。预检成功后再做经过授权的小量公开代表页任务、活动取消与资源终止验收。之后才在服务器配置中打开 PHP 模块。启用后以管理员手动 start 一次处理一个排队任务；没有守护或定时调度。
 
-2026-10-13 已在本机自动回收的瞬时合成服务验证真实 cgroup 配额、私有 tmpfs 同进程准备、CPU 节流、task 上限、内存 OOM 与停止服务后的整组清理。内核实验把 MemoryMax 降至 128 MiB，OOMPolicy=continue 仅用于保留测试父进程读取 oom_kill 证据；这不是生产部署例子的 OOMPolicy=kill 验收。普通磁盘临时路径与无配额进程拒绝且不领取任务。未安装生产服务、创建生产队列或下载新的浏览器。
+2026-10-13 的前轮隔离实验在本机自动回收的瞬时合成服务中验证真实 cgroup 配额、私有 tmpfs 同进程准备、CPU 节流、task 上限、内存 OOM 与停止服务后的整组清理。内核实验把 MemoryMax 降至 128 MiB，OOMPolicy=continue 仅用于保留测试父进程读取 oom_kill 证据；这不是生产部署例子的 OOMPolicy=kill 验收。普通磁盘临时路径与无配额进程拒绝且不领取任务。该次实验未安装生产服务、创建生产队列或下载新的浏览器；此处是前轮隔离证据，不描述任何当前站点部署状态。
 
 ### Chromium 沙箱预检与 AppArmor 边界
 
@@ -100,11 +100,11 @@ SIGTERM／SIGINT 转为取消信号，测量中主动停止浏览器，终态在
 
 命令须在模板的真实受限 service 内执行，不能用普通交互 shell 的成功替代。预检先检查真实身份、cgroup 与私有有界 tmpfs，再加载浏览器；不读取配置／队列、不领取任务、不创建锁、不启动代理，不导航网站。只接受显式、canonical、root 所有且不可由服务 UID 修改的浏览器路径，始终 chromiumSandbox=true，没有 fixture、no-sandbox 或环境变量降级开关。使用固定本地页面创建 renderer，检查宿主视角身份、NoNewPrivs、零 permitted／effective／ambient capability、renderer 增加的 seccomp 过滤器，以及 uid_map 与 NSpid 的用户／进程命名空间隔离证据；证据不可读或缺失时拒绝。输出只含安全检查摘要和版本，不输出 PID、路径、DOM 或原始异常。helper 使用统一的 12 秒操作期限、最多 500 ms 的异步结算余量、各 1 秒的关闭／kill 预算；取消后等待受限 launch／connect 结算，再串行幂等清理。若 Playwright 启动仍保留未知进程句柄，独立 preflight 与 CLI／entry 的失败出口在安全错误记录写完后主动退出 MainPID，由 service 的 KillMode=control-group 清理全部子进程；不等待 750 秒的最终 RuntimeMaxSec。未知进程未完成清理不能被当成沙箱通过。
 
-2026-10-13 本机初次失败的内核记录为未匹配浏览器从 unconfined 转入 unprivileged_userns；该宿主策略拒绝 namespace 内 capability，导致 Chromium 报 No usable sandbox。现有 Chrome／Chromium 的路径规则不覆盖 Playwright 缓存路径。在独立 AppArmor namespace 内直接给 Node 设置 profile 的尝试仍未解决；宿主同时限制非特权 unconfined 转换，不能假定 systemd AppArmorProfile 即可替代浏览器的可执行路径附着。
+2026-10-13 前轮隔离实验中，本机初次失败的内核记录为未匹配浏览器从 unconfined 转入 unprivileged_userns；该宿主策略拒绝 namespace 内 capability，导致 Chromium 报 No usable sandbox。现有 Chrome／Chromium 的路径规则不覆盖 Playwright 缓存路径。在独立 AppArmor namespace 内直接给 Node 设置 profile 的尝试仍未解决；宿主同时限制非特权 unconfined 转换，不能假定 systemd AppArmorProfile 即可替代浏览器的可执行路径附着。
 
 修复在唯一、root 所有的临时 Chromium 副本上验证：仅加载与宿主官方 Chrome 同型的精确路径 userns 例外，不修改全局 sysctl、不覆盖既有 profile、不使用 no-sandbox 或特权浏览器。完整 service 保护开关、CPU 50%、内存 768 MiB、零 swap、96 tasks、Node heap 128 MiB、256 MiB 私有 tmpfs 与 PrivateNetwork=yes 下，本地固定页面正常渲染。宿主只读验收确认 browser／renderer UID 1000、NoNewPrivs=1、CapEff=CapAmb=0；renderer 的 user／pid／net 命名空间均与执行器不同，seccomp 过滤器由 browser 的 17 个增加至 renderer 的 18 个。服务 UID 本身可读取 uid_map、NSpid 和 seccomp 状态，无须 CAP_SYS_PTRACE。新的独立预检及空队列单次执行器在同一完整保护条件下通过；未匹配规则时独立预检与执行器均拒绝且不生成队列锁。合成启动挂起和 SIGTERM 用于检验失败期限与控制组收尾：独立预检和 CLI／entry 的挂起失败均约 13.8 秒退出，信号取消保留 143；未发现存活的测试进程，队列哨兵保持不变。
 
-这次验证属于 ubuntu 隔离身份与该锁定浏览器的本机实验，不替代拟部署的确切 WordPress FPM UID、容器映射、配置与生产网页验收。AppArmor 模板须由服务器管理员核对目标路径后显式安装；本次实验的全部临时策略、服务和独立浏览器副本已移除，共用浏览器缓存未改。合成 fixture 关闭 OS 沙箱的测试仍只覆盖测量逻辑。
+以上记录属于前轮 ubuntu 隔离身份与该锁定浏览器的本机实验，不描述当前部署状态，也不替代任何部署者的确切 WordPress FPM UID、容器映射、配置与网页验收。AppArmor 模板须由服务器管理员核对目标路径后显式安装；该次隔离实验的全部临时策略、服务和独立浏览器副本已移除，共用浏览器缓存未改。合成 fixture 关闭 OS 沙箱的测试仍只覆盖测量逻辑。
 
 内核验证是独立、显式调用的本地实验，需 Linux cgroup v2、systemd 及非 root 账户的 sudo 权限；仅创建自动回收的临时单位，使用小额有限资源，不纳入常规 CI，也不访问网站：
 
@@ -112,4 +112,4 @@ SIGTERM／SIGINT 转为取消信号，测量中主动停止浏览器，终态在
 npm run test:performance-kernel
 ```
 
-模板语法检查、合成 PHP／浏览器／内核实验与真实 WordPress 集成／生产性能验收是不同层次；目标 FPM／容器集成验收通过后才能发布并显式启用。
+模板语法检查、合成 PHP／浏览器／内核实验与真实 WordPress 集成／生产性能验收是不同层次；每个部署者须完成实际 FPM／容器集成验收后再显式启用模块。
