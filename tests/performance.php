@@ -236,8 +236,11 @@ try {
         \PageNest\Tools\Registry::$healthy = true;
         check(Queue::directory($dir) === $dir, 'private existing dir');
         chmod($dir, 0777);
+        // Permissions are fixture input; invalidate PHP's cached pre-chmod stat.
+        clearstatcache(true, $dir);
         reject(fn() => Queue::directory($dir), 'public directory');
         chmod($dir, 0700);
+        clearstatcache(true, $dir);
         $link = $dir . '-link';
         symlink($dir, $link);
         reject(fn() => Queue::directory($link), 'directory symlink');
