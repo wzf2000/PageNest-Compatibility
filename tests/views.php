@@ -222,6 +222,14 @@ $_SERVER['HTTP_USER_AGENT'] = 'Googlebot';
 verify('robot excluded', is_wp_error(pagenest_companion_views_increment(1)));
 $_SERVER['HTTP_USER_AGENT'] = '';
 verify('empty agent retains legacy behavior', pagenest_companion_views_increment(1) === 13);
+$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 PageNestPerformance/1.0';
+$options['pagenest_companion_views_settings']['exclude_bots'] = 0;
+$before = $rows;
+verify(
+    'performance token never writes count with bot exclusion disabled',
+    is_wp_error(pagenest_companion_views_increment(1)) && $rows === $before,
+);
+$_SERVER['HTTP_USER_AGENT'] = '';
 $preview = true;
 verify('previews excluded', is_wp_error(pagenest_companion_views_increment(1)));
 $preview = false;

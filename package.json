@@ -16,7 +16,10 @@
     "test:service-browser": "playwright test --config tests/services-playwright.config.cjs",
     "test:media": "php tests/media-contracts.php && python3 -m unittest discover -s tests -p \"test_media_vendor.py\"",
     "test:media-browser": "playwright test --config tests/media-playwright.config.cjs",
-    "test:tools": "php tests/tools-contracts.php && php tests/tools-registration.php && php tests/tools-bootstrap.php && php tests/tools-bootstrap.php legacy-first && php tests/tools-bootstrap.php legacy-late && php tests/tools-bootstrap.php active && php tests/tools-bootstrap.php network && php tests/tools-bootstrap.php missing-profile && python3 -m unittest discover -s tests -p \"test_tools_package.py\""
+    "test:tools": "php tests/tools-contracts.php && php tests/tools-registration.php && php tests/tools-bootstrap.php && php tests/tools-bootstrap.php legacy-first && php tests/tools-bootstrap.php legacy-late && php tests/tools-bootstrap.php active && php tests/tools-bootstrap.php network && php tests/tools-bootstrap.php missing-profile && python3 -m unittest discover -s tests -p \"test_tools_package.py\"",
+    "test:performance": "php tests/performance.php && php tests/performance.php disabled",
+    "test:performance-runner": "node tools/performance-runner/test.cjs",
+    "test:performance-browser": "node tools/performance-runner/browser.test.cjs"
   },
   "devDependencies": {
     "@prettier/plugin-php": "0.25.0",

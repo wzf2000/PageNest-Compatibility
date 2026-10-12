@@ -75,3 +75,9 @@ Version 1.2.0 adds a default-off generic tools host. Browser tools, games and pr
 services are separate optional implementation plugins and are excluded from this ZIP.
 See [tools API and configuration](docs/tools.md) for explicit enablement, profile contracts
 and the old-owner guard.
+
+## 页面测速开发模块
+
+第一阶段提供默认关闭的管理员公开代表页选择、手动任务队列和独立浏览器执行器。
+结果属于受控环境的首次导航采样，每轮使用全新浏览器环境；当前尚未合并验收或上线。
+配置、指标范围和运行边界见 [页面测速](docs/performance.md)。

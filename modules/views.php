@@ -119,6 +119,10 @@ function pagenest_companion_views_readable($id)
 }
 function pagenest_companion_views_audience($settings)
 {
+    $agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+    if (is_string($agent) && preg_match('/(?:^|\s)PageNestPerformance\/1\.0(?:$|\s)/D', $agent)) {
+        return false;
+    }
     $user = get_current_user_id();
     if ($settings['count'] === 1 && ($user > 0 || !empty($_COOKIE[USER_COOKIE]))) {
         return false;

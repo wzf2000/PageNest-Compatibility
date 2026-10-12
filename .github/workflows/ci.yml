@@ -58,11 +58,14 @@ jobs:
           npm run test:content
           npm run test:media
           npm run test:tools
+          npm run test:performance
+          npm run test:performance-runner
       - name: Install pinned Chromium
         run: npx playwright install --with-deps --only-shell chromium
       - name: Run frontend regressions
         run: |
           npm run test:frontend
+          npm run test:performance-browser
           npm run test:content-browser
           npm run test:media-browser
       - name: Upload browser failure evidence
