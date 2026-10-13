@@ -16,6 +16,7 @@
       frame.on('select', () => {
         const image = frame.state().get('selection').first().toJSON();
         field.value = image.id;
+        field.dispatchEvent(new Event('change', { bubbles: true }));
         status.textContent = `已选择：${image.title || image.filename}`;
       });
     }
@@ -23,6 +24,7 @@
   });
   document.getElementById('pagenest-clear-share-image').addEventListener('click', () => {
     field.value = 0;
+    field.dispatchEvent(new Event('change', { bubbles: true }));
     status.textContent = '使用站点 Logo';
   });
 })();

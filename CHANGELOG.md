@@ -1,11 +1,25 @@
 # Changelog
 
+## 1.5.0
+
+- 阅读、内容发现、媒体与社交设置采用统一布局、任务导航和响应式控件，显示未保存编辑及描述长度，支持展开未启用的社交供应商。
+- 设计资源仅在四个 Companion 设置页加载，保留设置键、验证、权限和既有记录。
+- 保留 1.4.0 页面测速模块、独立执行器及全部既有功能。
+
 ## 1.4.0
 
 - 新增默认关闭的管理员页面测速模块，支持公开代表页选择、手动任务、首次／再次访问成对测量、同条件历史对照和私有 JSON 导出。
 - 独立执行器提供固定请求／流量预算、真实内核资源限制与 Chromium 沙箱预检；只接受显式受限配置，不由 PHP 启动命令、不新增定时任务。
 - 模块已整合；执行器与浏览器由服务器管理员独立准备，不进入插件安装包。启用前须验证目标 WordPress FPM 身份、私有队列映射、受限服务及浏览器沙箱。
 - 保留内容发现、基础 SEO、工具宿主与既有阅读、社交和媒体功能；测速 User-Agent 不增加 Companion 浏览计数。
+
+## 1.3.1-rc.1
+
+Unreleased settings design candidate. Reading, discovery, media and social settings
+share a restrained layout, task navigation and responsive controls. Unsaved edits
+and description length are visible; inactive social providers can be expanded as
+needed. Option names, validation, permissions and existing records are unchanged.
+Design assets load only on the four Companion settings pages.
 
 ## 1.3.0
 

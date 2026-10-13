@@ -1,6 +1,7 @@
 <?php
 /** Restricted administrator overrides for social login only. */
 defined('ABSPATH') || exit();
+require_once __DIR__ . '/admin-design.php';
 function pagenest_social_settings_option()
 {
     $value = get_option('pagenest_social_settings', null);
@@ -218,10 +219,11 @@ function pagenest_social_settings_page()
     if (!current_user_can('manage_options')) {
         wp_die('无权管理社交登录。', '', ['response' => 403]);
     }
-    echo '<div class="wrap"><h1>PageNest 社交登录</h1><p><a href="' .
-        esc_url(admin_url('options-general.php?page=pagenest-companion')) .
-        '">返回 PageNest 设置</a></p>';
-    echo '<p>服务器配置作为默认值。每个供应商单独保存；保存不会测试登录或发送邮件。密钥不会回填，留空保留当前密钥。更换应用编号时请同时填写新密钥。</p>';
+    pagenest_companion_admin_header(
+        '社交登录',
+        '逐个配置登录方式。应用密钥不会回填，留空保留当前值；保存不会发起登录或发送邮件。',
+        'pagenest-social',
+    );
     if (!($GLOBALS['pagenest_companion_services_source_valid'] ?? false)) {
         echo '<div class="notice notice-error"><p>服务器服务配置无效，无法使用后台覆盖。请先修复服务器配置。</p></div></div>';
         return;
@@ -244,7 +246,7 @@ function pagenest_social_settings_page()
         return;
     }
     echo pagenest_social_settings_form_start() .
-        '<h2>总开关</h2><p>配置来源：' .
+        '<section class="pn-admin-section"><h2>登录与注册</h2><p>配置来源：' .
         ($override['switches'] ? '后台覆盖' : '服务器默认') .
         '</p>';
     foreach (
@@ -259,7 +261,7 @@ function pagenest_social_settings_page()
             esc_html($label) .
             '</label></p>';
     }
-    echo '<p><button class="button button-primary" name="operation" value="switches">保存总开关</button> <button class="button" name="operation" value="reset_switches">恢复服务器总开关</button></p></form><p>新注册还需 WordPress「任何人都可以注册」开启。QQ／百度等既有方式请完成新方式验收后再停用。</p>';
+    echo '<p><button class="button button-primary" name="operation" value="switches">保存总开关</button> <button class="button" name="operation" value="reset_switches">恢复服务器总开关</button></p></section></form><p>新注册还需在 WordPress 常规设置中开启「任何人都可以注册」。</p>';
     foreach (
         [
             'qq' => 'QQ',
@@ -277,11 +279,15 @@ function pagenest_social_settings_page()
             'client_secret' => '',
             'redirect_uri' => '',
         ];
-        echo '<section style="background:#fff;border:1px solid #c3c4c7;padding:16px;margin:20px 0;max-width:800px">' .
-            pagenest_social_settings_form_start() .
-            '<h2>' .
+        echo '<details class="pn-admin-provider"' .
+            ($fields['enabled'] ? ' open' : '') .
+            '><summary>' .
             esc_html($label) .
-            '</h2><p>配置来源：' .
+            '<span class="pn-provider-status">' .
+            ($fields['enabled'] ? '已启用' : '未启用') .
+            '</span></summary>' .
+            pagenest_social_settings_form_start() .
+            '<p>配置来源：' .
             (isset($override['providers'][$provider]) ? '后台覆盖' : '服务器默认') .
             '；密钥：' .
             ($fields['client_secret'] !== '' ? '已配置' : '未配置') .
@@ -313,7 +319,7 @@ function pagenest_social_settings_page()
                 $field .
                 '">' .
                 esc_html($field_label) .
-                '</label><br><input style="width:100%;max-width:600px" id="pn-' .
+                '</label><br><input id="pn-' .
                 $provider .
                 '-' .
                 $field .
@@ -331,7 +337,7 @@ function pagenest_social_settings_page()
                 esc_attr($value) .
                 '"></p>';
         }
-        echo '<p><label><input type="checkbox" name="clear_secret" value="1"> 显式清除密钥（须先取消启用）</label></p><p><button class="button button-primary" name="operation" value="provider">保存此供应商</button> <button class="button" name="operation" value="reset_provider" formnovalidate>恢复服务器配置</button></p></form></section>';
+        echo '<p><label><input type="checkbox" name="clear_secret" value="1"> 显式清除密钥（须先取消启用）</label></p><p><button class="button button-primary" name="operation" value="provider">保存此供应商</button> <button class="button" name="operation" value="reset_provider" formnovalidate>恢复服务器配置</button></p></form></details>';
     }
     echo '</div>';
 }

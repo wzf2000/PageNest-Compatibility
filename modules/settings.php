@@ -1,6 +1,7 @@
 <?php
 /** User controls write only neutral options/meta and leave compatibility keys intact. */
 defined('ABSPATH') || exit();
+require_once dirname(__DIR__) . '/admin-design.php';
 function pagenest_companion_feature($name)
 {
     $features = get_option('pagenest_companion_features', null);
@@ -54,36 +55,50 @@ function pagenest_companion_settings_page()
     if (!current_user_can('manage_options')) {
         return;
     }
-    echo '<div class="wrap"><h1>PageNest Companion</h1><p><a href="' .
-        esc_url(admin_url('options-general.php?page=pagenest-social')) .
-        '">管理社交登录供应商与接入参数</a></p><p>选择读者可使用的功能。关闭功能保留文章配置与既有记录；启用段落评论还需逐篇文章选择。</p><form action="options.php" method="post">';
+    pagenest_companion_admin_header(
+        '阅读与互动',
+        '为读者开启合适的互动方式。关闭功能会保留已有内容和记录。',
+        'pagenest-companion',
+    );
+    echo '<div class="pn-admin-layout"><form class="pn-admin-main" action="options.php" method="post">';
     settings_fields('pagenest_companion');
+    echo '<section class="pn-admin-section"><h2>文章互动</h2><p>按需选择，沿用每篇文章的配置。</p>';
     foreach (
-        ['comments' => '段落评论', 'chapters' => '章节导航与链接', 'likes' => '文章点赞']
-        as $name => $label
+        [
+            'comments' => [
+                '段落评论',
+                '读者可围绕段落讨论；还需在具体文章中开启。旧私人笔记保持私人。',
+            ],
+            'chapters' => ['章节导航与链接', '连接同系列内容，让读者按章节继续阅读。'],
+            'likes' => ['文章点赞', '保留轻量的文章反馈入口。'],
+        ]
+        as $name => [$label, $help]
     ) {
-        echo '<p><label><input type="checkbox" name="pagenest_companion_features[' .
+        echo '<div class="pn-admin-setting"><label><input type="checkbox" name="pagenest_companion_features[' .
             esc_attr($name) .
             ']" value="1" ' .
             checked(pagenest_companion_feature($name), true, false) .
-            '> ' .
+            '><span>' .
             esc_html($label) .
-            '</label></p>';
+            '</span></label><p class="pn-admin-description">' .
+            esc_html($help) .
+            '</p></div>';
     }
+    echo '</section>';
     $views = pagenest_companion_views_settings();
-    echo '<h2>浏览计数</h2><p>默认关闭。仅统计公开文章和页面的页面加载，不发经验；不支持页面缓存。</p>';
+    echo '<section class="pn-admin-section"><h2>浏览计数</h2><p>记录公开文章和页面的访问。默认关闭，不关联经验奖励。</p>';
     foreach (['enabled' => '启用浏览计数', 'exclude_bots' => '排除已知机器人'] as $key => $label) {
         echo '<input type="hidden" name="pagenest_companion_views_settings[' .
             esc_attr($key) .
-            ']" value="0"><p><label><input type="checkbox" name="pagenest_companion_views_settings[' .
+            ']" value="0"><div class="pn-admin-setting"><label><input type="checkbox" name="pagenest_companion_views_settings[' .
             esc_attr($key) .
             ']" value="1" ' .
             checked($views[$key], 1, false) .
-            '> ' .
+            '><span>' .
             esc_html($label) .
-            '</label></p>';
+            '</span></label></div>';
     }
-    echo '<p><label>统计人群 <select name="pagenest_companion_views_settings[count]">';
+    echo '<div class="pn-admin-field"><label for="pn-view-audience">统计人群</label><select id="pn-view-audience" name="pagenest_companion_views_settings[count]">';
     foreach ([0 => '所有人', 1 => '访客', 2 => '登录用户'] as $value => $label) {
         echo '<option value="' .
             esc_attr($value) .
@@ -93,11 +108,11 @@ function pagenest_companion_settings_page()
             esc_html($label) .
             '</option>';
     }
-    echo '</select></label></p><p><label>显示文字 <input type="text" class="regular-text" name="pagenest_companion_views_settings[template]" value="' .
+    echo '</select></div><div class="pn-admin-field"><label for="pn-view-template">显示文字</label><input id="pn-view-template" type="text" class="regular-text" name="pagenest_companion_views_settings[template]" aria-describedby="pn-view-help" value="' .
         esc_attr($views['template']) .
-        '"></label></p><p>使用 %VIEW_COUNT% 显示次数；只支持纯文本。停用保留计数，启用不扫描或迁移旧文章。</p>';
-    submit_button();
-    echo '</form><p>旧站兼容配置由服务器管理员维护。这里的选择不会公开旧私人笔记或迁移数据库。</p></div>';
+        '"><p id="pn-view-help">使用 <code>%VIEW_COUNT%</code> 显示次数，支持纯文本。</p></div></section>';
+    submit_button('保存阅读设置');
+    echo '</form><aside class="pn-admin-help"><h2>先配置，再保存</h2><p>本页更改在保存后生效，已有评论、点赞和计数不会因关闭功能而删除。</p><h2>关于浏览量</h2><p>仅对实际渲染的公开页面计数；缓存命中可能不计入。启用不会扫描或迁移旧文章。</p><h2>更多站点能力</h2><p>搜索、媒体和社交登录各有独立设置页，不必在这里一次完成。</p></aside></div></div>';
 }
 add_action('add_meta_boxes_post', static function () {
     add_meta_box(
