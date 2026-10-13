@@ -62,6 +62,10 @@ jobs:
           npm run test:performance-runner
       - name: Install pinned Chromium
         run: npx playwright install --with-deps --only-shell chromium
+      - name: Permit the pinned headless shell namespace sandbox on the hosted runner
+        run: |
+          node tools/ci-browser-userns.test.cjs
+          node tools/ci-browser-userns.cjs
       - name: Run frontend regressions
         run: |
           npm run test:frontend
