@@ -5,7 +5,12 @@ const { defineConfig } = require('@playwright/test');
 module.exports = defineConfig({
   testDir: './tests',
   testMatch: '*.spec.cjs',
-  testIgnore: ['content-browser.spec.cjs', 'media.spec.cjs', 'media-library.spec.cjs'],
+  testIgnore: [
+    'content-browser.spec.cjs',
+    'media.spec.cjs',
+    'media-library.spec.cjs',
+    'performance-ui.spec.cjs',
+  ],
   use: { baseURL: 'http://127.0.0.1:18780', trace: 'retain-on-failure' },
   webServer: {
     command: 'php tests/browser-fixture.php && php -S 127.0.0.1:18780 -t .runtime/frontend',

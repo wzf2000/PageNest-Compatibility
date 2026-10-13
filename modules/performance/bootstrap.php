@@ -4,6 +4,7 @@ defined('ABSPATH') || exit();
 require_once __DIR__ . '/pages.php';
 require_once __DIR__ . '/queue.php';
 require_once __DIR__ . '/reports.php';
+require_once __DIR__ . '/ui-helper.php';
 function enabled(): bool
 {
     return defined('PAGENEST_COMPANION_PERFORMANCE_ENABLED') &&
@@ -140,9 +141,9 @@ function screen(): void
         wp_die('没有页面测速权限。', '', ['response' => 403]);
     }
     no_store();
-    echo '<div class="wrap"><h1>页面测速</h1><p>默认关闭，管理员专用。仅有限公开代表样本，不代表全站。独立执行器需要由服务器管理员手动运行；本工具不会启动命令或定时任务。</p>';
+    echo '<div class="wrap pn-admin pn-performance"><header class="pn-admin-header"><p class="pn-admin-eyebrow">PAGENEST / COMPANION</p><h1>页面测速</h1><p class="pn-admin-intro">为少量公开代表页采集首次与再次访问结果，查看历史并在相同条件下对照。管理员专用，结果仅为受控实验室样本。</p></header>';
     if (!enabled()) {
-        echo '<p>尚未启用。服务器需要显式设置 PAGENEST_COMPANION_PERFORMANCE_ENABLED=true 和 Web 根之外已存在的私有 PAGENEST_COMPANION_PERFORMANCE_DIR。</p></div>';
+        echo '<section class="pn-admin-section"><h2>尚未启用</h2><p>页面测速默认关闭。请服务器管理员完成独立执行器部署与验收，再启用本工具。</p><details class="pn-perf-details"><summary>服务器配置要求</summary><div><p>显式设置 PAGENEST_COMPANION_PERFORMANCE_ENABLED=true，并设置 Web 根之外已存在的私有 PAGENEST_COMPANION_PERFORMANCE_DIR。安装插件不会自动部署浏览器或运行任务。</p></div></details></section></div>';
         return;
     }
     try {
@@ -150,20 +151,37 @@ function screen(): void
         $reports = $q->reports();
         $suggested = Pages::suggested();
     } catch (\Throwable $e) {
-        echo '<p>配置或队列不可用。请服务器管理员检查私有目录和报告协议。</p></div>';
+        echo '<section class="pn-admin-section"><h2>测速暂不可用</h2>';
+        ui_notice('配置或队列不可用。请服务器管理员检查私有目录和报告协议。', true);
+        echo '</section></div>';
         return;
     }
+    echo '<nav class="pn-admin-nav" aria-label="页面测速"><a href="#performance-new">新建任务</a><a href="#performance-latest">最新报告</a><a href="#performance-history">历史与对照</a><a href="#performance-limits">测量范围</a></nav>';
     $notices = [
-        'saved' => '固定选择已保存。',
-        'queued' => '任务已排队，等待独立执行器。',
-        'cancel_requested' => '取消请求已保存，执行器会检查并中止测量。',
-        'request_rejected' => '请求被拒绝：请检查公开页面、配置、任务状态与执行器锁。',
+        'saved' => '页面选择已保存。设备、访问方式和轮数不会保存。',
+        'queued' => '任务已排队。请服务器管理员手动运行独立执行器，再刷新本页查看结果。',
+        'cancel_requested' =>
+            '取消请求已保存。若任务正在运行，执行器会检查请求并中止测量；请刷新确认终态。',
+        'request_rejected' =>
+            '请求被拒绝。请检查页面是否公开、选择是否为 1–8 项，以及配置、活动任务和执行器锁。',
         'budget_cleanup_required' =>
-            '报告达到保留预算；请服务器管理员在私有目录归档或清理报告后再试。',
+            '报告达到保留预算。请服务器管理员在私有目录归档或清理报告后再提交。',
     ];
     $notice = $_GET['performance_notice'] ?? '';
     if (is_string($notice) && isset($notices[$notice])) {
-        echo '<p>' . esc_html($notices[$notice]) . '</p>';
+        ui_notice(
+            $notices[$notice],
+            in_array($notice, ['request_rejected', 'budget_cleanup_required'], true),
+        );
+    }
+    $active = array_values(
+        array_filter(
+            $reports,
+            static fn($j) => in_array($j['status'], ['queued', 'running'], true),
+        ),
+    );
+    foreach ($active as $j) {
+        ui_active($j);
     }
     $saved = get_option('pagenest_companion_performance_selection', []);
     $saved = is_array($saved) ? array_values(array_filter($saved, 'is_string')) : [];
@@ -177,38 +195,59 @@ function screen(): void
         } catch (\Throwable $e) {
         }
     }
-    $selected = $saved ?: array_column($suggested, 'key');
-    echo '<p>候选仅从最近最多 100 篇公开无密码文章/页面及健康公开工具注册表生成。最多 8 页，单次导航最多 30 秒，整任务最多 12 分钟；排队有效期 30 分钟。手动刷新查看进度。</p><p>首次访问每轮创建全新浏览器环境；配对模式在同一环境再次访问目标页，首次失败会跳过再次导航。浏览器 HTTP 缓存保持正常行为，服务端缓存观察仅记录配置响应头的 HIT/MISS/BYPASS，其他值不保留。禁用 XHR/fetch/beacon/API 网络，load 后采样 1.5 秒。长任务阻塞代理值不是 Lighthouse TBT；没有 Lighthouse 评分、INP 或完整用户旅程。</p>';
-    form_start();
-    foreach ($options as $p) {
-        echo '<p><label><input type="checkbox" name="pages[]" value="' .
-            esc_attr($p['key']) .
-            '" ' .
-            (in_array($p['key'], $selected, true) ? 'checked' : '') .
-            '> ' .
-            esc_html($p['title'] . ' — ' . $p['reason'] . ' (' . $p['key'] . ')') .
-            '</label></p>';
-    }
-    echo '<p><label>额外公开文章/页面 ID（逗号分隔） <input name="post_ids" type="text" maxlength="200"></label></p><p><label>设备 <select name="device"><option value="desktop">桌面</option><option value="mobile">手机</option></select></label> <label>访问方式 <select name="cache_mode"><option value="fresh-context">首次访问</option><option value="paired">首次 / 再次成对访问</option></select></label> <label>重复 <select name="repeats"><option value="1">1 次</option><option value="3">3 次</option></select></label></p><p><button class="button" name="operation" value="save">保存固定选择</button> <button class="button button-primary" name="operation" value="start">开始测速</button></p></form>';
+    ui_selection($options, $saved ?: array_column($suggested, 'key'), (bool) $active);
     $terminal = array_values(
         array_filter(
             $reports,
             static fn($j) => in_array($j['status'], ['completed', 'failed', 'cancelled'], true),
         ),
     );
-    form_start(true);
-    foreach (['before' => '前值报告', 'after' => '后值报告'] as $key => $label) {
-        echo '<label>' . esc_html($label) . ' <select name="' . esc_attr($key) . '">';
-        foreach ($terminal as $j) {
-            echo '<option value="' .
-                esc_attr($j['id']) .
-                '">' .
-                esc_html($j['created_at'] . ' / ' . $j['status'] . ' / ' . $j['id']) .
-                '</option>';
-        }
-        echo '</select></label> ';
+    echo '<section id="performance-latest" class="pn-admin-section"><h2>最新报告</h2>';
+    if ($terminal) {
+        report($terminal[0]);
+    } else {
+        echo '<p>还没有终态报告。提交任务并由服务器管理员手动运行执行器后，在此查看采样结果。</p>';
     }
-    echo '<button class="button" name="operation" value="compare">对照历史报告</button></form>';
+    echo '</section><section id="performance-history" class="pn-admin-section"><h2>历史与对照</h2><p class="pn-perf-muted">最多保留 10 份报告。已完成、失败和取消的报告均可查看或导出；数值对照需要满足相同执行条件。</p>';
+    if (count($terminal) < 2) {
+        echo '<p>至少有两份终态报告后，才能选择基线与对照报告。</p>';
+    } else {
+        ui_form_start('pn-perf-compare-form', true);
+        foreach (['before' => '基线报告', 'after' => '对照报告'] as $key => $label) {
+            echo '<div><label for="pn-perf-' .
+                esc_attr($key) .
+                '">' .
+                esc_html($label) .
+                '</label><select id="pn-perf-' .
+                esc_attr($key) .
+                '" name="' .
+                esc_attr($key) .
+                '">';
+            foreach ($terminal as $index => $j) {
+                echo '<option value="' .
+                    esc_attr($j['id']) .
+                    '"' .
+                    ((is_string($_POST[$key] ?? null)
+                            ? $_POST[$key] === $j['id']
+                            : ($key === 'before'
+                                ? $index === 1
+                                : $index === 0))
+                        ? ' selected'
+                        : '') .
+                    '>' .
+                    esc_html(
+                        ui_time($j['created_at']) .
+                            ' · ' .
+                            ui_status($j['status']) .
+                            ' · ' .
+                            substr($j['id'], 0, 8),
+                    ) .
+                    '</option>';
+            }
+            echo '</select></div>';
+        }
+        echo '<button class="button" name="operation" value="compare">对照报告</button></form>';
+    }
     if (
         ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' &&
         ($_POST['operation'] ?? '') === 'compare'
@@ -220,14 +259,52 @@ function screen(): void
                 find_report($q, is_string($_POST['after'] ?? null) ? $_POST['after'] : ''),
             );
         } catch (\Throwable $e) {
-            echo '<p>所选终态报告不可用。</p>';
+            ui_notice('所选终态报告不可用，请重新选择。', true);
         }
     }
-    foreach ($reports as $j) {
+    foreach (array_slice($terminal, 1) as $j) {
+        echo '<details class="pn-perf-history"><summary>' .
+            esc_html(
+                ui_time($j['created_at']) .
+                    ' · ' .
+                    ui_status($j['status']) .
+                    ' · ' .
+                    count($j['pages']) .
+                    ' 页',
+            ) .
+            '</summary><div>';
         report($j);
+        echo '</div></details>';
     }
-    echo '</div>';
+    echo '</section><details id="performance-limits" class="pn-admin-section pn-perf-limits"><summary>测量范围与限制</summary><div><p>最多 8 页、3 轮，单次导航最多 30 秒，整任务最多 12 分钟，排队有效期 30 分钟。候选仅从最近最多 100 篇公开无密码文章 / 页面及健康公开工具注册表生成。</p><p>首次每轮创建全新浏览器环境；再次仅复用同页同轮的 HTTP 缓存，不跨页或跨轮复用。首次失败时跳过再次导航，浏览器缓存正常服从服务器策略，不保证命中。</p><p>匿名浏览器禁止交互与 XHR/fetch/beacon/API 网络，load 后观察 1.5 秒。FCP、LCP、CLS 仅覆盖这一观察窗口。服务端 origin 缓存和浏览器 HTTP 缓存分别观察；没有 Lighthouse 评分、INP 或完整用户旅程，也不产生全站评分。</p><p>本工具只排队、查看和导出，不运行命令、不注册定时任务。结果管理员专用，私有且不缓存。报告超出保留预算时由服务器管理员归档或清理，不自动删除。</p></div></details></div>';
 }
+add_action('admin_enqueue_scripts', static function ($hook): void {
+    if ($hook !== 'tools_page_pagenest-performance' || !current_user_can('manage_options')) {
+        return;
+    }
+    $manifest = require dirname(__DIR__, 2) . '/assets/manifest.php';
+    foreach (['admin_design_css', 'performance_admin_css'] as $key) {
+        wp_enqueue_style(
+            'pagenest-' . $key,
+            plugins_url(
+                'assets/' . $manifest[$key],
+                dirname(__DIR__, 2) . '/pagenest-compatibility.php',
+            ),
+            [],
+            null,
+        );
+    }
+    wp_enqueue_script(
+        'pagenest-performance-admin',
+        plugins_url(
+            'assets/' . $manifest['performance_admin_js'],
+            dirname(__DIR__, 2) . '/pagenest-compatibility.php',
+        ),
+        [],
+        null,
+        true,
+    );
+});
 add_action('admin_menu', static function () {
     add_management_page(
         '页面测速',

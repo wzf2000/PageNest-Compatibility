@@ -8,6 +8,8 @@ mapping = {}
 for key, name in [
     ("admin_design_css", "admin-design.css"),
     ("admin_design_js", "admin-design.js"),
+    ("performance_admin_css", "performance-admin.css"),
+    ("performance_admin_js", "performance-admin.js"),
     ("discovery_admin_js", "discovery-admin.js"),
     ("comments_js", "paragraph-comments.js"),
     ("comments_css", "paragraph-comments.css"),

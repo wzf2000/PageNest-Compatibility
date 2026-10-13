@@ -123,6 +123,18 @@ function wp_nonce_field(...$args)
     echo '<input value="good">';
 }
 function add_management_page(...$args) {}
+function plugins_url($path, $file)
+{
+    return '/plugin/' . $path;
+}
+function wp_enqueue_style($handle, $source, ...$args)
+{
+    $GLOBALS['assets'][$handle] = $source;
+}
+function wp_enqueue_script($handle, $source, ...$args)
+{
+    $GLOBALS['assets'][$handle] = $source;
+}
 eval(
     'namespace PageNest\\Tools; final class Registry { public static bool $healthy=true; public static array $entries=[]; public static function healthy() {return self::$healthy;} public static function forPage($id) {return $id===8 ? ["kind"=>"internal"] : null;} public static function indexEntries() {return self::$entries;} }'
 );
@@ -150,6 +162,32 @@ function reject($fn, $name)
 }
 try {
     check($reads === 0, 'bootstrap has zero option reads');
+    $assets = [];
+    foreach ($hooks['admin_enqueue_scripts'] as $hook) {
+        $hook('settings_page_pagenest-companion');
+        $can = false;
+        $hook('tools_page_pagenest-performance');
+        $can = true;
+    }
+    check(!$assets, 'performance assets require exact screen and administrator');
+    foreach ($hooks['admin_enqueue_scripts'] as $hook) {
+        $hook('tools_page_pagenest-performance');
+    }
+    check(
+        count($assets) === 3 && !in_array('/plugin/assets/admin-design.js', $assets, true),
+        'performance loads shared CSS and its own CSS/JS only',
+    );
+    check(
+        !str_contains(implode(' ', $assets), 'admin-design-') ||
+            count(
+                array_filter(
+                    $assets,
+                    static fn($src) => str_contains($src, 'admin-design-') &&
+                        str_ends_with($src, '.js'),
+                ),
+            ) === 0,
+        'settings dirtiness script stays excluded',
+    );
     if ($disabled) {
         check(
             !isset($hooks['admin_post_pagenest_performance']),
@@ -273,6 +311,17 @@ try {
         check(is_file($dir . '/cancel-' . $j['id']), 'running cancel marker');
         $j['expires_at'] = gmdate('Y-m-d\TH:i:s\Z', time() - 1);
         file_put_contents($path, json_encode($j));
+        $expiredWorker = fopen($dir . '/worker.lock', 'c+b');
+        flock($expiredWorker, LOCK_EX | LOCK_NB);
+        reject(
+            fn() => $q->start(['post:6'], 'desktop', 1),
+            'expired active record does not bypass held worker lock',
+        );
+        check(
+            json_decode(file_get_contents($path), true)['status'] === 'running',
+            'held worker preserves expired running record',
+        );
+        fclose($expiredWorker);
         $next = $q->start(['post:6'], 'desktop', 1);
         $old = json_decode(file_get_contents($path), true);
         check(
@@ -495,6 +544,20 @@ try {
         $poison['results'][0]['raw_headers'] = 'secret';
         $poison['environment']['authorization'] = 'secret';
         $projection = Reports::export($poison);
+        ob_start();
+        PageNest\Performance\report($poison);
+        $poisonHtml = ob_get_clean();
+        check(
+            !str_contains($poisonHtml, 'secret'),
+            'UI environment details omit unknown sensitive fields',
+        );
+        ob_start();
+        PageNest\Performance\report($null);
+        $nullHtml = ob_get_clean();
+        check(
+            str_contains($nullHtml, '未采集') && str_contains($nullHtml, '同轮有效配对 0/3'),
+            'presentation preserves null and per-metric paired N',
+        );
         check(
             !str_contains(json_encode($projection), 'secret') && Queue::valid($projection),
             'export whitelist ignores nested injected secrets',

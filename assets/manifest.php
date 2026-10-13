@@ -2,6 +2,8 @@
 return [
     'admin_design_css' => 'admin-design-e58d21d7275b.css',
     'admin_design_js' => 'admin-design-265c754cfccf.js',
+    'performance_admin_css' => 'performance-admin-0e369a5354bc.css',
+    'performance_admin_js' => 'performance-admin-0c53c5bb08e7.js',
     'discovery_admin_js' => 'discovery-admin-83b901380405.js',
     'comments_js' => 'paragraph-comments-feb29c5c5e1e.js',
     'comments_css' => 'paragraph-comments-7f7810bd5e02.css',
