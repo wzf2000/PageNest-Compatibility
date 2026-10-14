@@ -7,6 +7,7 @@ final class Host
     {
         Registry::boot();
         add_filter('pagenest_tool_page', [self::class, 'toolPage'], 10, 2);
+        add_action('wp_enqueue_scripts', [self::class, 'enqueuePageAssets']);
         foreach (Profile::get('shortcodes', []) as $shortcode) {
             add_shortcode(
                 $shortcode,
@@ -21,6 +22,21 @@ final class Host
                 'attributes' => ['slug' => ['type' => 'string', 'default' => '']],
                 'render_callback' => fn($a) => self::render($a['slug'] ?? ''),
             ]);
+        }
+    }
+    /** Load styles in the head before content processors can filter shortcode HTML. */
+    public static function enqueuePageAssets(): void
+    {
+        if (!is_singular('page')) {
+            return;
+        }
+        try {
+            $tool = self::toolPage(false, (int) get_queried_object_id());
+            if (is_array($tool)) {
+                self::assets($tool, false, false);
+            }
+        } catch (\Throwable $error) {
+            // The render path retains its existing unavailable-state handling.
         }
     }
     /** Theme-neutral, permission-checked opt-in for a registered tool page. */
@@ -124,7 +140,7 @@ final class Host
             return '<p class="site-tools-unavailable">工具暂时不可用，请稍后重试。</p>';
         }
     }
-    private static function assets(array $tool, bool $preview): string
+    private static function assets(array $tool, bool $preview, bool $printStyles = true): string
     {
         $styles = [];
         $scripts = [];
@@ -147,7 +163,7 @@ final class Host
                 $styles[] = $handle;
             }
         }
-        if (!$styles) {
+        if (!$styles || !$printStyles) {
             return '';
         }
         ob_start();
