@@ -254,8 +254,13 @@
     const node = blocks.get(id);
     if (!node) return;
     close(() => {
-      node.scrollIntoView({ block: 'center', behavior: 'auto' });
-      node.querySelector('.pagenest-paragraph-bubble')?.focus({ preventScroll: true });
+      // Finish all history/dialog view restoration before revealing and focusing the author node.
+      requestAnimationFrame(() => {
+        if (!node.isConnected) return;
+        window.MarkBridgeTeaching?.revealTarget(node);
+        node.scrollIntoView({ block: 'center', behavior: 'auto' });
+        node.querySelector('.pagenest-paragraph-bubble')?.focus({ preventScroll: true });
+      });
     });
   }
   function commentCard(comment) {
