@@ -61,6 +61,10 @@ The optional `views` profile section accepts explicit `legacy_meta` and `legacy_
 
 ## 可选服务配置
 
+### 教学内容与段落身份
+
+段落注册保留隐藏教学阶段、折叠中的作者正文，不按当前阅读模式过滤。`data-mbb-generated` 或 `data-pagenest-generated` 节点及后代不生成段落身份；作者段落中的这类临时展示文字也不参与指纹。因此播放状态、运行输出和导航不会改变既有评论定位。回到正文时，若存在 `window.MarkBridgeTeaching.revealTarget(target)`，先展开目标所属内容，再滚动并移动焦点；不复制、重写正文或迁移评论记录。
+
 `PAGENEST_COMPANION_SERVICES_FILE` 指向独立、受限、Web 根之外的 JSON 文件，格式为 `{"schema_version":1,"services":{}}`；它不向原共享兼容 profile 增加字段，避免破坏其他组件的严格 schema。没有常量时，邮件、验证码、社交与输出模块均关闭。配置无效只停用这些服务，既有阅读功能继续可用。新增路径必须精确加入服务器读取许可，不扩大整个目录的读取权限。各模块必须显式 `enabled: true`；开关必须为布尔值，未知字段拒绝。服务器凭据放受限、Web 根外的配置文件，不写公共源码、安装 ZIP 或错误日志。社交供应商也可由管理员通过独立后台配置入口保存覆盖值，密钥不回显；覆盖值随数据库备份，应与站点凭据同等保护。配置变更应原子替换，先校验完整服务 profile，并保存私有原版。
 
 - `mail`：`enabled`、`provider`（仅 `brevo`）、`api_key`、`from_email`、`from_name`、`reply_to_email`、`reply_to_name`。启用要求有效强制 From 和 API key；Reply-To 追加并沿用 API 的首个地址规则。WordPress 原生 `wp_mail` 构建、过滤和事件保留；成功表示 API 接收，失败不自动重试，避免超时后的重复投递。HTML／纯文本和普通附件可用，CID 内嵌资源明确失败，不承诺旧服务未提供的投递能力。

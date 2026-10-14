@@ -91,3 +91,33 @@ test('explicit publish and auth loss clear drafts', async ({ page }) => {
   await expect(page.locator('.pagenest-paragraph-input')).toHaveValue('');
   await expect(page.locator('.pagenest-paragraph-text')).toHaveCount(0);
 });
+
+for (const width of [1440, 390]) {
+  test(`return to a teaching paragraph reveals it before focus at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.route('**/api/comments*', (route) => route.fulfill({ json: [] }));
+    await page.goto('/paragraph.html');
+    await page.locator('.pagenest-paragraph-bubble').click();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await page.evaluate(() => {
+      const node = document.querySelector('[data-pagenest-block="b-neutral"]');
+      const stage = document.createElement('div');
+      stage.id = 'synthetic-hidden-stage';
+      node.before(stage);
+      stage.append(node);
+      stage.hidden = true;
+      window.MarkBridgeTeaching = {
+        revealTarget(target) {
+          window.fixtureRevealed = target === node;
+          stage.hidden = false;
+        },
+      };
+    });
+    await page.getByRole('button', { name: '回到原文' }).click();
+    await expect(page.getByRole('dialog')).toBeHidden();
+    await expect(page.locator('#synthetic-hidden-stage')).toBeVisible();
+    await expect(page.locator('.pagenest-paragraph-bubble')).toBeFocused();
+    expect(await page.evaluate(() => window.fixtureRevealed)).toBe(true);
+    await page.screenshot({ path: `.runtime/teaching-paragraph-${width}.png` });
+  });
+}

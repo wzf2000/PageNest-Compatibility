@@ -5,7 +5,7 @@
     "format": "node tools/format.cjs --write",
     "format:check": "node tools/format.cjs --check",
     "package": "python3 tools/package.py",
-    "test": "php tests/service-config.php && php tests/social-contracts.php && php tests/companion-contracts.php && php tests/views.php && php tests/views.php cache && php tests/comment-mail-state.php && php tests/prism-compatibility.php && python3 -m unittest discover -s tests -p \"test_release.py\"",
+    "test": "php tests/service-config.php && php tests/social-contracts.php && php tests/companion-contracts.php && php tests/teaching-paragraphs.php && php tests/views.php && php tests/views.php cache && php tests/comment-mail-state.php && php tests/prism-compatibility.php && python3 -m unittest discover -s tests -p \"test_release.py\"",
     "test:frontend": "playwright test",
     "package:check": "python3 tools/release.py --check-package",
     "build": "python3 build-assets.py",
@@ -32,6 +32,6 @@
     "@playwright/test": "1.55.1",
     "prismjs": "1.30.0"
   },
-  "version": "1.5.2",
+  "version": "1.5.3",
   "license": "GPL-2.0-or-later"
 }

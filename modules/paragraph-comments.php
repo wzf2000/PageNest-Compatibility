@@ -45,6 +45,31 @@ add_action('init', function () {
     ]);
 });
 
+// Generated controls/results are not authored paragraphs. Hidden authored content still is.
+function pagenest_pc_generated_node($node)
+{
+    for ($current = $node; $current instanceof DOMElement; $current = $current->parentNode) {
+        if (
+            $current->hasAttribute('data-mbb-generated') ||
+            $current->hasAttribute('data-pagenest-generated')
+        ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function pagenest_pc_author_text($node)
+{
+    $copy = $node->cloneNode(true);
+    $xp = new DOMXPath($node->ownerDocument);
+    $generated = $xp->query('.//*[@data-mbb-generated or @data-pagenest-generated]', $copy);
+    foreach (iterator_to_array($generated) as $child) {
+        $child->parentNode?->removeChild($child);
+    }
+    return trim(preg_replace('/\s+/u', ' ', $copy->textContent));
+}
+
 // Registry changes only on saves/explicit CLI refresh. Frontend rendering is read-only.
 function pagenest_pc_blocks($html, $id, $persist = false)
 {
@@ -62,7 +87,10 @@ function pagenest_pc_blocks($html, $id, $persist = false)
     );
     $items = [];
     foreach ($nodes as $node) {
-        $text = trim(preg_replace('/\s+/u', ' ', $node->textContent));
+        if (pagenest_pc_generated_node($node)) {
+            continue;
+        }
+        $text = pagenest_pc_author_text($node);
         if (str_contains(' ' . $node->getAttribute('class') . ' ', ' wp-block-mbb-math ')) {
             $text = '$$ ' . $text . ' $$';
         }
