@@ -6,7 +6,7 @@ return [
     'performance_admin_js' => 'performance-admin-0c53c5bb08e7.js',
     'discovery_admin_js' => 'discovery-admin-83b901380405.js',
     'comments_js' => 'paragraph-comments-02b3eba58f9a.js',
-    'comments_css' => 'paragraph-comments-7f7810bd5e02.css',
+    'comments_css' => 'paragraph-comments-bfdef6b2f0e2.css',
     'likes_js' => 'likes-cce4367790d5.js',
     'services_turnstile_js' => 'services-turnstile-9ae4b1cca1ca.js',
     'social_qrcode_js' => 'social-qrcode-7b17a98ef360.js',

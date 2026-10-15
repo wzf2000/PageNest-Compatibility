@@ -60,6 +60,15 @@
   width: 16px;
   height: 16px;
 }
+/* Code remains a single preformatted surface; the note trigger must not add a line. */
+pre.pagenest-paragraph-block > .pagenest-paragraph-bubble {
+  position: absolute;
+  inset-block-start: 0.4em;
+  inset-inline-end: 2.8em;
+  margin: 0;
+  z-index: 2;
+  background: var(--pagenest-code-background, #f5f6f8);
+}
 .pagenest-paragraph-bubble.pagenest-paragraph-has-comments {
   color: #6888a7;
 }
