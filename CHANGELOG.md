@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.5-rc.1 (candidate)
+
+- Use independent content resource handles so PageNest and Companion assets do not replace each other.
+
 ## 1.5.4
 
 - 代码块的段落评论按钮改为悬浮定位，避免代码底部多出空白行；保留点击、键盘焦点及评论返回行为。

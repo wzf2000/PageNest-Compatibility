@@ -146,6 +146,23 @@ class WP_Query
         return true;
     }
 }
+// Exercise WordPress's shared handle registry: theme assets must survive content enqueue.
+$assetQueue = [
+    'style' => ['pagenest-content' => ['theme.css']],
+    'script' => ['pagenest-content' => ['theme.js']],
+];
+function wp_enqueue_style($handle, ...$args)
+{
+    $GLOBALS['assetQueue']['style'][$handle] ??= $args;
+}
+function wp_enqueue_script($handle, ...$args)
+{
+    $GLOBALS['assetQueue']['script'][$handle] ??= $args;
+}
+function plugins_url($path, $file)
+{
+    return 'https://fixture.example/plugins/' . $path;
+}
 require dirname(__DIR__) . '/content-config.php';
 require dirname(__DIR__) . '/modules/chapters.php';
 require dirname(__DIR__) . '/modules/content/pages.php';
@@ -545,6 +562,22 @@ check(
         isset($hooks['the_content'][32]),
     'Original filter priorities kept',
 );
+pagenest_companion_content_assets();
+foreach (['style', 'script'] as $type) {
+    check(
+        isset($assetQueue[$type]['pagenest-companion-content']),
+        "Companion has its own $type handle",
+    );
+    check(
+        $assetQueue[$type]['pagenest-content'][0] ===
+            ($type === 'style' ? 'theme.css' : 'theme.js'),
+        "Theme $type registration survives",
+    );
+    check(
+        str_contains($assetQueue[$type]['pagenest-companion-content'][0], '/plugins/assets/'),
+        "Companion $type resolves to its own asset",
+    );
+}
 echo "Content contracts: $checks checks passed\n";
 if (in_array('--fixture', $argv, true)) {
     $meta[10]['_fixture_release'] = '1';

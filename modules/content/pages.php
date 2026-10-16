@@ -399,7 +399,7 @@ function pagenest_companion_content_assets(bool $javascript = true): void
 {
     $manifest = require dirname(__DIR__, 2) . '/assets/manifest.php';
     wp_enqueue_style(
-        'pagenest-content',
+        'pagenest-companion-content',
         plugins_url(
             'assets/' . $manifest['content_css'],
             dirname(__DIR__, 2) . '/pagenest-compatibility.php',
@@ -409,7 +409,7 @@ function pagenest_companion_content_assets(bool $javascript = true): void
     );
     if ($javascript) {
         wp_enqueue_script(
-            'pagenest-content',
+            'pagenest-companion-content',
             plugins_url(
                 'assets/' . $manifest['content_js'],
                 dirname(__DIR__, 2) . '/pagenest-compatibility.php',
