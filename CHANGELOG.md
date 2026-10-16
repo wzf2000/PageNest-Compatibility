@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.5.5-rc.1 (candidate)
+## 1.5.5-rc.1
 
 - Use independent content resource handles so PageNest and Companion assets do not replace each other.
 
