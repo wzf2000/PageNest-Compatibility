@@ -211,6 +211,9 @@ try {
     check('provider resource URLs', str_contains($GLOBALS['styles'][0][1], '/basic/assets/'));
     check('provider resource handles', str_contains($GLOBALS['styles'][0][0], 'pagenest-basic'));
     $profileProperty = new ReflectionProperty(PageNest\Tools\Profile::class, 'data');
+    if (PHP_VERSION_ID < 80100) {
+        $profileProperty->setAccessible(true);
+    }
     $originalProfile = $profileProperty->getValue();
     $profileProperty->setValue(null, ['shortcodes' => [], 'blocks' => ['fixture/tool']]);
     $GLOBALS['page_blocks'] = [
