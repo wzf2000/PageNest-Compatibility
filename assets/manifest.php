@@ -11,7 +11,7 @@ return [
     'reading_css' => 'reading-center-3e60fe50b512.css',
     'guide_admin_js' => 'guide-admin-5a83b4068b7e.js',
     'guide_css' => 'guide-a5bbef5d13c8.css',
-    'comments_js' => 'paragraph-comments-e5508d329372.js',
+    'comments_js' => 'paragraph-comments-f45b700abd66.js',
     'comments_css' => 'paragraph-comments-3388c2dfb5fc.css',
     'likes_js' => 'likes-cce4367790d5.js',
     'services_turnstile_js' => 'services-turnstile-9ae4b1cca1ca.js',

@@ -239,9 +239,13 @@
       }
       const count = state.comments.filter((c) => c.block_id === id).length;
       bubble.replaceChildren(icon('bubble'));
-      if (count) bubble.append(el('span', '', String(count)));
+      if (count || state.nextCursor)
+        bubble.append(el('span', '', count ? String(count) + (state.nextCursor ? '+' : '') : '…'));
       bubble.classList.toggle('pagenest-paragraph-has-comments', count > 0);
-      bubble.setAttribute('aria-label', count ? `此段有 ${count} 条公开评论` : '评论此段');
+      bubble.setAttribute(
+        'aria-label',
+        count ? `此段有 ${count}${state.nextCursor ? '+' : ''} 条公开评论` : '评论此段',
+      );
       node.classList.toggle('pagenest-paragraph-selected', state.open && state.active === id);
     });
   }
@@ -333,7 +337,7 @@
     const comments = state.active
       ? state.comments.filter((c) => c.block_id === state.active)
       : state.comments;
-    title.textContent = `评论 ${comments.length}`;
+    title.textContent = `评论 ${comments.length}${state.nextCursor ? '+' : ''}`;
     back.hidden = !state.active;
     const node = blocks.get(state.active);
     quote.textContent = state.active
@@ -346,7 +350,18 @@
     content.replaceChildren();
     if (!comments.length) {
       const empty = el('div', 'pagenest-paragraph-empty');
-      empty.append(icon('bubble'), el('p', '', state.loaded ? '还没有评论' : '正在加载评论…'));
+      empty.append(
+        icon('bubble'),
+        el(
+          'p',
+          '',
+          state.loaded
+            ? state.nextCursor
+              ? cfg.moreLabel || 'Load more comments'
+              : '还没有评论'
+            : '正在加载评论…',
+        ),
+      );
       if (state.loaded)
         empty.append(
           el('span', '', state.active ? '说说你对这一段的看法' : '从正文中选一段，开始讨论'),

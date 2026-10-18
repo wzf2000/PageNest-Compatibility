@@ -164,3 +164,16 @@ for (const width of [1440, 390]) {
     await page.screenshot({ path: `.runtime/teaching-paragraph-${width}.png` });
   });
 }
+
+test('an unloaded comment page does not claim an empty paragraph', async ({ page }) => {
+  await page.route('**/api/comments-page?*', (route) => {
+    const cursor = new URL(route.request().url()).searchParams.get('cursor');
+    return route.fulfill({ json: { items: [], next_cursor: cursor ? null : 77 } });
+  });
+  await page.goto('/paragraph.html');
+  await page.locator('.pagenest-paragraph-bubble').click();
+  await expect(page.locator('.pagenest-paragraph-empty')).toContainText('Load more comments');
+  await expect(page.locator('.pagenest-paragraph-empty')).not.toContainText('还没有评论');
+  await page.getByRole('button', { name: 'Load more comments', exact: true }).click();
+  await expect(page.locator('.pagenest-paragraph-empty')).toContainText('还没有评论');
+});
