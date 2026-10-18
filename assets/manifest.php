@@ -1,11 +1,15 @@
 <?php
 return [
-    'admin_design_css' => 'admin-design-e58d21d7275b.css',
+    'admin_design_css' => 'admin-design-1e3b8113a02c.css',
     'admin_design_js' => 'admin-design-265c754cfccf.js',
     'performance_admin_css' => 'performance-admin-0e369a5354bc.css',
     'performance_admin_js' => 'performance-admin-0c53c5bb08e7.js',
     'discovery_admin_js' => 'discovery-admin-83b901380405.js',
-    'comments_js' => 'paragraph-comments-02b3eba58f9a.js',
+    'reading_js' => 'reading-center-01be0c2b4f08.js',
+    'reading_css' => 'reading-center-a46ace4035a0.css',
+    'guide_admin_js' => 'guide-admin-ca842af60b02.js',
+    'guide_css' => 'guide-a5bbef5d13c8.css',
+    'comments_js' => 'paragraph-comments-e5508d329372.js',
     'comments_css' => 'paragraph-comments-bfdef6b2f0e2.css',
     'likes_js' => 'likes-cce4367790d5.js',
     'services_turnstile_js' => 'services-turnstile-9ae4b1cca1ca.js',

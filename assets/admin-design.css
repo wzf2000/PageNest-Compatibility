@@ -316,3 +316,24 @@
       border-color 0.15s;
   }
 }
+[data-pn-guide-group] {
+  border: 1px solid var(--pn-admin-border, #d0d7d2);
+  padding: 16px;
+  margin-block: 16px;
+  min-width: 0;
+}
+[data-pn-guide-group] input {
+  max-width: 100%;
+}
+[data-pn-group-actions],
+[data-pn-item-actions] {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-block: 8px;
+}
+[data-pn-guide-items] > li,
+[data-pn-guide-catalog] > li {
+  margin-block: 12px;
+  overflow-wrap: anywhere;
+}

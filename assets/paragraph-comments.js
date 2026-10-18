@@ -13,6 +13,7 @@
   });
   const state = {
     comments: [],
+    nextCursor: null,
     drafts: new Map(),
     active: null,
     edit: null,
@@ -367,6 +368,14 @@
         content.append(commentCard(comment));
       });
     }
+    if (state.nextCursor)
+      content.append(
+        button(
+          cfg.moreLabel || 'Load more comments',
+          () => refreshComments(true),
+          'pagenest-paragraph-load-more',
+        ),
+      );
     if (state.active && node)
       content.append(
         button('回到原文', () => returnToBlock(state.active), 'pagenest-paragraph-return'),
@@ -404,6 +413,7 @@
     avatar.replaceChildren();
     state.pending = false;
     state.comments = [];
+    state.nextCursor = null;
     state.drafts.clear();
     state.edit = null;
     input.value = '';
@@ -480,15 +490,19 @@
     });
     return refresh.promise;
   }
-  async function refreshComments() {
+  async function refreshComments(append = false) {
     const generation = state.generation,
       sequence = ++state.sequence;
     try {
-      const data = await api(`comments?post=${encodeURIComponent(cfg.post)}`);
+      const page = await api(
+        `comments-page?post=${encodeURIComponent(cfg.post)}${append && state.nextCursor ? `&cursor=${state.nextCursor}` : ''}`,
+      );
+      const data = append ? [...state.comments, ...page.items] : page.items;
       if (generation !== state.generation || sequence !== state.sequence) return;
       if (!Array.isArray(data)) throw Error('评论列表格式错误。');
-      const changed = !state.loaded || !sameComments(data);
-      state.comments = data;
+      const changed = !state.loaded || state.nextCursor !== page.next_cursor || !sameComments(data);
+      state.comments = [...new Map(data.map((item) => [item.id, item])).values()];
+      state.nextCursor = page.next_cursor;
       state.loaded = true;
       state.refreshedAt = Date.now();
       setStatus();

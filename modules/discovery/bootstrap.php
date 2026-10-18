@@ -49,7 +49,11 @@ function pagenest_discovery_public_post($post): bool
 function pagenest_discovery_text(string $value, int $limit = 160): string
 {
     // Never render shortcodes or apply the_content: private/tool rendering is outside this module.
-    $value = wp_strip_all_tags(strip_shortcodes($value), true);
+    // Unknown or disabled shortcode syntax is not safe excerpt material either.
+    if (preg_match('/\[\/?[a-zA-Z][^\]]*\]/', $value)) {
+        return '';
+    }
+    $value = wp_strip_all_tags($value, true);
     $value = preg_replace(
         '/\s+/u',
         ' ',
