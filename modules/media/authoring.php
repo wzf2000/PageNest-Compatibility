@@ -10,12 +10,12 @@ function pagenest_media_native_attributes(bool $pdf = false): array
 {
     return $pdf
         ? [
-            'id' => ['type' => 'number', 'default' => 0],
+            'id' => ['type' => 'integer', 'default' => 0],
             'width' => ['type' => 'string', 'default' => '100%'],
             'height' => ['type' => 'string', 'default' => '800'],
         ]
         : [
-            'ids' => ['type' => 'array', 'items' => ['type' => 'number'], 'default' => []],
+            'ids' => ['type' => 'array', 'items' => ['type' => 'integer'], 'default' => []],
             'layout' => ['type' => 'string', 'default' => 'grid'],
             'columns' => ['type' => 'number', 'default' => 3],
             'gap' => ['type' => 'number', 'default' => 15],
