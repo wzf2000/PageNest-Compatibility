@@ -162,3 +162,20 @@
 [data-pn-save-later][hidden] {
   display: none !important;
 }
+
+.pn-reading .pn-reading-hint {
+  margin: 6px 0 12px;
+  color: var(--pagenest-muted, #657169);
+  font-size: 0.875em;
+}
+.pn-reading .pn-reading-help {
+  margin: 12px 0;
+  font-size: 0.875em;
+}
+.pn-reading-help summary {
+  cursor: pointer;
+  color: var(--pagenest-accent, #426354);
+}
+.pn-reading-help p {
+  margin: 8px 0;
+}

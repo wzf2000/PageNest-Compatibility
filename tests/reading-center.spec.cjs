@@ -4,8 +4,10 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '..');
 const text = {
   device: 'On this device',
-  consent: 'Remember public articles and reading positions on this device',
+  consent: 'Remember my reading on this device',
   deviceHelp: 'Optional browser storage; article IDs are checked with the site.',
+  deviceSummary: 'Stored on this device only. No device sync.',
+  help: 'How this works',
   unavailable: 'Storage unavailable',
   clear: 'Clear device records',
   recent: 'Recent reading',
@@ -235,4 +237,18 @@ test('disabling the record service clears sensitive search in all centers', asyn
   await page.getByRole('button', { name: text.search, exact: true }).nth(0).click();
   await expect(searches.nth(0)).toHaveValue('');
   await expect(searches.nth(1)).toHaveValue('');
+});
+
+test('reading explanations stay collapsed beside concise privacy hints', async ({ page }) => {
+  await fixture(page, 390);
+  await expect(page.getByText(text.deviceSummary, { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: text.records, exact: true })).toBeVisible();
+  await expect(page.getByText(text.deviceHelp, { exact: true })).not.toBeVisible();
+  await expect(page.getByText(text.privateHelp, { exact: true })).not.toBeVisible();
+  const help = page.locator('.pn-reading-help');
+  await expect(help).toHaveCount(2);
+  await help.first().locator('summary').click();
+  await expect(page.getByText(text.deviceHelp, { exact: true })).toBeVisible();
+  await expect(page.getByLabel(text.consent)).not.toBeChecked();
+  expect(await page.evaluate(() => localStorage.getItem('pagenest.reading.v1'))).toBeNull();
 });

@@ -18,7 +18,7 @@ msgstr ""
 msgid "Add to group"
 msgstr ""
 
-#: modules/reading/bootstrap.php:216
+#: modules/reading/bootstrap.php:218
 msgid "All records"
 msgstr ""
 
@@ -30,11 +30,11 @@ msgstr ""
 msgid "Article"
 msgstr ""
 
-#: modules/reading/bootstrap.php:199
+#: modules/reading/bootstrap.php:201
 msgid "Browser storage is unavailable. Device reading is paused."
 msgstr ""
 
-#: modules/reading/bootstrap.php:229
+#: modules/reading/bootstrap.php:231
 msgid "Cancel"
 msgstr ""
 
@@ -42,11 +42,11 @@ msgstr ""
 msgid "Chapter navigation"
 msgstr ""
 
-#: modules/reading/bootstrap.php:243
+#: modules/reading/bootstrap.php:245
 msgid "Choose a paragraph"
 msgstr ""
 
-#: modules/reading/bootstrap.php:241
+#: modules/reading/bootstrap.php:243
 msgid "Choose a replacement paragraph"
 msgstr ""
 
@@ -66,7 +66,7 @@ msgstr ""
 msgid "Choose up to 200 records."
 msgstr ""
 
-#: modules/reading/bootstrap.php:203
+#: modules/reading/bootstrap.php:205
 msgid "Clear device records"
 msgstr ""
 
@@ -102,7 +102,7 @@ msgstr ""
 msgid "Could not load content. Try again."
 msgstr ""
 
-#: modules/reading/bootstrap.php:223
+#: modules/reading/bootstrap.php:225
 msgid "Could not load records. Sign in again if your session expired."
 msgstr ""
 
@@ -110,11 +110,11 @@ msgstr ""
 msgid "Default"
 msgstr ""
 
-#: modules/reading/bootstrap.php:230
+#: modules/reading/bootstrap.php:232
 msgid "Delete"
 msgstr ""
 
-#: modules/reading/bootstrap.php:231
+#: modules/reading/bootstrap.php:233
 msgid "Delete this record permanently?"
 msgstr ""
 
@@ -138,7 +138,7 @@ msgstr ""
 msgid "Disabled or unavailable"
 msgstr ""
 
-#: modules/reading/bootstrap.php:227
+#: modules/reading/bootstrap.php:229
 msgid "Edit text"
 msgstr ""
 
@@ -150,7 +150,7 @@ msgstr ""
 msgid "Enable content guide"
 msgstr ""
 
-#: modules/reading/bootstrap.php:255
+#: modules/reading/bootstrap.php:257
 msgid "Enable device memory in My reading first."
 msgstr ""
 
@@ -170,7 +170,7 @@ msgstr ""
 msgid "Existing shortcode and block owners take precedence. Attachment access is checked during rendering."
 msgstr ""
 
-#: modules/reading/bootstrap.php:244
+#: modules/reading/bootstrap.php:246
 msgid "Export my records as JSON"
 msgstr ""
 
@@ -194,19 +194,23 @@ msgstr ""
 msgid "Group title"
 msgstr ""
 
+#: modules/reading/bootstrap.php:196
+msgid "How this works"
+msgstr ""
+
 #: modules/media/authoring.php:132
 msgid "Image gap"
 msgstr ""
 
-#: modules/reading/bootstrap.php:245
+#: modules/reading/bootstrap.php:247
 msgid "Import a JSON backup"
 msgstr ""
 
-#: modules/reading/bootstrap.php:246
+#: modules/reading/bootstrap.php:248
 msgid "Import keeps records private and reuses existing UUIDs. Review per-record results; it never publishes a record."
 msgstr ""
 
-#: modules/reading/bootstrap.php:250
+#: modules/reading/bootstrap.php:252
 msgid "Import processed. Reload records to review the results."
 msgstr ""
 
@@ -218,7 +222,7 @@ msgstr ""
 msgid "Likes"
 msgstr ""
 
-#: modules/content/editor.php:208 modules/reading/bootstrap.php:215
+#: modules/content/editor.php:208 modules/reading/bootstrap.php:217
 msgid "Load more"
 msgstr ""
 
@@ -226,11 +230,11 @@ msgstr ""
 msgid "Load more comments"
 msgstr ""
 
-#: modules/reading/bootstrap.php:214
+#: modules/reading/bootstrap.php:216
 msgid "Load my records"
 msgstr ""
 
-#: modules/content/editor.php:282 modules/reading/bootstrap.php:222
+#: modules/content/editor.php:282 modules/reading/bootstrap.php:224
 msgid "Loading…"
 msgstr ""
 
@@ -258,7 +262,7 @@ msgstr ""
 msgid "Move up"
 msgstr ""
 
-#: modules/reading/bootstrap.php:208
+#: modules/reading/bootstrap.php:210
 msgid "My comments and private notes"
 msgstr ""
 
@@ -286,7 +290,7 @@ msgstr ""
 msgid "No matching public content."
 msgstr ""
 
-#: modules/reading/bootstrap.php:207
+#: modules/reading/bootstrap.php:209
 msgid "No records to show."
 msgstr ""
 
@@ -310,11 +314,11 @@ msgstr ""
 msgid "Only public, unprotected and discoverable entries are returned."
 msgstr ""
 
-#: modules/reading/bootstrap.php:209
+#: modules/reading/bootstrap.php:211
 msgid "Only your own records are shown. Private text stays in page memory and is cleared when you leave or hide the page."
 msgstr ""
 
-#: modules/reading/bootstrap.php:236
+#: modules/reading/bootstrap.php:238
 msgid "Open article location"
 msgstr ""
 
@@ -322,7 +326,7 @@ msgstr ""
 msgid "Open images in a viewer"
 msgstr ""
 
-#: modules/reading/bootstrap.php:195
+#: modules/reading/bootstrap.php:197
 msgid "Optional browser storage. No account history or device sync. Article IDs are checked with the site before display. Reading position does not mark an article as read."
 msgstr ""
 
@@ -374,11 +378,11 @@ msgstr ""
 msgid "Preview uses saved article defaults and your current overrides. Save the article to apply. Draft images can be selected here; only publicly readable images appear in public sharing metadata."
 msgstr ""
 
-#: modules/reading/bootstrap.php:218
+#: modules/reading/bootstrap.php:220
 msgid "Private notes"
 msgstr ""
 
-#: modules/reading/bootstrap.php:217
+#: modules/reading/bootstrap.php:219
 msgid "Public comments"
 msgstr ""
 
@@ -386,7 +390,7 @@ msgstr ""
 msgid "Public search suggestions"
 msgstr ""
 
-#: modules/reading/bootstrap.php:205
+#: modules/reading/bootstrap.php:207
 msgid "Read later"
 msgstr ""
 
@@ -398,23 +402,23 @@ msgstr ""
 msgid "Read-only server configuration"
 msgstr ""
 
-#: modules/reading/bootstrap.php:204
+#: modules/reading/bootstrap.php:206
 msgid "Recent reading"
 msgstr ""
 
-#: modules/reading/bootstrap.php:219
+#: modules/reading/bootstrap.php:221
 msgid "Reference needs review"
 msgstr ""
 
 #: modules/reading/bootstrap.php:191
-msgid "Remember public articles and reading positions on this device"
+msgid "Remember my reading on this device"
 msgstr ""
 
-#: modules/content/editor.php:279 modules/reading/bootstrap.php:206
+#: modules/content/editor.php:279 modules/reading/bootstrap.php:208
 msgid "Remove"
 msgstr ""
 
-#: modules/reading/bootstrap.php:242
+#: modules/reading/bootstrap.php:244
 msgid "Replace saved reference"
 msgstr ""
 
@@ -426,11 +430,11 @@ msgstr ""
 msgid "Review configuration sources, output ownership and access boundaries without changing data."
 msgstr ""
 
-#: modules/reading/bootstrap.php:228
+#: modules/reading/bootstrap.php:230
 msgid "Save text"
 msgstr ""
 
-#: modules/reading/bootstrap.php:254
+#: modules/reading/bootstrap.php:256
 msgid "Saved for later on this device."
 msgstr ""
 
@@ -446,7 +450,7 @@ msgstr ""
 msgid "Search and sharing preview"
 msgstr ""
 
-#: modules/reading/bootstrap.php:220
+#: modules/reading/bootstrap.php:222
 msgid "Search my text and references"
 msgstr ""
 
@@ -454,7 +458,7 @@ msgstr ""
 msgid "Search public articles and pages"
 msgstr ""
 
-#: modules/reading/bootstrap.php:221
+#: modules/reading/bootstrap.php:223
 msgid "Search records"
 msgstr ""
 
@@ -490,7 +494,7 @@ msgstr ""
 msgid "Sharing preview"
 msgstr ""
 
-#: modules/reading/bootstrap.php:213
+#: modules/reading/bootstrap.php:215
 msgid "Sign in to view your records"
 msgstr ""
 
@@ -506,15 +510,19 @@ msgstr ""
 msgid "Status"
 msgstr ""
 
+#: modules/reading/bootstrap.php:192
+msgid "Stored on this device only. No device sync."
+msgstr ""
+
 #: modules/content/editor.php:285
 msgid "The guide has reached its group or link limit."
 msgstr ""
 
-#: modules/reading/bootstrap.php:237
+#: modules/reading/bootstrap.php:239
 msgid "The original paragraph changed or is ambiguous. The saved reference is preserved; review it before choosing a replacement."
 msgstr ""
 
-#: modules/reading/bootstrap.php:232
+#: modules/reading/bootstrap.php:234
 msgid "The record changed. Reload and compare before saving. Your input is retained in this open page."
 msgstr ""
 

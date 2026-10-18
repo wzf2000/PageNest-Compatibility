@@ -21,6 +21,11 @@
       throw Error();
     return url.href;
   };
+  const help = (text) => {
+    const details = node('details', undefined, 'pn-reading-help');
+    details.append(node('summary', t.help), node('p', text));
+    return details;
+  };
   const key = 'pagenest.reading.v1';
   let device = { enabled: false, items: [] },
     storageOK = true,
@@ -102,15 +107,21 @@
         if (persist()) remember();
         renderDevice();
       });
-      view.append(label, node('p', storageOK ? t.deviceHelp : t.unavailable));
+      const options = node('div', undefined, 'pn-reading-actions');
+      options.append(label);
+      view.append(
+        options,
+        node('p', storageOK ? t.deviceSummary : t.unavailable, 'pn-reading-hint'),
+      );
       if (device.enabled)
-        view.append(
+        options.append(
           button(t.clear, () => {
             device.items = [];
             persist();
             renderDevice();
           }),
         );
+      view.append(help(t.deviceHelp));
     });
     if (!device.enabled || !device.items.length) return;
     try {
@@ -394,11 +405,11 @@
       event.preventDefault();
       load();
     });
-    view.append(node('h3', t.records), node('p', t.privateHelp));
+    view.append(node('h3', t.records));
     if (!cfg.nonce) {
       const link = node('a', t.login);
       link.href = safeUrl(cfg.login);
-      view.append(link);
+      view.append(link, help(t.privateHelp));
       return;
     }
     view.append(
@@ -457,7 +468,7 @@
         }
       }),
     );
-    view.append(backup);
+    view.append(backup, help(t.privateHelp));
     const validate = async () => {
       if (!loaded || !ids.length || document.hidden) return;
       try {

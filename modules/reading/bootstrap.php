@@ -188,10 +188,12 @@ add_action('wp_enqueue_scripts', static function () {
                 : null,
         'text' => [
             'device' => __('On this device', 'pagenest-companion'),
-            'consent' => __(
-                'Remember public articles and reading positions on this device',
+            'consent' => __('Remember my reading on this device', 'pagenest-companion'),
+            'deviceSummary' => __(
+                'Stored on this device only. No device sync.',
                 'pagenest-companion',
             ),
+            'help' => __('How this works', 'pagenest-companion'),
             'deviceHelp' => __(
                 'Optional browser storage. No account history or device sync. Article IDs are checked with the site before display. Reading position does not mark an article as read.',
                 'pagenest-companion',
