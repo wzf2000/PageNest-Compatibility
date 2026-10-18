@@ -29,6 +29,7 @@ function get_post($id)
         'post_type' => 'page',
         'post_status' => $GLOBALS['page_status'],
         'post_password' => $GLOBALS['password'] ? 'secret' : '',
+        'post_content' => 'fixture block',
     ];
 }
 function get_permalink($id)
@@ -67,7 +68,22 @@ function wp_enqueue_script(...$args)
 {
     $GLOBALS['scripts'][] = $args;
 }
-function wp_print_styles($handles) {}
+function wp_print_styles($handles)
+{
+    $GLOBALS['printed_styles'] = ($GLOBALS['printed_styles'] ?? 0) + 1;
+}
+function is_singular($type)
+{
+    return $GLOBALS['is_page'] ?? true;
+}
+function get_queried_object_id()
+{
+    return $GLOBALS['queried_page'] ?? 1;
+}
+function parse_blocks($content)
+{
+    return $GLOBALS['page_blocks'] ?? [];
+}
 function wp_unique_id($prefix)
 {
     return $prefix . 'test';
@@ -194,6 +210,38 @@ try {
     );
     check('provider resource URLs', str_contains($GLOBALS['styles'][0][1], '/basic/assets/'));
     check('provider resource handles', str_contains($GLOBALS['styles'][0][0], 'pagenest-basic'));
+    $profileProperty = new ReflectionProperty(PageNest\Tools\Profile::class, 'data');
+    if (PHP_VERSION_ID < 80100) {
+        $profileProperty->setAccessible(true);
+    }
+    $originalProfile = $profileProperty->getValue();
+    $profileProperty->setValue(null, ['shortcodes' => [], 'blocks' => ['fixture/tool']]);
+    $GLOBALS['page_blocks'] = [
+        ['blockName' => 'fixture/tool', 'attrs' => ['slug' => 'count'], 'innerBlocks' => []],
+    ];
+    $enqueued = count($GLOBALS['styles']);
+    $printed = $GLOBALS['printed_styles'];
+    Host::enqueuePageAssets();
+    check('bound readable page queues head styles', count($GLOBALS['styles']) > $enqueued);
+    check('head preload does not print or discard styles', $GLOBALS['printed_styles'] === $printed);
+    foreach (['ordinary', 'unbound', 'password', 'private'] as $case) {
+        $GLOBALS['is_page'] = $case !== 'ordinary';
+        $GLOBALS['queried_page'] = $case === 'unbound' ? 99 : 1;
+        $GLOBALS['password'] = $case === 'password';
+        $GLOBALS['page_status'] = $case === 'private' ? 'private' : 'publish';
+        $enqueued = count($GLOBALS['styles']);
+        Host::enqueuePageAssets();
+        check(
+            $case . ' page does not preload tool resources',
+            count($GLOBALS['styles']) === $enqueued,
+        );
+    }
+    $GLOBALS['is_page'] = true;
+    $GLOBALS['queried_page'] = 1;
+    $GLOBALS['password'] = false;
+    $GLOBALS['page_status'] = 'publish';
+    $GLOBALS['page_blocks'] = [];
+    $profileProperty->setValue(null, $originalProfile);
     $GLOBALS['password'] = true;
     check('password public tool hidden', !str_contains(Host::render('count'), 'textarea'));
     $GLOBALS['password'] = false;

@@ -6,6 +6,8 @@ final class Host
     public static function init(): void
     {
         Registry::boot();
+        add_filter('pagenest_tool_page', [self::class, 'toolPage'], 10, 2);
+        add_action('wp_enqueue_scripts', [self::class, 'enqueuePageAssets']);
         foreach (Profile::get('shortcodes', []) as $shortcode) {
             add_shortcode(
                 $shortcode,
@@ -21,6 +23,70 @@ final class Host
                 'render_callback' => fn($a) => self::render($a['slug'] ?? ''),
             ]);
         }
+    }
+    /** Load styles in the head before content processors can filter shortcode HTML. */
+    public static function enqueuePageAssets(): void
+    {
+        if (!is_singular('page')) {
+            return;
+        }
+        try {
+            $tool = self::toolPage(false, (int) get_queried_object_id());
+            if (is_array($tool)) {
+                self::assets($tool, false, false);
+            }
+        } catch (\Throwable $error) {
+            // The render path retains its existing unavailable-state handling.
+        }
+    }
+    /** Theme-neutral, permission-checked opt-in for a registered tool page. */
+    public static function toolPage($value, int $id)
+    {
+        $tool = Registry::forPage($id);
+        $post = get_post($id);
+        if (
+            !$tool ||
+            !$post ||
+            !Registry::allowed($tool) ||
+            post_password_required($post) ||
+            !(
+                $post->post_status === 'publish' ||
+                ($post->post_status === 'private' && current_user_can('read_post', $id))
+            ) ||
+            (Providers::needsServiceAccess($tool['render']) &&
+                !Registry::serviceAllowed($tool['slug']))
+        ) {
+            return $value;
+        }
+        $shortcodes = Profile::get('shortcodes', []);
+        if (
+            $shortcodes &&
+            preg_match_all(
+                '/' . get_shortcode_regex($shortcodes) . '/s',
+                $post->post_content,
+                $matches,
+                PREG_SET_ORDER,
+            )
+        ) {
+            foreach ($matches as $match) {
+                $attrs = shortcode_parse_atts($match[3]);
+                if ($match[1] !== '[' && ($attrs['slug'] ?? '') === $tool['slug']) {
+                    return $tool;
+                }
+            }
+        }
+        $pending = parse_blocks($post->post_content);
+        while ($pending) {
+            $block = array_pop($pending);
+            if (
+                in_array($block['blockName'], Profile::get('blocks', []), true) &&
+                ($block['attrs']['slug'] ?? '') === $tool['slug']
+            ) {
+                return $tool;
+            }
+            array_push($pending, ...$block['innerBlocks'] ?? []);
+        }
+        return $value;
     }
     public static function pageAllowed(string $slug, int $id): bool
     {
@@ -63,13 +129,18 @@ final class Host
         try {
             $links = self::assets($tool, $editorPreview);
             $content = Providers::render($tool, $editorPreview);
-            return $links . $content;
+            return $links .
+                '<div class="pagenest-tool-host" data-tool-slug="' .
+                esc_attr($slug) .
+                '">' .
+                $content .
+                '</div>';
         } catch (\Throwable $e) {
             error_log('site-tools render failed');
             return '<p class="site-tools-unavailable">工具暂时不可用，请稍后重试。</p>';
         }
     }
-    private static function assets(array $tool, bool $preview): string
+    private static function assets(array $tool, bool $preview, bool $printStyles = true): string
     {
         $styles = [];
         $scripts = [];
@@ -92,7 +163,7 @@ final class Host
                 $styles[] = $handle;
             }
         }
-        if (!$styles) {
+        if (!$styles || !$printStyles) {
             return '';
         }
         ob_start();
