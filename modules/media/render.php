@@ -243,6 +243,14 @@ function pagenest_companion_media_gallery($attrs): string
     if (!$config) {
         return '';
     }
+    return pagenest_companion_media_gallery_render($config);
+}
+
+function pagenest_companion_media_gallery_render(array $config): string
+{
+    if (!pagenest_companion_media_context_readable()) {
+        return '';
+    }
     $items = pagenest_companion_media_members($config);
     if (!$items) {
         return '';

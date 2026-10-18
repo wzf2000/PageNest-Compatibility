@@ -7,6 +7,7 @@ require_once __DIR__ . '/editor.php';
 require_once __DIR__ . '/settings.php';
 require_once __DIR__ . '/library.php';
 require_once __DIR__ . '/folders.php';
+require_once __DIR__ . '/authoring.php';
 
 function pagenest_companion_media_bootstrap(): void
 {

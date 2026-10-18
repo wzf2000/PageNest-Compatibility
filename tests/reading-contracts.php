@@ -273,6 +273,10 @@ $guide = pagenest_guide_sanitize([
     'groups' => [['title' => 'Links', 'items' => [1, 1, 2, 999]]],
 ]);
 check('guide only accepts public sources once', $guide['groups'][0]['items'] === [1]);
+check(
+    'guide sanitizer is idempotent for first option creation',
+    pagenest_guide_sanitize($guide) === $guide,
+);
 $options['pagenest_companion_guide'] = [
     'enabled' => true,
     'groups' => [['title' => 'Links', 'items' => [1, 2]]],

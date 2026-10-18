@@ -70,6 +70,7 @@ require_once __DIR__ . '/modules/discovery/bootstrap.php';
 require_once __DIR__ . '/modules/performance/bootstrap.php';
 require_once __DIR__ . '/modules/reading/bootstrap.php';
 require_once __DIR__ . '/modules/content/editor.php';
+require_once __DIR__ . '/modules/diagnostics.php';
 // Keep only the old Markdown preservation contract, never old reward/like handlers.
 add_filter('jetpack_markdown_preserve_pattern', static function ($patterns) {
     $patterns[] = '/(\$)([^\n\r\$]+?)(\$)/s';

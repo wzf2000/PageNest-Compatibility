@@ -47,12 +47,17 @@ function pagenest_seo_metadata(): array
         if (!pagenest_discovery_public_post($post)) {
             return [];
         }
+        $overrides = pagenest_seo_overrides($post->ID);
         $url = wp_get_canonical_url($post) ?: get_permalink($post);
-        $title = pagenest_discovery_text($post->post_title, 180);
+        $title = $overrides['title'] ?: pagenest_discovery_text($post->post_title, 180);
         if ($post->post_excerpt !== '') {
             $description = pagenest_discovery_text($post->post_excerpt);
         }
-        $image = (int) (get_post_thumbnail_id($post) ?: $image);
+        if ($overrides['description'] !== '') {
+            $description = $overrides['description'];
+        }
+        $override_image = pagenest_seo_public_image($overrides['image']) ? $overrides['image'] : 0;
+        $image = (int) ($override_image ?: get_post_thumbnail_id($post) ?: $image);
         if (!is_front_page()) {
             $type = $post->post_type === 'post' ? 'article' : 'website';
             $schema = [
@@ -111,7 +116,10 @@ function pagenest_seo_metadata(): array
     } elseif (!is_front_page()) {
         return [];
     }
-    $image_url = $image ? wp_get_attachment_image_url($image, 'full') : false;
+    $image_url =
+        $image && pagenest_seo_public_image($image)
+            ? wp_get_attachment_image_url($image, 'full')
+            : false;
     if ($image_url) {
         $schema['image'] = $image_url;
     }

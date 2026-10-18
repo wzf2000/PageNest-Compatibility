@@ -96,6 +96,7 @@
     group.append(el('legend', t.group));
     const label = el('label', t.title),
       title = el('input');
+    title.type = 'text';
     title.dataset.pnGroupTitle = '';
     title.maxLength = 100;
     label.append(title);

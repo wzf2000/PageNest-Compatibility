@@ -188,6 +188,7 @@
     const results = node('div', undefined, 'pn-reading-records');
     const query = node('input');
     query.type = 'search';
+    query.autocomplete = 'off';
     query.maxLength = 100;
     const qLabel = node('label', t.q);
     qLabel.append(query);
@@ -239,7 +240,7 @@
         const data = await response.json();
         if (turn !== generation) throw Object.assign(Error(), { stale: true });
         if ([401, 403].includes(response.status)) {
-          clearPrivate(t.error);
+          centers.forEach((center) => center.clear(t.error));
           throw Object.assign(Error(), { stale: true });
         }
         if (!response.ok)
@@ -465,7 +466,7 @@
             ids: ids.slice(index, index + 200),
           });
           if (!data.valid) {
-            clearPrivate(t.error);
+            centers.forEach((center) => center.clear(t.error));
             break;
           }
         }
@@ -474,8 +475,8 @@
       }
     };
     centers.push({
-      clear: () => {
-        clearPrivate();
+      clear: (message = '') => {
+        clearPrivate(message);
         query.value = '';
         kind.value = 'all';
         file.value = '';
@@ -485,9 +486,11 @@
     });
   });
   const dialog = document.querySelector('.pn-reading-dialog');
+  let dialogOpener;
   document.querySelectorAll('[data-pn-open-reading]').forEach((opener) => {
     if (dialog) opener.hidden = false;
     opener.addEventListener('click', () => {
+      dialogOpener = opener;
       dialog?.showModal();
       renderDevice();
     });
@@ -495,13 +498,17 @@
   document
     .querySelector('[data-pn-close-reading]')
     ?.addEventListener('click', () => dialog.close());
-  dialog?.addEventListener('close', () => centers.forEach((center) => center.clear()));
+  dialog?.addEventListener('close', () => {
+    centers.forEach((center) => center.clear());
+    if (dialogOpener?.isConnected) dialogOpener.focus({ preventScroll: true });
+  });
   const clear = () => {
     centers.forEach((center) => center.clear());
     resolving++;
     deviceViews.forEach((view) => view.replaceChildren());
   };
   addEventListener('pagehide', clear);
+  document.addEventListener('pagenest-pc-auth-change', clear);
   addEventListener('pageshow', (event) => {
     if (event.persisted) {
       clear();

@@ -136,6 +136,7 @@ function pagenest_discovery_settings_page(): void
 }
 require_once __DIR__ . '/search.php';
 require_once __DIR__ . '/seo.php';
+require_once __DIR__ . '/editor.php';
 
 add_action('admin_enqueue_scripts', static function ($hook): void {
     if ($hook !== 'settings_page_pagenest-discovery' || !current_user_can('manage_options')) {

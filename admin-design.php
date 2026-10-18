@@ -8,6 +8,10 @@ function pagenest_companion_admin_pages(): array
         'pagenest-discovery' => ['搜索与分享', 'pagenest_discovery_settings_page'],
         'pagenest-reading' => [__('My reading', 'pagenest-companion'), 'pagenest_reading_markup'],
         'pagenest-guide' => [__('Content guide', 'pagenest-companion'), 'pagenest_guide_page'],
+        'pagenest-diagnostics' => [
+            __('Module diagnostics', 'pagenest-companion'),
+            'pagenest_companion_diagnostics_page',
+        ],
         'pagenest-media' => ['媒体与文件夹', 'pagenest_companion_media_settings_page'],
         'pagenest-social' => ['社交登录', 'pagenest_social_settings_page'],
     ];

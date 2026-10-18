@@ -94,6 +94,16 @@ function pagenest_companion_media_settings_page(): void
             ),
         ) .
         '</p>';
+    echo '<p><label><input type="checkbox" name="pagenest_companion_media_authoring" value="1" ' .
+        checked(pagenest_media_authoring_enabled(), true, false) .
+        '> ' .
+        esc_html__('Enable native gallery and PDF authoring blocks', 'pagenest-companion') .
+        '</label></p><p>' .
+        esc_html__(
+            'Disabled by default. New blocks select attachments directly; existing compatible blocks and imported mappings are preserved.',
+            'pagenest-companion',
+        ) .
+        '</p>';
     echo '</section>';
     submit_button('保存媒体设置');
     echo '</form><aside class="pn-admin-help"><h2>文件保持原位</h2><p>设置影响展示与目录管理，不移动媒体文件。关闭功能保留已有画廊映射与文件夹关系。</p><h2>整理媒体</h2><p>启用自有文件夹后，可在媒体库按层级浏览，在媒体文件夹页面管理目录与归属。</p></aside></div></div>';

@@ -28,7 +28,11 @@ foreach ($iterator as $entry) {
     }
 }
 foreach ($files as $file) {
-    if (str_contains($file, '/modules/media/')) {
+    if (
+        str_contains($file, '/modules/media/') &&
+        !str_ends_with($file, '/authoring.php') &&
+        !str_ends_with($file, '/settings.php')
+    ) {
         continue;
     }
     $tokens = array_values(

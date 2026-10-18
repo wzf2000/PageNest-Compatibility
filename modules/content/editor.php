@@ -24,7 +24,10 @@ function pagenest_guide_sanitize($input): array
             $old_ids[] = absint($id);
         }
     }
-    $out = ['enabled' => ($input['enabled'] ?? '') === '1', 'groups' => []];
+    $out = [
+        'enabled' => in_array($input['enabled'] ?? false, ['1', 1, true], true),
+        'groups' => [],
+    ];
     $total = 0;
     foreach (
         array_slice(is_array($input['groups'] ?? null) ? $input['groups'] : [], 0, 20)
@@ -159,7 +162,7 @@ function pagenest_guide_page(): void
             esc_html__('Group', 'pagenest-companion') .
             '</legend><label>' .
             esc_html__('Group title', 'pagenest-companion') .
-            '<input data-pn-group-title name="pagenest_companion_guide[groups][' .
+            '<input type="text" data-pn-group-title name="pagenest_companion_guide[groups][' .
             (int) $i .
             '][title]" maxlength="100" value="' .
             esc_attr($group['title']) .

@@ -243,3 +243,198 @@ msgstr "无权读取这篇文章。"
 
 msgid "You have unsaved guide changes."
 msgstr "导览有尚未保存的修改。"
+
+msgid "Another SEO plugin owns output."
+msgstr "已有其他 SEO 插件接管输出。"
+
+msgid "Chapter navigation"
+msgstr "章节导航"
+
+msgid "Choose files from the media library to preview. Files and existing gallery mappings stay in place."
+msgstr "从媒体库选择文件以预览，文件和已有画廊映射保持原位。"
+
+msgid "Choose share image"
+msgstr "选择分享图片"
+
+msgid "Columns"
+msgstr "列数"
+
+msgid "Companion Media"
+msgstr "Companion 媒体"
+
+msgid "Configuration source"
+msgstr "配置来源"
+
+msgid "Default"
+msgstr "默认"
+
+msgid "Device memory needs reader consent. Private records require authentication."
+msgstr "本机记忆需读者同意，私人记录需身份验证。"
+
+msgid "Diagnostics are read-only and administrator-only. Configuration validity is not a live service test. No secrets, account identifiers, private record contents or filesystem paths are shown."
+msgstr "诊断仅供管理员只读查看。配置有效不代表真实服务已测试；这里不显示密钥、账号标识、私人记录正文或文件路径。"
+
+msgid "Disabled by default. New blocks select attachments directly; existing compatible blocks and imported mappings are preserved."
+msgstr "默认关闭。新区块直接选择附件，已有兼容区块和导入映射保持不变。"
+
+msgid "Disabled or unavailable"
+msgstr "已关闭或不可用"
+
+msgid "Enable native gallery and PDF authoring blocks"
+msgstr "启用原生画廊与 PDF 创作区块"
+
+msgid "Enabled or available"
+msgstr "已启用或可用"
+
+msgid "Existing object permissions and compatibility profile apply."
+msgstr "沿用现有对象权限与兼容配置。"
+
+msgid "Existing shortcode and block owners take precedence. Attachment access is checked during rendering."
+msgstr "已有短代码和区块负责人优先，渲染时检查附件访问权限。"
+
+msgid "Gallery layout"
+msgstr "画廊布局"
+
+msgid "Grid"
+msgstr "网格"
+
+msgid "Image gap"
+msgstr "图片间距"
+
+msgid "Independent of the server-owned content configuration."
+msgstr "独立于服务器内容配置。"
+
+msgid "Likes"
+msgstr "点赞"
+
+msgid "Media compatibility"
+msgstr "媒体兼容"
+
+msgid "Media display"
+msgstr "媒体展示"
+
+msgid "Module"
+msgstr "模块"
+
+msgid "Module diagnostics"
+msgstr "模块诊断"
+
+msgid "Native media authoring"
+msgstr "原生媒体创作"
+
+msgid "New blocks select existing attachments and do not migrate old blocks."
+msgstr "新区块选择已有附件，不迁移旧区块。"
+
+msgid "No file paths or content payloads are included in diagnostics."
+msgstr "诊断不包含文件路径或正文数据。"
+
+msgid "Not configured"
+msgstr "未配置"
+
+msgid "Notes"
+msgstr "说明"
+
+msgid "Only public, unprotected and discoverable entries are returned."
+msgstr "仅返回当前公开、无密码且允许发现的内容。"
+
+msgid "Open images in a viewer"
+msgstr "在查看器中打开图片"
+
+msgid "Optional service configuration"
+msgstr "可选服务配置"
+
+msgid "Overrides apply only when Companion SEO is enabled and another SEO plugin has not taken ownership. Blank fields inherit the article and site defaults."
+msgstr "仅在 Companion SEO 启用且未由其他 SEO 插件接管时使用这些覆盖值；留空则沿用文章与站点默认值。"
+
+msgid "PageNest PDF"
+msgstr "PageNest PDF"
+
+msgid "PageNest gallery"
+msgstr "PageNest 画廊"
+
+msgid "Paragraph comments"
+msgstr "段落评论"
+
+msgid "Per-article overrides inherit site defaults when blank."
+msgstr "单篇覆盖值留空时沿用站点默认值。"
+
+msgid "Play slideshow automatically"
+msgstr "自动播放幻灯片"
+
+msgid "Preview uses saved article defaults and your current overrides. Save the article to apply. It does not publish a draft or change access permissions."
+msgstr "预览使用已保存的文章默认值与当前覆盖值。保存文章后生效，不会发布草稿或改变访问权限。"
+
+msgid "Public search suggestions"
+msgstr "公开搜索建议"
+
+msgid "Read-only server configuration"
+msgstr "只读服务器配置"
+
+msgid "Review configuration sources, output ownership and access boundaries without changing data."
+msgstr "只读查看配置来源、输出负责人和权限边界，不改动数据。"
+
+msgid "Search and sharing metadata"
+msgstr "搜索与分享元信息"
+
+msgid "Search and sharing preview"
+msgstr "搜索与分享预览"
+
+msgid "Select PDF"
+msgstr "选择 PDF"
+
+msgid "Select or reorder images"
+msgstr "选择或调整图片顺序"
+
+msgid "Server configuration"
+msgstr "服务器配置"
+
+msgid "Server configuration and WordPress setting"
+msgstr "服务器配置与 WordPress 设置"
+
+msgid "Server content provider"
+msgstr "服务器内容展示"
+
+msgid "Share description"
+msgstr "分享描述"
+
+msgid "Share title"
+msgstr "分享标题"
+
+msgid "Sharing preview"
+msgstr "分享预览"
+
+msgid "Slide interval in milliseconds"
+msgstr "切换间隔（毫秒）"
+
+msgid "Slider"
+msgstr "轮播"
+
+msgid "Status"
+msgstr "状态"
+
+msgid "The stored gallery configuration is invalid. Ask your migration administrator to repair it before changing the toggle."
+msgstr "已保存的画廊配置无效，请管理员修复后再更改开关。"
+
+msgid "This is a configuration check only. It does not send mail, authenticate with a provider, or test delivery."
+msgstr "这里只检查配置，不发送邮件、不连接供应商验证，也不测试投递。"
+
+msgid "Tool registry"
+msgstr "工具注册表"
+
+msgid "Tools keep their own access controls; this page does not run or repair them."
+msgstr "工具沿用自身访问控制；此页不运行或修复工具。"
+
+msgid "Use default image"
+msgstr "使用默认图片"
+
+msgid "Viewer height"
+msgstr "查看器高度"
+
+msgid "Viewer width"
+msgstr "查看器宽度"
+
+msgid "WordPress setting"
+msgstr "WordPress 设置"
+
+msgid "WordPress setting or defaults"
+msgstr "WordPress 设置或默认值"

@@ -42,11 +42,11 @@ const text = {
   savedLater: 'Saved for later.',
   enableFirst: 'Enable device memory first.',
 };
-async function fixture(page, width) {
+async function fixture(page, width, extra = '') {
   await page.setViewportSize({ width, height: 900 });
   await page.goto('/standalone.html');
   await page.setContent(
-    `<style>body{font:16px system-ui;margin:24px auto;padding:0 16px;max-width:800px}${fs.readFileSync(path.join(root, 'assets/reading-center.css'), 'utf8')}</style><article class="entry-content"><h1>Reading and learning</h1><h2 id="stable">A stable author heading</h2><button data-pn-save-later hidden>Read later on this device</button><span data-pn-later-status></span></article><section class="pn-reading" data-pn-reading><h2>My reading</h2><div data-pn-device></div><hr><div data-pn-records></div></section>`,
+    `<style>body{font:16px system-ui;margin:24px auto;padding:0 16px;max-width:800px}${fs.readFileSync(path.join(root, 'assets/reading-center.css'), 'utf8')}</style><article class="entry-content"><h1>Reading and learning</h1><h2 id="stable">A stable author heading</h2><button data-pn-save-later hidden>Read later on this device</button><span data-pn-later-status></span></article><section class="pn-reading" data-pn-reading><h2>My reading</h2><div data-pn-device></div><hr><div data-pn-records></div></section>${extra}`,
   );
   await page.evaluate((text) => {
     window.PageNestReading = {
@@ -171,4 +171,51 @@ test('plain permalink REST routes keep query arguments separate', async ({ page 
   await expect(page.locator('.pn-reading-note-text')).toHaveText(record.text);
   expect(path).toBe('/records/my-records');
   expect(search).toBe('query with spaces');
+});
+
+test('authorization loss clears sensitive search and every center', async ({ page }) => {
+  await page.route('**/records/my-records?*', (route) =>
+    route.fulfill({ json: { items: [record], next_cursor: null } }),
+  );
+  await page.route('**/records/my-records/validate', (route) =>
+    route.fulfill({ status: 403, json: { code: 'denied' } }),
+  );
+  await fixture(
+    page,
+    390,
+    '<section class="pn-reading"><div data-pn-device></div><div data-pn-records></div></section>',
+  );
+  const searches = page.getByLabel(text.q);
+  await searches.nth(0).fill('Sensitive medical search');
+  await searches.nth(1).fill('Another private search');
+  await page.getByRole('button', { name: text.load, exact: true }).nth(0).click();
+  await page.getByRole('button', { name: text.load, exact: true }).nth(1).click();
+  await expect(page.locator('.pn-reading-note-text')).toHaveCount(2);
+  await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+  await expect(page.locator('.pn-reading-note-text')).toHaveCount(0);
+  await expect(searches.nth(0)).toHaveValue('');
+  await expect(searches.nth(1)).toHaveValue('');
+});
+test('mobile dialog keeps close reachable and returns focus', async ({ page }) => {
+  await fixture(
+    page,
+    390,
+    '<button data-pn-open-reading hidden>Open My reading</button><dialog class="pn-reading-dialog" aria-labelledby="pn-reading-dialog-title"><div class="pn-reading-dialog-toolbar"><h2 id="pn-reading-dialog-title">My reading</h2><button data-pn-close-reading>Close</button></div><section class="pn-reading"><div data-pn-device></div><div data-pn-records></div><div style="height:1800px"></div></section></dialog>',
+  );
+  const opener = page.getByRole('button', { name: 'Open My reading', exact: true });
+  await opener.click();
+  const dialog = page.getByRole('dialog', { name: 'My reading', exact: true });
+  await expect(dialog).toBeVisible();
+  await dialog.evaluate((node) => {
+    node.scrollTop = node.scrollHeight;
+  });
+  const box = await page.getByRole('button', { name: 'Close', exact: true }).boundingBox();
+  expect(box.y).toBeGreaterThanOrEqual(0);
+  expect(box.y + box.height).toBeLessThanOrEqual(900);
+  await page.getByRole('button', { name: 'Close', exact: true }).click();
+  await expect(opener).toBeFocused();
+  await opener.click();
+  await page.keyboard.press('Escape');
+  await expect(dialog).not.toBeVisible();
+  await expect(opener).toBeFocused();
 });

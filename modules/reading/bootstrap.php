@@ -65,9 +65,7 @@ function pagenest_reading_markup(): string
             'My reading requires JavaScript for device storage and private record access.',
             'pagenest-companion',
         ) .
-        '</noscript><h2>' .
-        esc_html__('My reading', 'pagenest-companion') .
-        '</h2><div data-pn-device></div><hr><div data-pn-records></div></section>';
+        '</noscript><div data-pn-device></div><hr><div data-pn-records></div></section>';
 }
 add_shortcode('pagenest_my_reading', 'pagenest_reading_markup');
 add_action('pagenest_header_actions', static function () {
@@ -81,9 +79,11 @@ add_action('wp_footer', static function () {
     if (!pagenest_reading_enabled() || !current_theme_supports('pagenest-independent-layout')) {
         return;
     }
-    echo '<dialog class="pn-reading-dialog"><button type="button" data-pn-close-reading>' .
+    echo '<dialog class="pn-reading-dialog" aria-labelledby="pn-reading-dialog-title"><div class="pn-reading-dialog-toolbar"><h2 id="pn-reading-dialog-title">' .
+        esc_html__('My reading', 'pagenest-companion') .
+        '</h2><button type="button" data-pn-close-reading>' .
         esc_html__('Close', 'pagenest-companion') .
-        '</button>' .
+        '</button></div>' .
         pagenest_reading_markup() .
         '</dialog>';
 });

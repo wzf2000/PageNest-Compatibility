@@ -337,3 +337,13 @@
   margin-block: 12px;
   overflow-wrap: anywhere;
 }
+
+[data-pn-guide-group] > label {
+  display: block;
+}
+[data-pn-guide-group] [data-pn-group-title] {
+  display: block;
+  width: min(100%, 36em);
+  min-height: 40px;
+  margin-top: 6px;
+}
