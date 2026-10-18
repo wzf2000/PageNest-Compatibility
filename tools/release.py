@@ -69,6 +69,9 @@ def source_files():
 
 def installation_name(name):
     path = Path(name)
+    # Repository presentation images are not runtime assets.
+    if path.parts[:2] == ("docs", "assets"):
+        return False
     if path.parts[:3] == ("modules", "tools", "assets"):
         return name == "modules/tools/assets/classic-preview.js"
     if path.parts[:2] == ("assets", "vendor"):
