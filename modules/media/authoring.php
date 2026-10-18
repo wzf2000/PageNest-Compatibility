@@ -77,9 +77,20 @@ add_action(
         if (!pagenest_media_authoring_enabled()) {
             return;
         }
+        $manifest = require dirname(__DIR__, 2) . '/assets/manifest.php';
+        wp_register_style(
+            'pagenest-native-media-block',
+            plugins_url(
+                'assets/' . $manifest['media_css'],
+                dirname(__DIR__, 2) . '/pagenest-compatibility.php',
+            ),
+            [],
+            null,
+        );
         foreach (['gallery', 'pdf'] as $type) {
             register_block_type('pagenest/' . $type, [
                 'api_version' => 3,
+                'editor_style_handles' => ['pagenest-native-media-block'],
                 'attributes' => pagenest_media_native_attributes($type === 'pdf'),
                 'render_callback' =>
                     $type === 'pdf' ? 'pagenest_media_native_pdf' : 'pagenest_media_native_gallery',

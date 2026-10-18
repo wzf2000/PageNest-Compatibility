@@ -16,8 +16,10 @@
     update();
     root.querySelector('[data-pn-seo-clear]').addEventListener('click', () => {
       image.value = '0';
-      preview.removeAttribute('src');
-      preview.hidden = true;
+      const fallback = preview.dataset.pnSeoDefaultImage || '';
+      if (fallback) preview.src = fallback;
+      else preview.removeAttribute('src');
+      preview.hidden = !fallback;
     });
     root.querySelector('[data-pn-seo-select]').addEventListener('click', () => {
       const frame = wp.media({

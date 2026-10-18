@@ -361,9 +361,6 @@ msgstr "单篇覆盖值留空时沿用站点默认值。"
 msgid "Play slideshow automatically"
 msgstr "自动播放幻灯片"
 
-msgid "Preview uses saved article defaults and your current overrides. Save the article to apply. It does not publish a draft or change access permissions."
-msgstr "预览使用已保存的文章默认值与当前覆盖值。保存文章后生效，不会发布草稿或改变访问权限。"
-
 msgid "Public search suggestions"
 msgstr "公开搜索建议"
 
@@ -438,3 +435,6 @@ msgstr "WordPress 设置"
 
 msgid "WordPress setting or defaults"
 msgstr "WordPress 设置或默认值"
+
+msgid "Preview uses saved article defaults and your current overrides. Save the article to apply. Draft images can be selected here; only publicly readable images appear in public sharing metadata."
+msgstr "预览使用已保存的文章默认值与当前覆盖值，保存文章后生效。可选择草稿附件；公开分享信息仅使用当前公开可读的图片。"

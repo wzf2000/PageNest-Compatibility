@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.6.0-rc.1
+
+- Add default-off device reading and a private in-memory reading center with bounded record pagination and existing version-protected operations.
+- Add independent content guide editing without changing server-owned content configuration or source articles.
+- Add default-off native gallery/PDF authoring, per-article sharing previews and administrator-only redacted module diagnostics.
+- Preserve existing authentication, private record defaults, UUID idempotency and media mappings; ship native English/Chinese gettext catalogs.
+
 ## 1.5.5-rc.1
 
 - Use independent content resource handles so PageNest and Companion assets do not replace each other.

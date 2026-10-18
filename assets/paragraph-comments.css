@@ -10,7 +10,7 @@
   border: 0;
   border-radius: 8px;
   background: transparent;
-  color: #50657a;
+  color: var(--pagenest-muted, #50657a);
   font: inherit;
   font-size: 13px;
   cursor: pointer;
@@ -83,8 +83,8 @@ pre.pagenest-paragraph-block > .pagenest-paragraph-bubble {
 }
 .pagenest-paragraph-bubble:hover,
 .pagenest-site .pagenest-paragraph-open:hover {
-  background: #f0f4f8;
-  color: #285f8f;
+  background: var(--pagenest-soft, #f0f4f8);
+  color: var(--pagenest-accent, #285f8f);
 }
 .pagenest-reading-panel {
   min-width: 0;
@@ -123,10 +123,10 @@ pre.pagenest-paragraph-block > .pagenest-paragraph-bubble {
   padding: 0;
   gap: 0;
   overflow: hidden;
-  border: 1px solid #e5eaf0;
+  border: 1px solid var(--pagenest-border, #e5eaf0);
   border-radius: 14px;
-  background: #fff;
-  color: #303b48;
+  background: var(--pagenest-surface, #fff);
+  color: var(--pagenest-text, #303b48);
   text-align: left;
   box-shadow: 0 5px 20px rgb(27 45 66 / 3%);
 }
@@ -144,11 +144,11 @@ pre.pagenest-paragraph-block > .pagenest-paragraph-bubble {
   border: 0;
   border-radius: 5px;
   background: transparent;
-  color: #6c7c8b;
+  color: var(--pagenest-muted, #6c7c8b);
   padding: 0;
 }
 .pagenest-paragraph-panel button:hover {
-  color: #285f8f;
+  color: var(--pagenest-accent, #285f8f);
 }
 .pagenest-paragraph-panel button:disabled {
   opacity: 0.45;
@@ -186,7 +186,7 @@ pre.pagenest-paragraph-block > .pagenest-paragraph-bubble {
   font-family: inherit;
   font-size: 13px;
   line-height: 1.7;
-  color: #7b8794;
+  color: var(--pagenest-muted, #7b8794);
   overflow: hidden;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -214,7 +214,7 @@ pre.pagenest-paragraph-block > .pagenest-paragraph-bubble {
 }
 .pagenest-paragraph-title-row h2 {
   margin: 0;
-  color: #364351;
+  color: var(--pagenest-text, #364351);
   font-size: 15px;
   font-weight: 650;
   line-height: 1.5;
@@ -252,7 +252,7 @@ pre.pagenest-paragraph-block > .pagenest-paragraph-bubble {
   height: 31px;
   border-radius: 50%;
   overflow: hidden;
-  background: #eaf0f5;
+  background: var(--pagenest-soft, #eaf0f5);
   color: #6a839a;
   font:
     600 12px/1 system-ui,
@@ -282,7 +282,7 @@ pre.pagenest-paragraph-block > .pagenest-paragraph-bubble {
 }
 .pagenest-paragraph-author {
   margin: 1px 0 7px;
-  color: #647284;
+  color: var(--pagenest-muted, #647284);
   font-size: 12px;
   font-weight: 600;
   line-height: 1.5;
@@ -292,8 +292,8 @@ pre.pagenest-paragraph-block > .pagenest-paragraph-bubble {
   margin-inline-start: 6px;
   padding: 0 4px;
   border-radius: 3px;
-  background: #edf2f6;
-  color: #78899a;
+  background: var(--pagenest-soft, #edf2f6);
+  color: var(--pagenest-muted, #78899a);
   font-size: 10px;
   font-weight: 400;
   line-height: 1.5;
@@ -302,7 +302,7 @@ pre.pagenest-paragraph-block > .pagenest-paragraph-bubble {
 }
 .pagenest-paragraph-text {
   margin: 0 0 9px;
-  color: #303b48;
+  color: var(--pagenest-text, #303b48);
   font-size: 14px;
   line-height: 1.8;
   white-space: pre-wrap;
@@ -320,7 +320,7 @@ pre.pagenest-paragraph-block > .pagenest-paragraph-bubble {
 .pagenest-paragraph-meta button {
   padding: 5px 0;
   font-size: 11px;
-  color: #8d99a5;
+  color: var(--pagenest-muted, #8d99a5);
 }
 .pagenest-paragraph-meta .pagenest-paragraph-delete:hover {
   color: #ad5656;
@@ -342,7 +342,7 @@ pre.pagenest-paragraph-block > .pagenest-paragraph-bubble {
   text-align: left;
   font-size: 12px;
   line-height: 1.7;
-  color: #8895a1;
+  color: var(--pagenest-muted, #8895a1);
   white-space: pre-wrap;
 }
 .pagenest-paragraph-panel .pagenest-paragraph-return {
@@ -370,7 +370,7 @@ pre.pagenest-paragraph-block > .pagenest-paragraph-bubble {
 .pagenest-paragraph-empty p {
   margin: 0 0 6px;
   font-size: 14px;
-  color: #8d9aa7;
+  color: var(--pagenest-muted, #8d9aa7);
 }
 .pagenest-paragraph-empty span {
   font-size: 12px;
@@ -380,7 +380,7 @@ pre.pagenest-paragraph-block > .pagenest-paragraph-bubble {
   max-height: 3.2em;
   overflow: auto;
   padding: 0 22px 8px;
-  color: #7c8b98;
+  color: var(--pagenest-muted, #7c8b98);
   font-size: 12px;
 }
 .pagenest-paragraph-status:empty {
@@ -391,7 +391,7 @@ pre.pagenest-paragraph-block > .pagenest-paragraph-bubble {
 }
 .pagenest-paragraph-panel .pagenest-paragraph-retry {
   margin-left: 9px;
-  color: #597f9f;
+  color: var(--pagenest-accent, #597f9f);
   font-size: 12px;
 }
 .pagenest-paragraph-composer {
@@ -401,8 +401,8 @@ pre.pagenest-paragraph-block > .pagenest-paragraph-bubble {
   flex: none;
   margin: 0;
   padding: 14px 16px max(16px, env(safe-area-inset-bottom));
-  border-top: 1px solid #edf0f3;
-  background: #fff;
+  border-top: 1px solid var(--pagenest-border, #edf0f3);
+  background: var(--pagenest-surface, #fff);
 }
 .pagenest-paragraph-self {
   width: 28px;
@@ -422,26 +422,26 @@ pre.pagenest-paragraph-block > .pagenest-paragraph-bubble {
   border: 1px solid transparent;
   border-radius: 19px;
   resize: none;
-  background: #f4f6f8;
-  color: #354351;
+  background: var(--pagenest-soft, #f4f6f8);
+  color: var(--pagenest-text, #354351);
   font-family: inherit;
   font-size: 15px;
   line-height: 1.45;
   box-shadow: none;
 }
 .pagenest-paragraph-input::placeholder {
-  color: #a1aab4;
+  color: var(--pagenest-muted, #a1aab4);
 }
 .pagenest-paragraph-composer .pagenest-paragraph-input:focus {
-  border-color: #d5e0e8;
-  background: #f7f9fb;
+  border-color: var(--pagenest-border, #d5e0e8);
+  background: var(--pagenest-soft, #f7f9fb);
 }
 .pagenest-paragraph-panel .pagenest-paragraph-send {
   flex: none;
   min-width: 38px;
   height: 44px;
   padding: 0 2px;
-  color: #397aa9;
+  color: var(--pagenest-accent, #397aa9);
   font-size: 13px;
   font-weight: 600;
 }
@@ -454,15 +454,15 @@ pre.pagenest-paragraph-block > .pagenest-paragraph-bubble {
   width: 100%;
   padding: 12px 16px;
   border-radius: 20px;
-  background: #f4f6f8;
-  color: #8797a5;
+  background: var(--pagenest-soft, #f4f6f8);
+  color: var(--pagenest-muted, #8797a5);
   font-size: 13px;
   text-decoration: none;
 }
 .pagenest-paragraph-composer-hint {
   margin: 0;
   padding: 1px 5px;
-  color: #98a4b0;
+  color: var(--pagenest-muted, #98a4b0);
   font-size: 12px;
 }
 .pagenest-paragraph-dialog {

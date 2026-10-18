@@ -157,3 +157,8 @@
 [data-pn-close-reading] {
   min-height: 44px;
 }
+
+[data-pn-open-reading][hidden],
+[data-pn-save-later][hidden] {
+  display: none !important;
+}

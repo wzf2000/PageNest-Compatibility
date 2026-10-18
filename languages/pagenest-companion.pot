@@ -50,11 +50,11 @@ msgstr ""
 msgid "Choose a replacement paragraph"
 msgstr ""
 
-#: modules/media/authoring.php:127
+#: modules/media/authoring.php:138
 msgid "Choose files from the media library to preview. Files and existing gallery mappings stay in place."
 msgstr ""
 
-#: modules/discovery/editor.php:165 modules/discovery/editor.php:86
+#: modules/discovery/editor.php:131 modules/discovery/editor.php:215
 msgid "Choose share image"
 msgstr ""
 
@@ -74,7 +74,7 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
-#: modules/media/authoring.php:120
+#: modules/media/authoring.php:131
 msgid "Columns"
 msgstr ""
 
@@ -178,11 +178,11 @@ msgstr ""
 msgid "Find existing content"
 msgstr ""
 
-#: modules/media/authoring.php:117
+#: modules/media/authoring.php:128
 msgid "Gallery layout"
 msgstr ""
 
-#: modules/media/authoring.php:118
+#: modules/media/authoring.php:129
 msgid "Grid"
 msgstr ""
 
@@ -194,7 +194,7 @@ msgstr ""
 msgid "Group title"
 msgstr ""
 
-#: modules/media/authoring.php:121
+#: modules/media/authoring.php:132
 msgid "Image gap"
 msgstr ""
 
@@ -318,7 +318,7 @@ msgstr ""
 msgid "Open article location"
 msgstr ""
 
-#: modules/media/authoring.php:122
+#: modules/media/authoring.php:133
 msgid "Open images in a viewer"
 msgstr ""
 
@@ -334,7 +334,7 @@ msgstr ""
 msgid "Organize links to existing public articles and pages. Source content and chapter order stay with their existing owners."
 msgstr ""
 
-#: modules/discovery/editor.php:67
+#: modules/discovery/editor.php:112
 msgid "Overrides apply only when Companion SEO is enabled and another SEO plugin has not taken ownership. Blank fields inherit the article and site defaults."
 msgstr ""
 
@@ -342,11 +342,11 @@ msgstr ""
 msgid "Page"
 msgstr ""
 
-#: modules/media/authoring.php:114
+#: modules/media/authoring.php:125
 msgid "PageNest PDF"
 msgstr ""
 
-#: modules/media/authoring.php:113
+#: modules/media/authoring.php:124
 msgid "PageNest gallery"
 msgstr ""
 
@@ -358,7 +358,7 @@ msgstr ""
 msgid "Per-article overrides inherit site defaults when blank."
 msgstr ""
 
-#: modules/media/authoring.php:123
+#: modules/media/authoring.php:134
 msgid "Play slideshow automatically"
 msgstr ""
 
@@ -370,8 +370,8 @@ msgstr ""
 msgid "Preview source"
 msgstr ""
 
-#: modules/discovery/editor.php:98
-msgid "Preview uses saved article defaults and your current overrides. Save the article to apply. It does not publish a draft or change access permissions."
+#: modules/discovery/editor.php:145
+msgid "Preview uses saved article defaults and your current overrides. Save the article to apply. Draft images can be selected here; only publicly readable images appear in public sharing metadata."
 msgstr ""
 
 #: modules/reading/bootstrap.php:218
@@ -442,7 +442,7 @@ msgstr ""
 msgid "Search and sharing metadata"
 msgstr ""
 
-#: modules/discovery/editor.php:47
+#: modules/discovery/editor.php:85
 msgid "Search and sharing preview"
 msgstr ""
 
@@ -458,11 +458,11 @@ msgstr ""
 msgid "Search records"
 msgstr ""
 
-#: modules/media/authoring.php:116
+#: modules/media/authoring.php:127
 msgid "Select PDF"
 msgstr ""
 
-#: modules/media/authoring.php:115
+#: modules/media/authoring.php:126
 msgid "Select or reorder images"
 msgstr ""
 
@@ -478,15 +478,15 @@ msgstr ""
 msgid "Server content provider"
 msgstr ""
 
-#: modules/discovery/editor.php:78
+#: modules/discovery/editor.php:123
 msgid "Share description"
 msgstr ""
 
-#: modules/discovery/editor.php:72
+#: modules/discovery/editor.php:117
 msgid "Share title"
 msgstr ""
 
-#: modules/discovery/editor.php:90
+#: modules/discovery/editor.php:135
 msgid "Sharing preview"
 msgstr ""
 
@@ -494,11 +494,11 @@ msgstr ""
 msgid "Sign in to view your records"
 msgstr ""
 
-#: modules/media/authoring.php:124
+#: modules/media/authoring.php:135
 msgid "Slide interval in milliseconds"
 msgstr ""
 
-#: modules/media/authoring.php:119
+#: modules/media/authoring.php:130
 msgid "Slider"
 msgstr ""
 
@@ -555,7 +555,7 @@ msgstr ""
 msgid "Up to 20 groups and 200 links. Use Move up and Move down with a keyboard to change order. Save to update the public guide."
 msgstr ""
 
-#: modules/discovery/editor.php:88
+#: modules/discovery/editor.php:133
 msgid "Use default image"
 msgstr ""
 
@@ -563,11 +563,11 @@ msgstr ""
 msgid "Verification failed. Please retry the security check."
 msgstr ""
 
-#: modules/media/authoring.php:126
+#: modules/media/authoring.php:137
 msgid "Viewer height"
 msgstr ""
 
-#: modules/media/authoring.php:125
+#: modules/media/authoring.php:136
 msgid "Viewer width"
 msgstr ""
 

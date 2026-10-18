@@ -30,10 +30,11 @@ function pagenest_seo_metadata(): array
     }
     $options = pagenest_discovery_options();
     $site = pagenest_discovery_text(get_bloginfo('name'));
-    $description = pagenest_discovery_text($options['description'] ?: get_bloginfo('description'));
+    $defaults = pagenest_seo_defaults();
+    $description = $defaults['description'];
     $url = home_url('/');
     $title = $site;
-    $image = (int) ($options['image'] ?: get_theme_mod('custom_logo', 0));
+    $image = $defaults['image'];
     $schema = [
         '@context' => 'https://schema.org',
         '@type' => 'WebSite',
@@ -49,15 +50,11 @@ function pagenest_seo_metadata(): array
         }
         $overrides = pagenest_seo_overrides($post->ID);
         $url = wp_get_canonical_url($post) ?: get_permalink($post);
-        $title = $overrides['title'] ?: pagenest_discovery_text($post->post_title, 180);
-        if ($post->post_excerpt !== '') {
-            $description = pagenest_discovery_text($post->post_excerpt);
-        }
-        if ($overrides['description'] !== '') {
-            $description = $overrides['description'];
-        }
+        $defaults = pagenest_seo_defaults($post);
+        $title = $overrides['title'] ?: $defaults['title'];
+        $description = $overrides['description'] ?: $defaults['description'];
         $override_image = pagenest_seo_public_image($overrides['image']) ? $overrides['image'] : 0;
-        $image = (int) ($override_image ?: get_post_thumbnail_id($post) ?: $image);
+        $image = (int) ($override_image ?: $defaults['image']);
         if (!is_front_page()) {
             $type = $post->post_type === 'post' ? 'article' : 'website';
             $schema = [

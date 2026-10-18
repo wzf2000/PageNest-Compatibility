@@ -4,7 +4,7 @@ const path = require('node:path');
 test('share preview treats overrides as text and the picker clears safely', async ({ page }) => {
   await page.goto('/standalone.html');
   await page.setContent(
-    '<div data-pn-seo-editor><input data-pn-seo-title placeholder="Article title"><textarea data-pn-seo-description placeholder="Site description"></textarea><input data-pn-seo-image type="hidden" value="0"><button data-pn-seo-select>Choose image</button><button data-pn-seo-clear>Use default</button><section class="pn-seo-preview"><img data-pn-seo-preview-image hidden alt=""><strong data-pn-seo-preview-title></strong><p data-pn-seo-preview-description></p></section></div>',
+    '<div data-pn-seo-editor><input data-pn-seo-title placeholder="Article title"><textarea data-pn-seo-description placeholder="Site description"></textarea><input data-pn-seo-image type="hidden" value="0"><button data-pn-seo-select>Choose image</button><button data-pn-seo-clear>Use default</button><section class="pn-seo-preview"><img data-pn-seo-preview-image data-pn-seo-default-image="http://127.0.0.1:18780/default.png" hidden alt=""><strong data-pn-seo-preview-title></strong><p data-pn-seo-preview-description></p></section></div>',
   );
   await page.evaluate(() => {
     window.PageNestSEOEditor = { choose: 'Choose image' };
@@ -46,5 +46,9 @@ test('share preview treats overrides as text and the picker clears safely', asyn
   await expect(page.locator('[data-pn-seo-image]')).toHaveValue('9');
   await page.getByRole('button', { name: 'Use default' }).click();
   await expect(page.locator('[data-pn-seo-image]')).toHaveValue('0');
-  await expect(page.locator('[data-pn-seo-preview-image]')).toBeHidden();
+  await expect(page.locator('[data-pn-seo-preview-image]')).toBeVisible();
+  await expect(page.locator('[data-pn-seo-preview-image]')).toHaveAttribute(
+    'src',
+    'http://127.0.0.1:18780/default.png',
+  );
 });

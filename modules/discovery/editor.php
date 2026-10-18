@@ -40,6 +40,44 @@ function pagenest_seo_public_image(int $id): bool
     }
     return false;
 }
+/** The editor uses the same fallback chain, gated by the editor's current attachment access. */
+function pagenest_seo_defaults($post = null, bool $public = true): array
+{
+    $options = pagenest_discovery_options();
+    $description = $post ? pagenest_discovery_text($post->post_excerpt, 160) : '';
+    if ($description === '') {
+        $description = pagenest_discovery_text(
+            $options['description'] ?: get_bloginfo('description'),
+            160,
+        );
+    }
+    $image = 0;
+    foreach (
+        [
+            $post ? (int) get_post_thumbnail_id($post) : 0,
+            $options['image'],
+            (int) get_theme_mod('custom_logo', 0),
+        ]
+        as $candidate
+    ) {
+        if (
+            $candidate &&
+            ($public
+                ? pagenest_seo_public_image($candidate)
+                : wp_attachment_is_image($candidate) &&
+                    current_user_can('read_post', $candidate) &&
+                    pagenest_companion_media_readable($candidate))
+        ) {
+            $image = $candidate;
+            break;
+        }
+    }
+    return [
+        'title' => pagenest_discovery_text($post ? $post->post_title : get_bloginfo('name'), 180),
+        'description' => $description,
+        'image' => (int) $image,
+    ];
+}
 add_action('add_meta_boxes', static function () {
     foreach (['post', 'page'] as $type) {
         add_meta_box(
@@ -58,11 +96,18 @@ function pagenest_seo_editor($post): void
     }
     $value = pagenest_seo_overrides($post->ID);
     wp_nonce_field('pagenest-seo-' . $post->ID, 'pagenest-seo-nonce');
-    $image = $value['image'] ? wp_get_attachment_image_url($value['image'], 'medium') : '';
-    $fallback = pagenest_discovery_text(
-        $post->post_excerpt ?: pagenest_discovery_options()['description'],
-        160,
-    );
+    $defaults = pagenest_seo_defaults($post, false);
+    $selected_image =
+        $value['image'] &&
+        current_user_can('read_post', $value['image']) &&
+        pagenest_companion_media_readable($value['image'])
+            ? $value['image']
+            : $defaults['image'];
+    $image = $selected_image ? wp_get_attachment_image_url($selected_image, 'medium') : '';
+    $default_image = $defaults['image']
+        ? wp_get_attachment_image_url($defaults['image'], 'medium')
+        : '';
+    $fallback = $defaults['description'];
     echo '<div data-pn-seo-editor><p>' .
         esc_html__(
             'Overrides apply only when Companion SEO is enabled and another SEO plugin has not taken ownership. Blank fields inherit the article and site defaults.',
@@ -92,11 +137,13 @@ function pagenest_seo_editor($post): void
         esc_url($image ?: '') .
         '" ' .
         ($image ? '' : 'hidden') .
-        '><strong data-pn-seo-preview-title></strong><p data-pn-seo-preview-description></p><small>' .
+        ' data-pn-seo-default-image="' .
+        esc_url($default_image ?: '') .
+        '"><strong data-pn-seo-preview-title></strong><p data-pn-seo-preview-description></p><small>' .
         esc_html(get_permalink($post)) .
         '</small></section><p>' .
         esc_html__(
-            'Preview uses saved article defaults and your current overrides. Save the article to apply. It does not publish a draft or change access permissions.',
+            'Preview uses saved article defaults and your current overrides. Save the article to apply. Draft images can be selected here; only publicly readable images appear in public sharing metadata.',
             'pagenest-companion',
         ) .
         '</p></div>';
@@ -131,7 +178,10 @@ add_action('save_post', static function ($id) {
             160,
         ),
         'image' =>
-            $image && pagenest_seo_public_image($image) && current_user_can('read_post', $image)
+            $image &&
+            wp_attachment_is_image($image) &&
+            current_user_can('read_post', $image) &&
+            pagenest_companion_media_readable($image)
                 ? $image
                 : 0,
     ];
