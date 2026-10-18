@@ -239,7 +239,7 @@
         });
         const data = await response.json();
         if (turn !== generation) throw Object.assign(Error(), { stale: true });
-        if ([401, 403].includes(response.status)) {
+        if ([401, 403].includes(response.status) || data?.code === 'comments_disabled') {
           centers.forEach((center) => center.clear(t.error));
           throw Object.assign(Error(), { stale: true });
         }

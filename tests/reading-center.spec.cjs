@@ -219,3 +219,20 @@ test('mobile dialog keeps close reachable and returns focus', async ({ page }) =
   await expect(dialog).not.toBeVisible();
   await expect(opener).toBeFocused();
 });
+
+test('disabling the record service clears sensitive search in all centers', async ({ page }) => {
+  await page.route('**/records/my-records?*', (route) =>
+    route.fulfill({ status: 503, json: { code: 'comments_disabled' } }),
+  );
+  await fixture(
+    page,
+    390,
+    '<section class="pn-reading"><div data-pn-device></div><div data-pn-records></div></section>',
+  );
+  const searches = page.getByLabel(text.q);
+  await searches.nth(0).fill('Sensitive search');
+  await searches.nth(1).fill('Another sensitive search');
+  await page.getByRole('button', { name: text.search, exact: true }).nth(0).click();
+  await expect(searches.nth(0)).toHaveValue('');
+  await expect(searches.nth(1)).toHaveValue('');
+});
