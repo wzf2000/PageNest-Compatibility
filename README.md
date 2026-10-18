@@ -8,15 +8,15 @@
   <a href="LICENSE"><img alt="GPL-2.0-or-later" src="https://img.shields.io/badge/license-GPL--2.0--or--later-52796f"></a>
 </p>
 
-<p align="center"><a href="#开始使用">开始使用</a> · <a href="docs/SHOWCASE.md">实际效果</a> · <a href="docs/index.md">文档</a> · <a href="https://github.com/wzf2000/PageNest-Compatibility/releases">下载发行包</a> · <a href="CHANGELOG.md">更新记录</a></p>
+<p align="center"><a href="#开始使用">开始使用</a> · <a href="docs/SHOWCASE.md">实际效果</a> · <a href="docs/index.md">文档</a> · <a href="docs/USAGE.md">安装指南</a> · <a href="CHANGELOG.md">更新记录</a></p>
 
-> 本分支为 **1.6.0-rc.1 候选**，尚未正式发行。新的阅读中心、独立导览编辑和原生媒体创作默认关闭。正式安装请使用 [Releases](https://github.com/wzf2000/PageNest-Compatibility/releases) 中的稳定发行包及其对应文档。
+> 本分支为 **1.6.0-rc.1 候选**，尚未正式发行。新的阅读中心、独立导览编辑和原生媒体创作默认关闭。正式安装请使用 仓库页面的 **Releases** 中的稳定发行包及其对应文档。
 
 ## 让阅读之外的操作有处可去
 
 读者可以围绕具体段落交流，沿章节顺序继续阅读，为文章点赞。站长可以按需开启搜索、分享信息、媒体展示和社交登录，而不用把这些功能写进主题。
 
-Companion 与 [PageNest](https://github.com/wzf2000/PageNest) 配合提供完整的阅读入口；其他主题也能使用独立评论抽屉。内容仍由 WordPress 管理，可选模块需要明确配置，不会自动批量迁移文章。
+Companion 与 PageNest 配合提供完整的阅读入口；其他主题也能使用独立评论抽屉。内容仍由 WordPress 管理，可选模块需要明确配置，不会自动批量迁移文章。
 
 ## 实际效果
 
@@ -41,7 +41,7 @@ _候选在合成 WordPress 站点、PageNest 主题中的实际截图；画廊�
 
 需要 **WordPress 6.0+、PHP 8.0+**；安装目录保持 `pagenest-compatibility`。
 
-1. 从 [Releases](https://github.com/wzf2000/PageNest-Compatibility/releases) 下载插件安装 ZIP，在后台 **插件 → 安装插件 → 上传插件** 安装并启用。
+1. 从 仓库页面的 **Releases** 下载插件安装 ZIP，在后台 **插件 → 安装插件 → 上传插件** 安装并启用。
 2. 打开 **设置 → PageNest Companion**，选择所需的段落评论、章节导航和点赞功能。
 3. 编辑一篇文章，在 “PageNest 阅读功能” 中明确启用段落评论，填写系列名称及章节顺序，然后保存。
 4. 使用不同账号检查互动，再退出登录确认访客只能阅读公开内容。
@@ -52,7 +52,7 @@ _候选在合成 WordPress 站点、PageNest 主题中的实际截图；画廊�
 
 ![主题、Companion 与独立扩展的职责示意图](docs/assets/overview.svg)
 
-[PageNest](https://github.com/wzf2000/PageNest) 负责首页、目录、视觉和布局；Companion 负责互动、功能配置与服务端权限。经验奖励政策、浏览器工具、游戏与私人服务由独立可选实现提供，不随本插件安装包分发。
+PageNest 负责首页、目录、视觉和布局；Companion 负责互动、功能配置与服务端权限。经验奖励政策、浏览器工具、游戏与私人服务由独立可选实现提供，不随本插件安装包分发。
 
 可选服务由管理员逐项启用，旧负责人仍运行时不自动接管。社交账号按应用身份关联，不按邮箱合并；配置和真实供应商验证见手册。MathJax 2.7.7 按主题特性从 cdnjs 加载，会产生第三方请求，库文件不随包发行。
 

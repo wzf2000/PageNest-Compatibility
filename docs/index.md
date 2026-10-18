@@ -1,6 +1,6 @@
 # PageNest Companion 文档
 
-本分支文档对应 **1.6.0-rc.1 候选**，尚未正式发行。稳定安装请从 [Releases](https://github.com/wzf2000/PageNest-Compatibility/releases) 选择发行包，并使用该版本附带的文档。
+本分支文档对应 **1.6.0-rc.1 候选**，尚未正式发行。稳定安装请从 仓库页面的 **Releases** 选择发行包，并使用该版本附带的文档。
 
 ## 使用与站点配置
 
@@ -23,6 +23,6 @@
 - [社交图标](SOCIAL-ICONS.md)：图标资源、来源与使用约定。
 - [参与开发](../CONTRIBUTING.md)：格式、真实 WordPress／数据库／并发及浏览器检查。
 - [发行指南](RELEASING.md) · [更新记录](../CHANGELOG.md)：版本、安装包和发行。
-- [PageNest 主题](https://github.com/wzf2000/PageNest)：配套的阅读外观与布局。
+- PageNest 主题：配套的阅读外观与布局。
 
 效果图采用合成 WordPress 内容，主题为 PageNest；手机图是浏览器尺寸模拟。展示图片只用于仓库文档，不进入插件安装 ZIP。
