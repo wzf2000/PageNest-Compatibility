@@ -1,11 +1,12 @@
 # Changelog
 
-## 1.6.0-rc.1
+## 1.6.0
 
-- Add default-off device reading and a private in-memory reading center with bounded record pagination and existing version-protected operations.
-- Add independent content guide editing without changing server-owned content configuration or source articles.
-- Add default-off native gallery/PDF authoring, per-article sharing previews and administrator-only redacted module diagnostics.
-- Preserve existing authentication, private record defaults, UUID idempotency and media mappings; ship native English/Chinese gettext catalogs.
+- 新增默认关闭的本机 “我的阅读” 和本人评论／私人笔记入口，阅读记录需读者同意且不跨设备同步；服务端继续校验本人权限、分页预算、记录版本与 UUID 幂等，关闭记录服务时清除已载入的私人状态。
+- 新增默认关闭的独立内容导览编辑，保留服务器负责的内容配置、来源文章与访问权限。
+- 新增默认关闭的原生画廊／PDF 创作、单篇分享预览，以及仅管理员可访问的脱敏模块诊断；附件身份在 REST 清理过程中保持整数，不自动转换旧区块或修改媒体归属。
+- 改善随主题明暗变化的阅读界面、编辑器预览回退和 “我的阅读” 面板，明确部分评论尚未载入的状态；补齐英语／简体中文语言包、使用说明与合成站产品截图。
+- 内容资源使用独立句柄，避免与 PageNest 资源互相覆盖；包含 1.5.5-rc.1 的兼容补丁，保留 PHP 8.0 测试兼容与既有身份、私人记录及媒体映射。
 
 ## 1.5.5-rc.1
 
