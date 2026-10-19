@@ -36,7 +36,9 @@ function add_filter(...$args)
 }
 function get_option($name, $default = false)
 {
-    if ($name !== 'pagenest_companion_media') {
+    if (
+        !in_array($name, ['pagenest_companion_media', 'pagenest_companion_media_authoring'], true)
+    ) {
         throw new RuntimeException('Legacy or unrelated option read: ' . $name);
     }
     return $GLOBALS['options'][$name] ?? $default;
@@ -452,4 +454,32 @@ check(
     'Folder refresh has no anonymous endpoint',
 );
 check(pagenest_companion_media_labels()['folders'] === '文件夹', 'Chinese locale labels');
+check(!pagenest_media_authoring_enabled(), 'Native authoring is independently default closed');
+$GLOBALS['options']['pagenest_companion_media_authoring'] = '1';
+$GLOBALS['context'] = null;
+$GLOBALS['options']['pagenest_companion_media'] = $valid;
+check(
+    pagenest_media_authoring_enabled(),
+    'Native authoring requires explicit opt-in and media owner',
+);
+$native = pagenest_media_native_gallery(['ids' => [11, 12, 13, 14, 15, 16], 'layout' => 'grid']);
+check(
+    str_contains($native, 'data-attachment-id="11"') &&
+        !str_contains($native, 'data-attachment-id="12"') &&
+        !str_contains($native, 'data-attachment-id="15"'),
+    'Native selection enforces the same attachment access and MIME boundaries',
+);
+check(
+    pagenest_media_native_gallery(['ids' => array_fill(0, 101, 11)]) === '',
+    'Native gallery bound is 100 selected images',
+);
+check(
+    pagenest_media_native_gallery(['ids' => [11], 'columns' => '999']) === '',
+    'Native gallery rejects invalid dimensions',
+);
+check(pagenest_media_native_pdf(['id' => 11]) === '', 'Native PDF rejects images');
+check(
+    str_contains(pagenest_media_native_pdf(['id' => 15]), '15.pdf'),
+    'Native PDF reuses authenticated local attachment renderer',
+);
 echo "Media contracts: {$checks} checks passed.\n";

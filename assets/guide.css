@@ -1,0 +1,19 @@
+.pn-guide {
+  color: var(--pagenest-text, inherit);
+  line-height: 1.6;
+}
+.pn-guide section {
+  padding-block: 16px;
+  border-block-end: 1px solid var(--pagenest-border, #dce2dc);
+}
+.pn-guide h2 {
+  margin-block: 0 12px;
+  font-size: 1.25em;
+}
+.pn-guide a {
+  color: var(--pagenest-accent, #426354);
+  overflow-wrap: anywhere;
+}
+.pn-guide li {
+  margin-block: 8px;
+}

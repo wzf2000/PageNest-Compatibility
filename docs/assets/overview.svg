@@ -1,39 +1,30 @@
-<svg
-  xmlns="http://www.w3.org/2000/svg"
-  width="960"
-  height="440"
-  viewBox="0 0 960 440"
-  role="img"
-  aria-labelledby="title description"
->
-  <title id="title">PageNest Companion 阅读与互动</title>
-  <desc id="description">
-    后台逐篇启用，读者在权限检查后使用段落评论、章节导航和点赞。私人记录保持作者可见，展示由主题负责。
-  </desc>
-  <rect width="960" height="440" rx="24" fill="#f5f7f3" />
-  <g font-family="sans-serif" fill="#25382f">
-    <text x="40" y="54" font-size="28">PageNest Companion</text>
-    <text x="40" y="88" font-size="17">后台明确启用 · 服务端校验权限 · 保留既有记录</text>
-    <rect x="40" y="122" width="270" height="184" rx="16" fill="#e3eee5" />
-    <rect x="345" y="122" width="270" height="184" rx="16" fill="#e3eee5" />
-    <rect x="650" y="122" width="270" height="184" rx="16" fill="#e3eee5" />
-    <g font-size="23">
-      <text x="66" y="162">段落评论</text>
-      <text x="371" y="162">章节导航</text>
-      <text x="676" y="162">文章点赞</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="340" viewBox="0 0 1120 340" role="img" aria-labelledby="title desc">
+  <title id="title">PageNest 与 Companion 的职责</title>
+  <desc id="desc">主题负责外观与阅读布局；Companion 负责互动、功能配置与服务端权限；具体工具与经验政策属于独立可选实现。示意图，不是产品界面。</desc>
+  <rect width="1120" height="340" rx="12" fill="#f6f5f0"/>
+  <g font-family="system-ui, -apple-system, 'Noto Sans CJK SC', sans-serif">
+    <text x="36" y="44" fill="#60776a" font-size="13" letter-spacing="2">ONE SITE · CLEAR RESPONSIBILITIES</text>
+    <text x="36" y="84" fill="#273d35" font-size="25" font-weight="600">外观与功能分开维护，按需组合。</text>
+    <rect x="36" y="112" width="318" height="162" rx="8" fill="#fffefa" stroke="#d6ddd3"/>
+    <rect x="402" y="112" width="318" height="162" rx="8" fill="#e6ece2" stroke="#bdcdbc"/>
+    <rect x="768" y="112" width="316" height="162" rx="8" fill="#fffefa" stroke="#d6ddd3"/>
+    <g fill="#273d35" font-size="23" font-weight="600">
+      <text x="58" y="152">PageNest</text>
+      <text x="424" y="152">Companion</text>
+      <text x="790" y="152">独立可选实现</text>
     </g>
-    <g font-size="17">
-      <text x="66" y="201">登录后明确公开发布</text>
-      <text x="66" y="235">本人编辑 · 冲突保护</text>
-      <text x="66" y="269">私人记录仅作者可见</text>
-      <text x="371" y="201">同名系列与章节顺序</text>
-      <text x="371" y="235">目标文章阅读权限</text>
-      <text x="371" y="269">只转换渲染链接</text>
-      <text x="676" y="201">公开可读 · 本人禁止</text>
-      <text x="676" y="235">历史与并发请求去重</text>
-      <text x="676" y="269">可选经验事件订阅</text>
+    <g fill="#566b5d" font-size="17">
+      <text x="58" y="190">首页 · 模板 · 目录</text>
+      <text x="58" y="220">视觉 · 阅读偏好 · 布局</text>
+      <text x="424" y="190">互动 · 导览 · 搜索与媒体</text>
+      <text x="424" y="220">功能配置 · 数据与权限</text>
+      <text x="790" y="190">经验政策 · 具体工具</text>
+      <text x="790" y="220">游戏 · 其他业务服务</text>
     </g>
-    <text x="40" y="355" font-size="19">普通评论邮件通知 · 编辑器兼容 · 公式与高亮适配</text>
-    <text x="40" y="391" font-size="17">主题负责外观和动作位置；其他主题使用独立评论抽屉。</text>
+    <g stroke="#809783" stroke-width="2" fill="none">
+      <path d="M365 191h26m-6-6 6 6-6 6"/>
+      <path d="M731 191h26m-6-6 6 6-6 6"/>
+    </g>
+    <text x="36" y="309" fill="#6d7a6d" font-size="15">职责示意 · 主题可独立使用 · 可选模块须明确启用 · 不自动导入或迁移文章</text>
   </g>
 </svg>

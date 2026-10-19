@@ -21,7 +21,10 @@
     "test:performance-runner": "node tools/performance-runner/test.cjs && node tools/performance-runner/runtime.test.cjs && node tools/performance-runner/resource.test.cjs && node tools/performance-runner/sandbox.test.cjs",
     "test:performance-browser": "node tools/performance-runner/browser.test.cjs && node tools/performance-runner/resource.browser.test.cjs",
     "test:performance-kernel": "node tools/performance-runner/resource.kernel.test.cjs",
-    "test:performance-ui": "playwright test --config tests/performance-ui-playwright.config.cjs"
+    "test:performance-ui": "playwright test --config tests/performance-ui-playwright.config.cjs",
+    "test:reading": "php tests/reading-contracts.php",
+    "i18n": "python3 tools/i18n.py",
+    "i18n:check": "python3 tools/i18n.py --check"
   },
   "devDependencies": {
     "@prettier/plugin-php": "0.25.0",
@@ -32,6 +35,6 @@
     "@playwright/test": "1.55.1",
     "prismjs": "1.30.0"
   },
-  "version": "1.5.4",
+  "version": "1.6.0",
   "license": "GPL-2.0-or-later"
 }

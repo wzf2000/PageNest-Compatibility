@@ -1,0 +1,446 @@
+msgid ""
+msgstr "Project-Id-Version: PageNest Companion\nPO-Revision-Date: 2026-10-13 00:00+0000\nLast-Translator: PageNest Companion Contributors\nLanguage-Team: PageNest Companion Contributors\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\nX-Domain: pagenest-companion\nLanguage: zh_CN\nPlural-Forms: nplurals=1; plural=0;\n"
+
+msgid "Add [pagenest_my_reading] to an existing page or use the PageNest reading entry. No page or menu is created automatically. Private records require sign-in and remain in page memory."
+msgstr "可在已有页面添加 [pagenest_my_reading]，或使用 PageNest 阅读入口。不会自动创建页面或菜单；私人记录需登录查看，仅留在当前页面内存。"
+
+msgid "Add group"
+msgstr "添加分组"
+
+msgid "Add link"
+msgstr "添加链接"
+
+msgid "Add to group"
+msgstr "添加到分组"
+
+msgid "All records"
+msgstr "全部记录"
+
+msgid "Article"
+msgstr "文章"
+
+msgid "Browser storage is unavailable. Device reading is paused."
+msgstr "浏览器存储不可用，已暂停本机阅读记录。"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Choose a paragraph"
+msgstr "选择段落"
+
+msgid "Choose a replacement paragraph"
+msgstr "选择替换段落"
+
+msgid "Choose up to 100 articles."
+msgstr "最多选择 100 篇文章。"
+
+msgid "Choose up to 200 records."
+msgstr "最多选择 200 条记录。"
+
+msgid "Clear device records"
+msgstr "清除本机记录"
+
+msgid "Close"
+msgstr "关闭"
+
+msgid "Comments are temporarily unavailable. Try again later."
+msgstr "评论暂时无法读取，请稍后重试。"
+
+msgid "Complete the security check before submitting."
+msgstr "请先完成安全验证再提交。"
+
+msgid "Content guide"
+msgstr "内容导览"
+
+msgid "Could not load content. Try again."
+msgstr "内容加载失败，请重试。"
+
+msgid "Could not load records. Sign in again if your session expired."
+msgstr "记录加载失败；若登录已过期，请重新登录。"
+
+msgid "Delete"
+msgstr "删除"
+
+msgid "Delete this record permanently?"
+msgstr "永久删除这条记录？"
+
+msgid "Disabled by default. Readers separately choose whether to remember public articles on this device. Reading history is not saved to your account or synced between devices. Article IDs are sent only to check current public access."
+msgstr "默认关闭。读者需自行开启本机公开文章记录；阅读历史不保存到账户，也不跨设备同步。文章 ID 仅发送给站点以复核当前公开权限。"
+
+msgid "Edit text"
+msgstr "编辑正文"
+
+msgid "Enable My reading"
+msgstr "启用我的阅读"
+
+msgid "Enable content guide"
+msgstr "启用内容导览"
+
+msgid "Enable device memory in My reading first."
+msgstr "请先在「我的阅读」中开启本机记忆。"
+
+msgid "Export my records as JSON"
+msgstr "导出我的记录为 JSON"
+
+msgid "Find existing content"
+msgstr "查找已有内容"
+
+msgid "Group"
+msgstr "分组"
+
+msgid "Group title"
+msgstr "分组标题"
+
+msgid "Import a JSON backup"
+msgstr "导入 JSON 备份"
+
+msgid "Import keeps records private and reuses existing UUIDs. Review per-record results; it never publishes a record."
+msgstr "导入记录保持私人，并复用已有 UUID。请逐条检查结果；导入不会公开记录。"
+
+msgid "Import processed. Reload records to review the results."
+msgstr "导入已处理，请重新加载记录核对结果。"
+
+msgid "Load more"
+msgstr "继续加载"
+
+msgid "Load more comments"
+msgstr "继续加载评论"
+
+msgid "Load my records"
+msgstr "加载我的记录"
+
+msgid "Loading…"
+msgstr "正在加载…"
+
+msgid "Move down"
+msgstr "下移"
+
+msgid "Move up"
+msgstr "上移"
+
+msgid "My comments and private notes"
+msgstr "我的评论与私人笔记"
+
+msgid "My reading"
+msgstr "我的阅读"
+
+msgid "My reading requires JavaScript for device storage and private record access."
+msgstr "本机存储与私人记录访问需要启用 JavaScript。"
+
+msgid "No matching public content."
+msgstr "没有匹配的公开内容。"
+
+msgid "No records to show."
+msgstr "暂无可显示的记录。"
+
+msgid "Offer device reading history and access to the signed-in reader’s own records."
+msgstr "提供本机阅读历史，以及登录读者本人的记录入口。"
+
+msgid "On this device"
+msgstr "这台设备上"
+
+msgid "Only your own records are shown. Private text stays in page memory and is cleared when you leave or hide the page."
+msgstr "这里只显示本人的记录。私人正文仅保存在当前页面内存，离开或隐藏页面时即清除。"
+
+msgid "Open article location"
+msgstr "打开文章位置"
+
+msgid "Optional browser storage. No account history or device sync. Article IDs are checked with the site before display. Reading position does not mark an article as read."
+msgstr "可选的浏览器存储，不保存到账户或跨设备同步。显示前会向站点复核文章 ID 的公开权限。阅读位置不会把文章标为已读。"
+
+msgid "Organize links to existing public articles and pages. Source content and chapter order stay with their existing owners."
+msgstr "组织已有公开文章与页面的链接，来源正文与章节顺序仍由原有模块管理。"
+
+msgid "Page"
+msgstr "页面"
+
+msgid "Preview saved guide"
+msgstr "预览已保存的导览"
+
+msgid "Preview source"
+msgstr "预览来源"
+
+msgid "Private notes"
+msgstr "私人笔记"
+
+msgid "Public comments"
+msgstr "公开评论"
+
+msgid "Read later"
+msgstr "稍后读"
+
+msgid "Read later on this device"
+msgstr "在这台设备上稍后读"
+
+msgid "Recent reading"
+msgstr "最近阅读"
+
+msgid "Reference needs review"
+msgstr "引用待核对"
+
+msgid "Remember my reading on this device"
+msgstr "在本机记住阅读记录"
+
+msgid "Remove"
+msgstr "移除"
+
+msgid "Replace saved reference"
+msgstr "替换已保存的引用"
+
+msgid "Retry security check"
+msgstr "重新安全验证"
+
+msgid "Save text"
+msgstr "保存正文"
+
+msgid "Saved for later on this device."
+msgstr "已保存到这台设备的稍后读。"
+
+msgid "Search"
+msgstr "搜索"
+
+msgid "Search my text and references"
+msgstr "搜索我的正文与引用"
+
+msgid "Search public articles and pages"
+msgstr "搜索公开文章与页面"
+
+msgid "Search records"
+msgstr "搜索记录"
+
+msgid "Sign in to view your records"
+msgstr "登录后查看本人的记录"
+
+msgid "The guide has reached its group or link limit."
+msgstr "导览已达到分组或链接数量上限。"
+
+msgid "The original paragraph changed or is ambiguous. The saved reference is preserved; review it before choosing a replacement."
+msgstr "原段落已变化或无法唯一定位。已保留原引用，请核对后再选择替换段落。"
+
+msgid "The record changed. Reload and compare before saving. Your input is retained in this open page."
+msgstr "记录已变化，请重新加载并核对后保存。你的输入仍保留在当前打开的页面中。"
+
+msgid "This guide uses its own setting and [pagenest_content_guide] shortcode. Existing server content configuration is read-only and is not imported or overwritten."
+msgstr "此导览使用独立设置与 [pagenest_content_guide] 短代码。已有服务器内容配置保持只读，不会导入或覆盖。"
+
+msgid "Tool"
+msgstr "工具"
+
+msgid "Tools and games"
+msgstr "工具与游戏"
+
+msgid "Unavailable source #%d"
+msgstr "不可用的来源 #%d"
+
+msgid "Up to 20 groups and 200 links. Use Move up and Move down with a keyboard to change order. Save to update the public guide."
+msgstr "最多 20 个分组、200 个链接。可用键盘操作「上移」「下移」调整顺序，保存后更新公开导览。"
+
+msgid "Verification failed. Please retry the security check."
+msgstr "验证失败，请重新完成安全验证。"
+
+msgid "You cannot read this article."
+msgstr "无权读取这篇文章。"
+
+msgid "You have unsaved guide changes."
+msgstr "导览有尚未保存的修改。"
+
+msgid "Another SEO plugin owns output."
+msgstr "已有其他 SEO 插件接管输出。"
+
+msgid "Chapter navigation"
+msgstr "章节导航"
+
+msgid "Choose files from the media library to preview. Files and existing gallery mappings stay in place."
+msgstr "从媒体库选择文件以预览，文件和已有画廊映射保持原位。"
+
+msgid "Choose share image"
+msgstr "选择分享图片"
+
+msgid "Columns"
+msgstr "列数"
+
+msgid "Companion Media"
+msgstr "Companion 媒体"
+
+msgid "Configuration source"
+msgstr "配置来源"
+
+msgid "Default"
+msgstr "默认"
+
+msgid "Device memory needs reader consent. Private records require authentication."
+msgstr "本机记忆需读者同意，私人记录需身份验证。"
+
+msgid "Diagnostics are read-only and administrator-only. Configuration validity is not a live service test. No secrets, account identifiers, private record contents or filesystem paths are shown."
+msgstr "诊断仅供管理员只读查看。配置有效不代表真实服务已测试；这里不显示密钥、账号标识、私人记录正文或文件路径。"
+
+msgid "Disabled by default. New blocks select attachments directly; existing compatible blocks and imported mappings are preserved."
+msgstr "默认关闭。新区块直接选择附件，已有兼容区块和导入映射保持不变。"
+
+msgid "Disabled or unavailable"
+msgstr "已关闭或不可用"
+
+msgid "Enable native gallery and PDF authoring blocks"
+msgstr "启用原生画廊与 PDF 创作区块"
+
+msgid "Enabled or available"
+msgstr "已启用或可用"
+
+msgid "Existing object permissions and compatibility profile apply."
+msgstr "沿用现有对象权限与兼容配置。"
+
+msgid "Existing shortcode and block owners take precedence. Attachment access is checked during rendering."
+msgstr "已有短代码和区块负责人优先，渲染时检查附件访问权限。"
+
+msgid "Gallery layout"
+msgstr "画廊布局"
+
+msgid "Grid"
+msgstr "网格"
+
+msgid "Image gap"
+msgstr "图片间距"
+
+msgid "Independent of the server-owned content configuration."
+msgstr "独立于服务器内容配置。"
+
+msgid "Likes"
+msgstr "点赞"
+
+msgid "Media compatibility"
+msgstr "媒体兼容"
+
+msgid "Media display"
+msgstr "媒体展示"
+
+msgid "Module"
+msgstr "模块"
+
+msgid "Module diagnostics"
+msgstr "模块诊断"
+
+msgid "Native media authoring"
+msgstr "原生媒体创作"
+
+msgid "New blocks select existing attachments and do not migrate old blocks."
+msgstr "新区块选择已有附件，不迁移旧区块。"
+
+msgid "No file paths or content payloads are included in diagnostics."
+msgstr "诊断不包含文件路径或正文数据。"
+
+msgid "Not configured"
+msgstr "未配置"
+
+msgid "Notes"
+msgstr "说明"
+
+msgid "Only public, unprotected and discoverable entries are returned."
+msgstr "仅返回当前公开、无密码且允许发现的内容。"
+
+msgid "Open images in a viewer"
+msgstr "在查看器中打开图片"
+
+msgid "Optional service configuration"
+msgstr "可选服务配置"
+
+msgid "Overrides apply only when Companion SEO is enabled and another SEO plugin has not taken ownership. Blank fields inherit the article and site defaults."
+msgstr "仅在 Companion SEO 启用且未由其他 SEO 插件接管时使用这些覆盖值；留空则沿用文章与站点默认值。"
+
+msgid "PageNest PDF"
+msgstr "PageNest PDF"
+
+msgid "PageNest gallery"
+msgstr "PageNest 画廊"
+
+msgid "Paragraph comments"
+msgstr "段落评论"
+
+msgid "Per-article overrides inherit site defaults when blank."
+msgstr "单篇覆盖值留空时沿用站点默认值。"
+
+msgid "Play slideshow automatically"
+msgstr "自动播放幻灯片"
+
+msgid "Public search suggestions"
+msgstr "公开搜索建议"
+
+msgid "Read-only server configuration"
+msgstr "只读服务器配置"
+
+msgid "Review configuration sources, output ownership and access boundaries without changing data."
+msgstr "只读查看配置来源、输出负责人和权限边界，不改动数据。"
+
+msgid "Search and sharing metadata"
+msgstr "搜索与分享元信息"
+
+msgid "Search and sharing preview"
+msgstr "搜索与分享预览"
+
+msgid "Select PDF"
+msgstr "选择 PDF"
+
+msgid "Select or reorder images"
+msgstr "选择或调整图片顺序"
+
+msgid "Server configuration"
+msgstr "服务器配置"
+
+msgid "Server configuration and WordPress setting"
+msgstr "服务器配置与 WordPress 设置"
+
+msgid "Server content provider"
+msgstr "服务器内容展示"
+
+msgid "Share description"
+msgstr "分享描述"
+
+msgid "Share title"
+msgstr "分享标题"
+
+msgid "Sharing preview"
+msgstr "分享预览"
+
+msgid "Slide interval in milliseconds"
+msgstr "切换间隔（毫秒）"
+
+msgid "Slider"
+msgstr "轮播"
+
+msgid "Status"
+msgstr "状态"
+
+msgid "The stored gallery configuration is invalid. Ask your migration administrator to repair it before changing the toggle."
+msgstr "已保存的画廊配置无效，请管理员修复后再更改开关。"
+
+msgid "This is a configuration check only. It does not send mail, authenticate with a provider, or test delivery."
+msgstr "这里只检查配置，不发送邮件、不连接供应商验证，也不测试投递。"
+
+msgid "Tool registry"
+msgstr "工具注册表"
+
+msgid "Tools keep their own access controls; this page does not run or repair them."
+msgstr "工具沿用自身访问控制；此页不运行或修复工具。"
+
+msgid "Use default image"
+msgstr "使用默认图片"
+
+msgid "Viewer height"
+msgstr "查看器高度"
+
+msgid "Viewer width"
+msgstr "查看器宽度"
+
+msgid "WordPress setting"
+msgstr "WordPress 设置"
+
+msgid "WordPress setting or defaults"
+msgstr "WordPress 设置或默认值"
+
+msgid "Preview uses saved article defaults and your current overrides. Save the article to apply. Draft images can be selected here; only publicly readable images appear in public sharing metadata."
+msgstr "预览使用已保存的文章默认值与当前覆盖值，保存文章后生效。可选择草稿附件；公开分享信息仅使用当前公开可读的图片。"
+
+msgid "Stored on this device only. No device sync."
+msgstr "仅存本机，不跨设备同步。"
+
+msgid "How this works"
+msgstr "使用说明"

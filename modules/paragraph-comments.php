@@ -701,8 +701,227 @@ function pagenest_pc_comment_projection($data, $note)
     return $out;
 }
 
+/** Serialized metadata is only a database prefilter; decoded values and permissions are checked below. */
+function pagenest_pc_candidates(int $post_id = 0, bool $public = false): array
+{
+    $key = pagenest_companion_config('paragraphs', 'data_meta');
+    $query = ['relation' => 'AND'];
+    if ($post_id) {
+        $query[] = [
+            'relation' => 'OR',
+            ['key' => $key, 'value' => 's:7:"post_id";i:' . $post_id . ';', 'compare' => 'LIKE'],
+            [
+                'key' => $key,
+                'value' => 's:7:"post_id";s:' . strlen((string) $post_id) . ':"' . $post_id . '";',
+                'compare' => 'LIKE',
+            ],
+        ];
+    }
+    if ($public) {
+        $query[] = [
+            'key' => $key,
+            'value' => 's:10:"visibility";s:6:"public";',
+            'compare' => 'LIKE',
+        ];
+    }
+    return count($query) > 1 ? $query : [];
+}
+add_filter(
+    'posts_where',
+    static function ($where, $query) {
+        global $wpdb;
+        $before = absint($query->get('pagenest_notes_before'));
+        return $before ? $where . $wpdb->prepare(" AND {$wpdb->posts}.ID < %d", $before) : $where;
+    },
+    10,
+    2,
+);
+/** Public cursors only contain a public record ID, never a private candidate ID or count. */
+function pagenest_pc_public_page(array $args, int $post_id)
+{
+    $items = [];
+    $scan_before = $args['pagenest_notes_before'];
+    for ($batch = 0; $batch < 5; $batch++) {
+        $args['posts_per_page'] = 80;
+        $args['pagenest_notes_before'] = $scan_before;
+        $notes = get_posts($args);
+        foreach ($notes as $note) {
+            $scan_before = (int) $note->ID;
+            $data = pagenest_pc_data($note);
+            if (
+                is_wp_error($data) ||
+                (int) $data['post_id'] !== $post_id ||
+                $data['visibility'] !== 'public' ||
+                !pagenest_pc_readable($data['post_id'])
+            ) {
+                continue;
+            }
+            $items[] = pagenest_pc_comment_projection($data, $note);
+            if (count($items) > 40) {
+                return [
+                    'items' => array_slice($items, 0, 40),
+                    'has_more' => true,
+                    'next_cursor' => $items[39]['id'],
+                ];
+            }
+        }
+        if (count($notes) < 80) {
+            return ['items' => $items, 'has_more' => false, 'next_cursor' => null];
+        }
+    }
+    return pagenest_pc_error(
+        'query_limited',
+        __('Comments are temporarily unavailable. Try again later.', 'pagenest-companion'),
+        503,
+    );
+}
+function pagenest_pc_page($request, bool $own)
+{
+    $post_id = absint($request['post']);
+    if ((!$own || $post_id) && !pagenest_pc_readable($post_id)) {
+        return pagenest_pc_error(
+            'denied',
+            __('You cannot read this article.', 'pagenest-companion'),
+            403,
+        );
+    }
+    $search = is_string($request['q']) ? mb_substr(trim($request['q']), 0, 100) : '';
+    $kind = in_array($request['kind'], ['public', 'author_only', 'needs_review'], true)
+        ? $request['kind']
+        : 'all';
+    $args = [
+        'post_type' => pagenest_companion_config('paragraphs', 'post_type'),
+        'post_status' => 'private',
+        'posts_per_page' => 41,
+        'orderby' => 'ID',
+        'order' => 'DESC',
+        'no_found_rows' => true,
+        'pagenest_notes_before' => absint($request['cursor']),
+        'suppress_filters' => false,
+        'meta_query' => pagenest_pc_candidates($post_id, !$own),
+    ];
+    if ($own) {
+        $args['author'] = get_current_user_id();
+    }
+    if ($search !== '') {
+        $args['meta_query'][] = [
+            'key' => pagenest_companion_config('paragraphs', 'data_meta'),
+            'value' => $search,
+            'compare' => 'LIKE',
+        ];
+    }
+    if (!$own) {
+        return pagenest_pc_public_page($args, $post_id);
+    }
+    $notes = get_posts($args);
+    $has_more = count($notes) > 40;
+    $items = [];
+    $last = null;
+    foreach (array_slice($notes, 0, 40) as $note) {
+        $last = (int) $note->ID;
+        if ($own && !pagenest_pc_own($note)) {
+            continue;
+        }
+        $data = pagenest_pc_data($note);
+        if (
+            is_wp_error($data) ||
+            ($post_id && (int) $data['post_id'] !== $post_id) ||
+            !pagenest_pc_readable($data['post_id']) ||
+            (!$own && $data['visibility'] !== 'public') ||
+            ($search !== '' &&
+                mb_stripos($data['text'] . "\n" . $data['quote'], $search) === false) ||
+            ($kind === 'needs_review' && $data['association'] !== 'needs_review') ||
+            (in_array($kind, ['public', 'author_only'], true) && $data['visibility'] !== $kind)
+        ) {
+            continue;
+        }
+        if ($own) {
+            $post = get_post($data['post_id']);
+            $data['post_title'] = wp_strip_all_tags($post->post_title);
+            $data['post_url'] = get_permalink($post);
+            // Only an attached, unique live block gets a paragraph location.
+            $data['location_url'] =
+                $data['association'] === 'attached'
+                    ? get_permalink($post) . '#' . rawurlencode($data['block_id'])
+                    : get_permalink($post);
+            $items[] = $data;
+        } else {
+            $items[] = pagenest_pc_comment_projection($data, $note);
+        }
+    }
+    return ['items' => $items, 'next_cursor' => $has_more ? $last : null, 'has_more' => $has_more];
+}
+
 function pagenest_pc_register_routes($namespace)
 {
+    register_rest_route($namespace, '/comments-page', [
+        'methods' => 'GET',
+        'permission_callback' => '__return_true',
+        'callback' => static fn($request) => pagenest_pc_page($request, false),
+    ]);
+    register_rest_route($namespace, '/my-records/validate', [
+        'methods' => 'POST',
+        'permission_callback' => 'pagenest_pc_permission',
+        'callback' => static function ($request) {
+            $input = $request->get_json_params();
+            $ids = $input['ids'] ?? null;
+            if (!is_array($ids) || count($ids) > 200) {
+                return pagenest_pc_error(
+                    'invalid',
+                    __('Choose up to 200 records.', 'pagenest-companion'),
+                );
+            }
+            foreach ($ids as $id) {
+                $note = get_post(absint($id));
+                if (!pagenest_pc_own($note)) {
+                    return ['valid' => false];
+                }
+                $data = pagenest_pc_data($note);
+                if (is_wp_error($data) || !pagenest_pc_readable($data['post_id'])) {
+                    return ['valid' => false];
+                }
+            }
+            return ['valid' => true];
+        },
+    ]);
+    register_rest_route($namespace, '/my-records', [
+        'methods' => 'GET',
+        'permission_callback' => 'pagenest_pc_permission',
+        'callback' => static fn($request) => pagenest_pc_page($request, true),
+    ]);
+    register_rest_route($namespace, '/blocks', [
+        'methods' => 'GET',
+        'permission_callback' => 'pagenest_pc_permission',
+        'callback' => static function ($request) {
+            $id = absint($request['post']);
+            if (!pagenest_pc_readable($id)) {
+                return pagenest_pc_error(
+                    'denied',
+                    __('You cannot read this article.', 'pagenest-companion'),
+                    403,
+                );
+            }
+            $registry = get_post_meta(
+                $id,
+                pagenest_companion_config('paragraphs', 'registry_meta'),
+                true,
+            );
+            $cursor = absint($request['cursor']);
+            $items = [];
+            // Registry remains authoritative and read-only. Duplicate IDs are never offered.
+            $registry = is_array($registry) ? $registry : [];
+            $counts = array_count_values(array_column($registry, 'id'));
+            foreach (array_slice($registry, $cursor, 40) as $block) {
+                if (!empty($block['active']) && ($counts[$block['id']] ?? 0) === 1) {
+                    $items[] = ['id' => $block['id'], 'text' => mb_substr($block['text'], 0, 300)];
+                }
+            }
+            return [
+                'items' => $items,
+                'next_cursor' => count($registry) > $cursor + 40 ? $cursor + 40 : null,
+            ];
+        },
+    ]);
     register_rest_route($namespace, '/comments', [
         [
             'methods' => 'GET',
@@ -718,6 +937,7 @@ function pagenest_pc_register_routes($namespace)
                         'post_type' => pagenest_companion_config('paragraphs', 'post_type'),
                         'post_status' => 'private',
                         'posts_per_page' => -1,
+                        'meta_query' => pagenest_pc_candidates($post_id),
                         'orderby' => 'ID',
                         'order' => 'ASC',
                     ])
@@ -777,6 +997,7 @@ function pagenest_pc_register_routes($namespace)
                     'post_type' => pagenest_companion_config('paragraphs', 'post_type'),
                     'post_status' => 'private',
                     'posts_per_page' => -1,
+                    'meta_query' => pagenest_pc_candidates($post_id),
                 ])
                 as $note
             ) {
@@ -819,6 +1040,7 @@ function pagenest_pc_register_routes($namespace)
                         'post_status' => 'private',
                         'author' => get_current_user_id(),
                         'posts_per_page' => -1,
+                        'meta_query' => pagenest_pc_candidates($post_id),
                     ])
                     as $note
                 ) {
@@ -993,6 +1215,7 @@ add_action(
             null,
         );
         wp_localize_script('pagenest-paragraph-comments', 'PageNestComments', [
+            'moreLabel' => __('Load more comments', 'pagenest-companion'),
             'post' => $id,
             'api' => rest_url(pagenest_companion_config('paragraphs', 'rest_namespace') . '/'),
             'nonce' => is_user_logged_in() ? wp_create_nonce('wp_rest') : '',

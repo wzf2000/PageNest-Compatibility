@@ -13,6 +13,7 @@
   });
   const state = {
     comments: [],
+    nextCursor: null,
     drafts: new Map(),
     active: null,
     edit: null,
@@ -238,9 +239,13 @@
       }
       const count = state.comments.filter((c) => c.block_id === id).length;
       bubble.replaceChildren(icon('bubble'));
-      if (count) bubble.append(el('span', '', String(count)));
+      if (count || state.nextCursor)
+        bubble.append(el('span', '', count ? String(count) + (state.nextCursor ? '+' : '') : '…'));
       bubble.classList.toggle('pagenest-paragraph-has-comments', count > 0);
-      bubble.setAttribute('aria-label', count ? `此段有 ${count} 条公开评论` : '评论此段');
+      bubble.setAttribute(
+        'aria-label',
+        count ? `此段有 ${count}${state.nextCursor ? '+' : ''} 条公开评论` : '评论此段',
+      );
       node.classList.toggle('pagenest-paragraph-selected', state.open && state.active === id);
     });
   }
@@ -332,7 +337,7 @@
     const comments = state.active
       ? state.comments.filter((c) => c.block_id === state.active)
       : state.comments;
-    title.textContent = `评论 ${comments.length}`;
+    title.textContent = `评论 ${comments.length}${state.nextCursor ? '+' : ''}`;
     back.hidden = !state.active;
     const node = blocks.get(state.active);
     quote.textContent = state.active
@@ -345,7 +350,18 @@
     content.replaceChildren();
     if (!comments.length) {
       const empty = el('div', 'pagenest-paragraph-empty');
-      empty.append(icon('bubble'), el('p', '', state.loaded ? '还没有评论' : '正在加载评论…'));
+      empty.append(
+        icon('bubble'),
+        el(
+          'p',
+          '',
+          state.loaded
+            ? state.nextCursor
+              ? cfg.moreLabel || 'Load more comments'
+              : '还没有评论'
+            : '正在加载评论…',
+        ),
+      );
       if (state.loaded)
         empty.append(
           el('span', '', state.active ? '说说你对这一段的看法' : '从正文中选一段，开始讨论'),
@@ -367,6 +383,14 @@
         content.append(commentCard(comment));
       });
     }
+    if (state.nextCursor)
+      content.append(
+        button(
+          cfg.moreLabel || 'Load more comments',
+          () => refreshComments(true),
+          'pagenest-paragraph-load-more',
+        ),
+      );
     if (state.active && node)
       content.append(
         button('回到原文', () => returnToBlock(state.active), 'pagenest-paragraph-return'),
@@ -404,6 +428,7 @@
     avatar.replaceChildren();
     state.pending = false;
     state.comments = [];
+    state.nextCursor = null;
     state.drafts.clear();
     state.edit = null;
     input.value = '';
@@ -480,15 +505,19 @@
     });
     return refresh.promise;
   }
-  async function refreshComments() {
+  async function refreshComments(append = false) {
     const generation = state.generation,
       sequence = ++state.sequence;
     try {
-      const data = await api(`comments?post=${encodeURIComponent(cfg.post)}`);
+      const page = await api(
+        `comments-page?post=${encodeURIComponent(cfg.post)}${append && state.nextCursor ? `&cursor=${state.nextCursor}` : ''}`,
+      );
+      const data = append ? [...state.comments, ...page.items] : page.items;
       if (generation !== state.generation || sequence !== state.sequence) return;
       if (!Array.isArray(data)) throw Error('评论列表格式错误。');
-      const changed = !state.loaded || !sameComments(data);
-      state.comments = data;
+      const changed = !state.loaded || state.nextCursor !== page.next_cursor || !sameComments(data);
+      state.comments = [...new Map(data.map((item) => [item.id, item])).values()];
+      state.nextCursor = page.next_cursor;
       state.loaded = true;
       state.refreshedAt = Date.now();
       setStatus();

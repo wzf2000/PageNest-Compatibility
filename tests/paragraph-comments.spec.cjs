@@ -13,7 +13,9 @@ for (const width of [1440, 390]) {
         ),
       });
     });
-    await page.route('**/api/comments?post=10', (route) => route.fulfill({ json: [] }));
+    await page.route('**/api/comments-page?post=10', (route) =>
+      route.fulfill({ json: { items: [], next_cursor: null } }),
+    );
     await page.goto('/paragraph.html');
     const code = page.locator('pre[data-pagenest-block="b-code"]');
     const bubble = code.locator(':scope > .pagenest-paragraph-bubble');
@@ -40,23 +42,26 @@ for (const width of [1440, 390]) {
     const errors = [];
     page.on('pageerror', (error) => errors.push(error.message));
     let reads = 0;
-    await page.route('**/api/comments?post=10', async (route) => {
+    await page.route('**/api/comments-page?post=10', async (route) => {
       reads++;
       await route.fulfill({
-        json: [
-          {
-            id: 9,
-            post_id: 10,
-            block_id: 'b-neutral',
-            quote: 'A stable synthetic paragraph.',
-            text: 'Public synthetic comment',
-            author_name: 'Synthetic reader',
-            author_avatar_url: '',
-            can_edit: false,
-            association: 'attached',
-            created_at: '2026-01-01T00:00:00Z',
-          },
-        ],
+        json: {
+          items: [
+            {
+              id: 9,
+              post_id: 10,
+              block_id: 'b-neutral',
+              quote: 'A stable synthetic paragraph.',
+              text: 'Public synthetic comment',
+              author_name: 'Synthetic reader',
+              author_avatar_url: '',
+              can_edit: false,
+              association: 'attached',
+              created_at: '2026-01-01T00:00:00Z',
+            },
+          ],
+          next_cursor: null,
+        },
       });
     });
     await page.goto('/paragraph.html');
@@ -97,7 +102,8 @@ test('explicit publish and auth loss clear drafts', async ({ page }) => {
   });
   let created;
   await page.route('**/api/comments*', async (route) => {
-    if (route.request().method() === 'GET') return route.fulfill({ json: [] });
+    if (route.request().method() === 'GET')
+      return route.fulfill({ json: { items: [], next_cursor: null } });
     created = route.request().postDataJSON();
     await route.fulfill({
       json: {
@@ -130,7 +136,9 @@ test('explicit publish and auth loss clear drafts', async ({ page }) => {
 for (const width of [1440, 390]) {
   test(`return to a teaching paragraph reveals it before focus at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
-    await page.route('**/api/comments*', (route) => route.fulfill({ json: [] }));
+    await page.route('**/api/comments*', (route) =>
+      route.fulfill({ json: { items: [], next_cursor: null } }),
+    );
     await page.goto('/paragraph.html');
     await page.locator('.pagenest-paragraph-bubble').click();
     await expect(page.getByRole('dialog')).toBeVisible();
@@ -156,3 +164,16 @@ for (const width of [1440, 390]) {
     await page.screenshot({ path: `.runtime/teaching-paragraph-${width}.png` });
   });
 }
+
+test('an unloaded comment page does not claim an empty paragraph', async ({ page }) => {
+  await page.route('**/api/comments-page?*', (route) => {
+    const cursor = new URL(route.request().url()).searchParams.get('cursor');
+    return route.fulfill({ json: { items: [], next_cursor: cursor ? null : 77 } });
+  });
+  await page.goto('/paragraph.html');
+  await page.locator('.pagenest-paragraph-bubble').click();
+  await expect(page.locator('.pagenest-paragraph-empty')).toContainText('Load more comments');
+  await expect(page.locator('.pagenest-paragraph-empty')).not.toContainText('还没有评论');
+  await page.getByRole('button', { name: 'Load more comments', exact: true }).click();
+  await expect(page.locator('.pagenest-paragraph-empty')).toContainText('还没有评论');
+});

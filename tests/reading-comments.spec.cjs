@@ -55,7 +55,7 @@ async function openFixture(page, width, height = 900) {
   await page.route('**/api/comments*', async (route) => {
     expect(route.request().method()).toBe('GET');
     reads++;
-    await route.fulfill({ json: [] });
+    await route.fulfill({ json: { items: [], next_cursor: null } });
   });
   await page.goto('/reading.html');
   await expect(page.locator('.pagenest-toc')).toBeVisible();

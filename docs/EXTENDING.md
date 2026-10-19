@@ -204,3 +204,24 @@ GitHub 和 Google 使用每次授权独立的 S256 PKCE；Google 同时绑定 no
 `source` 可省略；来源附件与 `attachment_ids` 取并集、去重，并按当前阅读权限过滤。标识必须为正整数，布尔值不接受字符串。`layout` 支持 `slider/grid/masonry`；`orderby` 支持 `random/ids/date/title/id`；`link` 支持 `file/post/none`。旧短代码中的已支持展示参数覆盖映射中的对应默认值。PDF 仅接受已知本地 PDF 附件，不请求任意远端 URL；主题并非依赖项。
 
 独立 PDF.js 6.4.299 legacy 查看器位于 `assets/vendor/pdfjs-6.4.299`。维护者从官方发行下载 ZIP，以 `python3 tools/vendor-pdfjs.py /path/to/archive.zip` 验证固定 SHA256 并导入；保留所有许可证、字体与解码资源，排除示例 PDF 和 source maps。六处打包层面的等值 Unicode 转义记录在 `NOTICE.md`，工具校验解析后的字符串值不变。模块文件与引用统一采用 `.js` 扩展名，避免服务器缺少 `.mjs` MIME 映射时加载失败，ES 模块语义保持。`npm run test:media` 检查 PHP 边界及完整 vendor 文件哈希和安装白名单；vendor 不参与格式化。
+
+## Bounded reading queries
+
+`/{paragraph namespace}/comments-page?post=ID&cursor=ID` returns `items`, `has_more`, and
+`next_cursor`. Only decoded public records produce public cursors. Each request scans at most 400
+metadata candidates; exhausted budgets return a generic 503 rather than a private cursor or false end.
+The existing array routes remain compatible and now use chapter metadata as a database prefilter.
+Serialized metadata matches never replace decoded post identity, visibility, ownership or read checks.
+
+Authenticated `my-records` supports `post`, `q`, `kind` (`all`, `public`, `author_only`, `needs_review`)
+and an exclusive ID `cursor`. It scans 40 owned candidates and may return an empty visible page with a
+next cursor. Clients must keep paginating explicitly. `blocks` offers read-only replacement paragraph
+choices; `my-records/validate` checks up to 200 owned IDs without returning private text. Writes reuse
+`notes/{id}` with its opaque version; no load-time migration, cron or relationship rewrite occurs.
+
+`POST /pagenest/v1/reading/resolve` accepts at most 100 IDs and returns only currently public,
+unprotected, discoverable entries and reliable author heading IDs. It saves no reading history.
+`pagenest_companion_reading` is the string `1` only when enabled. The independent guide option is
+`pagenest_companion_guide` (`enabled`, `groups: [{title, items: [post IDs]}]`); it never overrides the
+server-owned content provider. All new UI messages use `pagenest-companion` gettext, with bundled
+Simplified Chinese and deterministic `npm run i18n` / `npm run i18n:check` catalogs.

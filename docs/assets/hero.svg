@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="280" viewBox="0 0 1200 280" role="img" aria-labelledby="title desc">
+  <title id="title">PageNest Companion</title>
+  <desc id="desc">连接阅读、互动与内容。暖白与绿灰的产品标题插画，右侧抽象展开书页，不是产品界面截图。</desc>
+  <rect width="1200" height="280" rx="12" fill="#f6f5f0"/>
+  <path d="M48 44h44" stroke="#547565" stroke-width="3"/>
+  <g font-family="system-ui, -apple-system, 'Noto Sans CJK SC', sans-serif">
+    <text x="48" y="83" fill="#577060" font-size="13" letter-spacing="2.5">READ · CONNECT · CONTINUE</text>
+    <text x="46" y="150" fill="#273d35" font-size="47" font-weight="600" letter-spacing="-1">PageNest Companion</text>
+    <text x="48" y="198" fill="#5b6b62" font-size="23">连接阅读、互动与内容</text>
+    <text x="48" y="243" fill="#788178" font-size="13" letter-spacing="1">WORDPRESS · INDEPENDENT &amp; OPEN SOURCE</text>
+  </g>
+  <g transform="translate(865 52)">
+    <path d="M0 14q62-27 114 2v165q-51-28-114-2z" fill="#e4e8de" stroke="#bccbbd"/>
+    <path d="M114 16q52-29 114-2v165q-63-26-114 2z" fill="#fffdf8" stroke="#bccbbd"/>
+    <path d="M114 16v165" stroke="#738d79" stroke-width="2"/>
+    <g stroke="#a2b3a2" stroke-width="3" stroke-linecap="round">
+      <path d="m22 48 65 0m-65 21h65m-65 21h65m-65 21h42"/>
+      <path d="m140 48 64 0m-64 21h64m-64 21h64m-64 21h43"/>
+    </g>
+    <path d="M171 2v48l13-10 13 10V2" fill="#547565"/>
+  </g>
+</svg>

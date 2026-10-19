@@ -57,7 +57,7 @@ def source_files():
         names.add("CONTRIBUTING.md")
     names |= {
         p.relative_to(ROOT).as_posix()
-        for directory in ["docs", "assets", "modules"]
+        for directory in ["docs", "assets", "modules", "languages"]
         for p in (ROOT / directory).rglob("*")
         if p.is_file() and installation_name(p.relative_to(ROOT).as_posix())
     }
@@ -69,6 +69,9 @@ def source_files():
 
 def installation_name(name):
     path = Path(name)
+    # Repository presentation images are not runtime assets.
+    if path.parts[:2] == ("docs", "assets"):
+        return False
     if path.parts[:3] == ("modules", "tools", "assets"):
         return name == "modules/tools/assets/classic-preview.js"
     if path.parts[:2] == ("assets", "vendor"):
@@ -106,6 +109,7 @@ def installation_name(name):
             path.parts[0] == "assets"
             and path.suffix in {".php", ".js", ".css", ".json", ".svg", ".png"}
         )
+        or (path.parts[0] == "languages" and path.suffix in {".po", ".pot", ".mo"})
         or (path.parts[0] == "docs" and path.suffix in {".md", ".svg"})
     )
 
