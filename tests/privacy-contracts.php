@@ -193,7 +193,8 @@ check(
 $raw = '<script>literal</script> &lt; & \ path%20name';
 $datum = pagenest_privacy_item('notes', 1, ['Raw' => $raw])['data'][0]['value'];
 check(
-    html_entity_decode($datum, ENT_QUOTES | ENT_HTML5, 'UTF-8') === $raw,
+    html_entity_decode(stripslashes(stripslashes($datum)), ENT_QUOTES | ENT_HTML5, 'UTF-8') ===
+        $raw,
     'Core HTML-safe export value decodes exactly once to the original literal text',
 );
 $GLOBALS['pagenest_companion_profile_invalid'] = true;

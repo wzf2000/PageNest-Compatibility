@@ -14,11 +14,13 @@
     let requestNumber = 0;
     const update = () => {
       root.querySelector('[data-pn-seo-preview-title]').textContent =
-        title.value || title.placeholder;
+        title.value.trim() || title.placeholder;
       root.querySelector('[data-pn-seo-preview-description]').textContent =
-        description.value || description.placeholder;
+        description.value.trim() || description.placeholder;
       if (missingDescription)
-        missingDescription.hidden = Boolean((description.value || description.placeholder).trim());
+        missingDescription.hidden = Boolean(
+          (description.value.trim() || description.placeholder).trim(),
+        );
       if (inheritedDescription)
         inheritedDescription.hidden =
           Boolean(description.value.trim()) || root.dataset.pnSeoSiteDescription !== '1';

@@ -18,11 +18,11 @@ function pagenest_privacy_item(string $group, int $id, array $values): array
     foreach ($values as $name => $value) {
         $data[] = [
             'name' => $name,
-            'value' => htmlspecialchars(
-                (string) $value,
-                ENT_QUOTES | ENT_SUBSTITUTE,
-                'UTF-8',
-                true,
+            // Core merges export pages through unslashed post metadata; keep literal slashes as text entities.
+            'value' => str_replace(
+                '\\',
+                '&#92;',
+                htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8', true),
             ),
         ];
     }
@@ -60,13 +60,31 @@ function pagenest_privacy_export_notes(string $email, int $page = 1)
         'no_found_rows' => true,
         'ignore_sticky_posts' => true,
     ]);
+    global $wpdb;
+    if ($wpdb->last_error !== '') {
+        return new WP_Error(
+            'pagenest_privacy_storage',
+            __(
+                'Companion records could not be read. Retry the export after storage is available.',
+                'pagenest-companion',
+            ),
+        );
+    }
     $data = [];
     foreach (array_slice($query->posts, 0, 20) as $note) {
         if ((int) $note->post_author !== $user || $note->post_type !== $config['post_type']) {
             continue;
         }
         $stored = get_post_meta($note->ID, $config['data_meta'], true);
-        $stored = is_array($stored) ? $stored : [];
+        if (!is_array($stored)) {
+            return new WP_Error(
+                'pagenest_privacy_storage',
+                __(
+                    'Companion records could not be read. Retry the export after storage is available.',
+                    'pagenest-companion',
+                ),
+            );
+        }
         $values = [
             __('Record ID', 'pagenest-companion') => $note->ID,
             __('Visibility', 'pagenest-companion') =>
@@ -154,6 +172,15 @@ function pagenest_privacy_export_social(string $email, int $page = 1)
         return ['data' => [], 'done' => true];
     }
     $bindings = get_user_meta($user, '_pagenest_social_bindings', true);
+    if ($bindings !== '' && !is_array($bindings)) {
+        return new WP_Error(
+            'pagenest_privacy_storage',
+            __(
+                'Companion records could not be read. Retry the export after storage is available.',
+                'pagenest-companion',
+            ),
+        );
+    }
     $bindings = is_array($bindings) ? $bindings : [];
     ksort($bindings, SORT_STRING);
     $offset = (max(1, $page) - 1) * 20;

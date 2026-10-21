@@ -49,6 +49,10 @@ function pagenest_media_quality_save(int $id, array $input): string
                 $id,
             ),
         );
+        if ($wpdb->last_error !== '') {
+            $wpdb->query('ROLLBACK');
+            return 'failed';
+        }
         clean_post_cache($id);
         $result = pagenest_media_quality_update($id, $input);
         if ($wpdb->query($result === 'saved' ? 'COMMIT' : 'ROLLBACK') === false) {
@@ -90,7 +94,11 @@ function pagenest_media_quality_update(int $id, array $input): string
             : sanitize_text_field($input['alt']);
     if ($caption !== $post->post_excerpt) {
         $saved = wp_update_post(wp_slash(['ID' => $id, 'post_excerpt' => $caption]), true);
-        if (is_wp_error($saved) || (int) $saved !== $id) {
+        if (
+            is_wp_error($saved) ||
+            (int) $saved !== $id ||
+            get_post($id)->post_excerpt !== $caption
+        ) {
             return 'failed';
         }
     }

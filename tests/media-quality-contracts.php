@@ -4,6 +4,7 @@ define('ABSPATH', __DIR__);
 $hooks = $meta = $candidates = $blocks = [];
 $writes = 0;
 $authorized = true;
+$full_scope = true;
 $post = (object) [
     'ID' => 4,
     'post_type' => 'attachment',
@@ -25,6 +26,15 @@ function get_post($id)
 }
 function current_user_can($cap, $id = 0)
 {
+    if (
+        in_array(
+            $cap,
+            ['read_private_posts', 'read_private_pages', 'edit_others_posts', 'edit_others_pages'],
+            true,
+        )
+    ) {
+        return $GLOBALS['full_scope'];
+    }
     return $GLOBALS['authorized'] && $id !== 88;
 }
 function absint($value)
@@ -34,6 +44,10 @@ function absint($value)
 function wp_verify_nonce($value, $action)
 {
     return $value === 'valid';
+}
+function get_current_user_id()
+{
+    return 7;
 }
 function wp_attachment_is_image($id)
 {
@@ -112,12 +126,20 @@ class WP_Query
         ) {
             throw new RuntimeException('Unbounded reference query');
         }
-        $this->posts = $GLOBALS['candidates'];
+        $this->posts = isset($args['author'])
+            ? array_values(
+                array_filter(
+                    $GLOBALS['candidates'],
+                    static fn($post) => $post->post_author === $args['author'],
+                ),
+            )
+            : $GLOBALS['candidates'];
     }
 }
 $wpdb = new class {
     public $posts = 'posts';
     public $postmeta = 'postmeta';
+    public $last_error = '';
     public function get_results($sql)
     {
         return [];
@@ -199,6 +221,15 @@ check(
         array_column($result['matches'], 'ID') === [9],
     'References exclude unreadable and oversized content, include resized attachment URL',
 );
+$full_scope = false;
+$candidates = [(object) ['ID' => 9, 'post_author' => 7, 'post_content' => '/uploads/image.jpg']];
+$own = pagenest_media_quality_reference_page(4, 2);
+$candidates[] = (object) ['ID' => 88, 'post_author' => 8, 'post_content' => '/uploads/image.jpg'];
+check(
+    $own === pagenest_media_quality_reference_page(4, 2) && $own['scope'] === 'own',
+    'Other authors private records cannot affect restricted reference counts or pagination',
+);
+$full_scope = true;
 $post->post_excerpt = '<em>Existing formatted caption</em>';
 $input = [
     'alt' => 'only alt',
