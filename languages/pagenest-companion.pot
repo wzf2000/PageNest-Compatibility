@@ -2,6 +2,10 @@
 msgid ""
 msgstr "Project-Id-Version: PageNest Companion\nPO-Revision-Date: 2026-10-13 00:00+0000\nLast-Translator: PageNest Companion Contributors\nLanguage-Team: PageNest Companion Contributors\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\nX-Domain: pagenest-companion\n"
 
+#: modules/privacy.php:178
+msgid "Account subject SHA-256"
+msgstr ""
+
 #: modules/reading/bootstrap.php:48
 msgid "Add [pagenest_my_reading] to an existing page or use the PageNest reading entry. No page or menu is created automatically. Private records require sign-in and remain in page memory."
 msgstr ""
@@ -22,7 +26,7 @@ msgstr ""
 msgid "Administrator access required."
 msgstr ""
 
-#: modules/media/quality.php:365
+#: modules/media/quality.php:386
 msgid "All images"
 msgstr ""
 
@@ -34,7 +38,7 @@ msgstr ""
 msgid "All statuses"
 msgstr ""
 
-#: modules/media/quality.php:505
+#: modules/media/quality.php:532
 msgid "Alternative text"
 msgstr ""
 
@@ -46,11 +50,11 @@ msgstr ""
 msgid "Article"
 msgstr ""
 
-#: modules/media/quality.php:349
+#: modules/media/quality.php:370
 msgid "Attachment text could not be saved."
 msgstr ""
 
-#: modules/media/quality.php:343
+#: modules/media/quality.php:364
 msgid "Attachment text saved."
 msgstr ""
 
@@ -62,7 +66,7 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
-#: modules/media/quality.php:515
+#: modules/media/quality.php:542
 msgid "Caption"
 msgstr ""
 
@@ -70,11 +74,11 @@ msgstr ""
 msgid "Chapter navigation"
 msgstr ""
 
-#: modules/media/quality.php:427
+#: modules/media/quality.php:454
 msgid "Check next page"
 msgstr ""
 
-#: modules/media/quality.php:480
+#: modules/media/quality.php:507
 msgid "Check saved content references"
 msgstr ""
 
@@ -126,6 +130,26 @@ msgstr ""
 msgid "Companion Media"
 msgstr ""
 
+#: modules/privacy.php:108 modules/privacy.php:45
+msgid "Companion configuration is unavailable. Restore the valid configuration before exporting."
+msgstr ""
+
+#: modules/privacy.php:14 modules/privacy.php:190
+msgid "Companion likes"
+msgstr ""
+
+#: modules/privacy.php:13 modules/privacy.php:189
+msgid "Companion paragraph comments and private notes"
+msgstr ""
+
+#: modules/privacy.php:127
+msgid "Companion records could not be read. Retry the export after storage is available."
+msgstr ""
+
+#: modules/privacy.php:15 modules/privacy.php:191
+msgid "Companion social connections"
+msgstr ""
+
 #: modules/services/turnstile.php:157
 msgid "Complete the security check before submitting."
 msgstr ""
@@ -144,6 +168,10 @@ msgstr ""
 
 #: modules/reading/bootstrap.php:225
 msgid "Could not load records. Sign in again if your session expired."
+msgstr ""
+
+#: modules/privacy.php:83
+msgid "Created at"
 msgstr ""
 
 #: modules/diagnostics.php:7
@@ -176,6 +204,10 @@ msgstr ""
 
 #: modules/diagnostics.php:186 modules/diagnostics.php:234
 msgid "Disabled or unavailable"
+msgstr ""
+
+#: modules/privacy.php:79
+msgid "Document identity"
 msgstr ""
 
 #: modules/reading/bootstrap.php:229
@@ -218,7 +250,7 @@ msgstr ""
 msgid "Export safe JSON"
 msgstr ""
 
-#: modules/diagnostics.php:199 modules/media/quality.php:381
+#: modules/diagnostics.php:199 modules/media/quality.php:402
 msgid "Filter"
 msgstr ""
 
@@ -279,6 +311,10 @@ msgstr ""
 msgid "Independent of the server-owned content configuration."
 msgstr ""
 
+#: modules/privacy.php:145
+msgid "Liked at"
+msgstr ""
+
 #: modules/diagnostics.php:14
 msgid "Likes"
 msgstr ""
@@ -307,27 +343,27 @@ msgstr ""
 msgid "Media display"
 msgstr ""
 
-#: modules/media/quality.php:335 modules/media/quality.php:569 modules/media/quality.php:570
+#: modules/media/quality.php:356 modules/media/quality.php:596 modules/media/quality.php:597
 msgid "Media quality"
 msgstr ""
 
-#: modules/media/quality.php:538
+#: modules/media/quality.php:565
 msgid "Media quality pages"
 msgstr ""
 
-#: modules/media/quality.php:366
+#: modules/media/quality.php:387
 msgid "Missing alt text"
 msgstr ""
 
-#: modules/media/quality.php:368
+#: modules/media/quality.php:389
 msgid "Missing both"
 msgstr ""
 
-#: modules/media/quality.php:367
+#: modules/media/quality.php:388
 msgid "Missing caption"
 msgstr ""
 
-#: modules/media/quality.php:361
+#: modules/media/quality.php:382
 msgid "Missing text"
 msgstr ""
 
@@ -371,11 +407,11 @@ msgstr ""
 msgid "New blocks select existing attachments and do not migrate old blocks."
 msgstr ""
 
-#: modules/media/quality.php:543
+#: modules/media/quality.php:570
 msgid "Next page"
 msgstr ""
 
-#: modules/media/quality.php:535
+#: modules/media/quality.php:562
 msgid "No editable images on this page."
 msgstr ""
 
@@ -383,7 +419,7 @@ msgstr ""
 msgid "No file paths or content payloads are included in diagnostics."
 msgstr ""
 
-#: modules/media/quality.php:418
+#: modules/media/quality.php:445
 msgid "No matches in the checked content."
 msgstr ""
 
@@ -427,7 +463,7 @@ msgstr ""
 msgid "Only public, unprotected and discoverable entries are returned."
 msgstr ""
 
-#: modules/media/quality.php:403
+#: modules/media/quality.php:430
 msgid "Only this scan page was checked: up to 1 MB, 500 blocks and 30 nested levels per readable post/page. Other content, templates and external uses remain unchecked. No matches does not mean unused."
 msgstr ""
 
@@ -471,6 +507,10 @@ msgstr ""
 msgid "PageNest gallery"
 msgstr ""
 
+#: modules/privacy.php:80
+msgid "Paragraph anchor"
+msgstr ""
+
 #: modules/diagnostics.php:12
 msgid "Paragraph comments"
 msgstr ""
@@ -495,12 +535,24 @@ msgstr ""
 msgid "Preview uses saved article defaults and your current overrides. Save the article to apply. Draft images can be selected here; only publicly readable images appear in public sharing metadata."
 msgstr ""
 
-#: modules/media/quality.php:542
+#: modules/media/quality.php:569
 msgid "Previous page"
+msgstr ""
+
+#: modules/privacy.php:85
+msgid "Previous paragraph anchor"
+msgstr ""
+
+#: modules/privacy.php:84
+msgid "Previous saved quotation"
 msgstr ""
 
 #: modules/reading/bootstrap.php:220
 msgid "Private notes"
+msgstr ""
+
+#: modules/privacy.php:177
+msgid "Provider"
 msgstr ""
 
 #: modules/reading/bootstrap.php:219
@@ -527,11 +579,23 @@ msgstr ""
 msgid "Recent reading"
 msgstr ""
 
+#: modules/privacy.php:71
+msgid "Record ID"
+msgstr ""
+
+#: modules/privacy.php:77
+msgid "Record UUID"
+msgstr ""
+
+#: modules/privacy.php:82
+msgid "Record text"
+msgstr ""
+
 #: modules/reading/bootstrap.php:221
 msgid "Reference needs review"
 msgstr ""
 
-#: modules/media/quality.php:389
+#: modules/media/quality.php:410
 #, php-format
 msgid "References to attachment #%d"
 msgstr ""
@@ -556,7 +620,7 @@ msgstr ""
 msgid "Review configuration sources, output ownership and access boundaries without changing data."
 msgstr ""
 
-#: modules/media/quality.php:337
+#: modules/media/quality.php:358
 msgid "Review each image separately, then save one attachment or submit this page. File data, ownership and existing content stay in place."
 msgstr ""
 
@@ -564,16 +628,28 @@ msgstr ""
 msgid "Save text"
 msgstr ""
 
-#: modules/media/quality.php:525
+#: modules/media/quality.php:552
 msgid "Save this attachment"
 msgstr ""
 
-#: modules/media/quality.php:530
+#: modules/media/quality.php:557
 msgid "Save this page, with a result for each attachment"
 msgstr ""
 
 #: modules/reading/bootstrap.php:256
 msgid "Saved for later on this device."
+msgstr ""
+
+#: modules/privacy.php:81
+msgid "Saved quotation"
+msgstr ""
+
+#: modules/media/quality.php:416
+msgid "Scope: only your own saved posts and pages."
+msgstr ""
+
+#: modules/media/quality.php:415
+msgid "Scope: saved site posts and pages you can read."
 msgstr ""
 
 #: modules/content/editor.php:204
@@ -660,7 +736,11 @@ msgstr ""
 msgid "Stored on this device only. No device sync."
 msgstr ""
 
-#: modules/media/quality.php:348
+#: modules/privacy.php:144 modules/privacy.php:78
+msgid "Target post ID"
+msgstr ""
+
+#: modules/media/quality.php:369
 msgid "Text is invalid or too long."
 msgstr ""
 
@@ -680,7 +760,7 @@ msgstr ""
 msgid "The stored gallery configuration is invalid. Ask your migration administrator to repair it before changing the toggle."
 msgstr ""
 
-#: modules/media/quality.php:344
+#: modules/media/quality.php:365
 msgid "This attachment changed after you opened the form. Reload and review its current text before saving."
 msgstr ""
 
@@ -696,7 +776,7 @@ msgstr ""
 msgid "This is a configuration check only. It does not send mail, authenticate with a provider, or test delivery."
 msgstr ""
 
-#: modules/media/quality.php:394
+#: modules/media/quality.php:421
 #, php-format
 msgid "This page checked %1$d saved posts/pages and skipped %2$d inaccessible or oversized entries."
 msgstr ""
@@ -726,6 +806,10 @@ msgstr ""
 msgid "Up to 20 groups and 200 links. Use Move up and Move down with a keyboard to change order. Save to update the public guide."
 msgstr ""
 
+#: modules/privacy.php:86
+msgid "Updated at"
+msgstr ""
+
 #: modules/discovery/editor.php:204
 msgid "Use default image"
 msgstr ""
@@ -750,6 +834,10 @@ msgstr ""
 msgid "Viewer width"
 msgstr ""
 
+#: modules/privacy.php:72
+msgid "Visibility"
+msgstr ""
+
 #: modules/diagnostics.php:8
 msgid "WordPress setting"
 msgstr ""
@@ -758,7 +846,7 @@ msgstr ""
 msgid "WordPress setting or defaults"
 msgstr ""
 
-#: modules/media/quality.php:124 modules/media/quality.php:350
+#: modules/media/quality.php:135 modules/media/quality.php:371
 msgid "You cannot edit this attachment."
 msgstr ""
 

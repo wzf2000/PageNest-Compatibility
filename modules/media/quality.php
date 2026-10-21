@@ -255,7 +255,12 @@ function pagenest_media_quality_reference_page(int $id, int $page): array
             $urls[] = $url;
         }
     }
-    $query = new WP_Query([
+    $full_scope =
+        current_user_can('read_private_posts') &&
+        current_user_can('read_private_pages') &&
+        current_user_can('edit_others_posts') &&
+        current_user_can('edit_others_pages');
+    $args = [
         'post_type' => ['post', 'page'],
         'post_status' => ['publish', 'private', 'draft', 'pending', 'future'],
         'posts_per_page' => 21,
@@ -264,8 +269,13 @@ function pagenest_media_quality_reference_page(int $id, int $page): array
         'order' => 'ASC',
         'no_found_rows' => true,
         'ignore_sticky_posts' => true,
-    ]);
+    ];
+    if (!$full_scope) {
+        $args['author'] = get_current_user_id();
+    }
+    $query = new WP_Query($args);
     $result = [
+        'scope' => $full_scope ? 'site' : 'own',
         'matches' => [],
         'checked' => 0,
         'skipped' => 0,
@@ -400,6 +410,12 @@ function pagenest_media_quality_page(): void
                 sprintf(__('References to attachment #%d', 'pagenest-companion'), $reference),
             ) .
             '</h2><p>' .
+            esc_html(
+                $scan['scope'] === 'site'
+                    ? __('Scope: saved site posts and pages you can read.', 'pagenest-companion')
+                    : __('Scope: only your own saved posts and pages.', 'pagenest-companion'),
+            ) .
+            '</p><p>' .
             esc_html(
                 sprintf(
                     __(

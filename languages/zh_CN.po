@@ -573,3 +573,69 @@ msgstr "本页检查了 %1$d 篇已保存文章或页面，跳过了 %2$d 篇无
 
 msgid "You cannot edit this attachment."
 msgstr "你无权编辑此附件。"
+
+msgid "Scope: saved site posts and pages you can read."
+msgstr "检查范围：站内你有权读取的已保存文章和页面。"
+
+msgid "Scope: only your own saved posts and pages."
+msgstr "检查范围：仅你本人已保存的文章和页面。"
+
+msgid "Account subject SHA-256"
+msgstr "账号标识 SHA-256 摘要"
+
+msgid "Companion configuration is unavailable. Restore the valid configuration before exporting."
+msgstr "Companion 配置不可用，请恢复有效配置后再导出。"
+
+msgid "Companion likes"
+msgstr "Companion 点赞"
+
+msgid "Companion paragraph comments and private notes"
+msgstr "Companion 段落评论与私人笔记"
+
+msgid "Companion records could not be read. Retry the export after storage is available."
+msgstr "无法读取 Companion 记录，请在存储恢复后重试导出。"
+
+msgid "Companion social connections"
+msgstr "Companion 社交绑定"
+
+msgid "Created at"
+msgstr "创建时间"
+
+msgid "Document identity"
+msgstr "文档身份"
+
+msgid "Liked at"
+msgstr "点赞时间"
+
+msgid "Paragraph anchor"
+msgstr "段落锚点"
+
+msgid "Provider"
+msgstr "供应商"
+
+msgid "Record ID"
+msgstr "记录 ID"
+
+msgid "Record UUID"
+msgstr "记录 UUID"
+
+msgid "Record text"
+msgstr "记录文本"
+
+msgid "Saved quotation"
+msgstr "已保存引用"
+
+msgid "Target post ID"
+msgstr "目标文章 ID"
+
+msgid "Visibility"
+msgstr "可见性"
+
+msgid "Previous saved quotation"
+msgstr "前次保存引用"
+
+msgid "Previous paragraph anchor"
+msgstr "前次段落锚点"
+
+msgid "Updated at"
+msgstr "更新时间"
