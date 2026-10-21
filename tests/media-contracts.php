@@ -482,4 +482,15 @@ check(
     str_contains(pagenest_media_native_pdf(['id' => 15]), '15.pdf'),
     'Native PDF reuses authenticated local attachment renderer',
 );
+check(!str_contains($native, '<figcaption>'), 'Existing gallery keeps visible captions disabled');
+$GLOBALS['posts'][11]->post_excerpt = '<b>A precise caption</b>';
+$captioned = pagenest_media_native_gallery(['ids' => [11], 'captions' => true]);
+check(
+    str_contains($captioned, '<figcaption>A precise caption</figcaption>'),
+    'Visible captions use plain attachment caption when enabled',
+);
+check(
+    $GLOBALS['posts'][11]->post_excerpt === '<b>A precise caption</b>',
+    'Caption display does not change attachment data',
+);
 echo "Media contracts: {$checks} checks passed.\n";

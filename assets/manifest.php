@@ -1,6 +1,6 @@
 <?php
 return [
-    'admin_design_css' => 'admin-design-2a66e185325c.css',
+    'admin_design_css' => 'admin-design-96b2904e5374.css',
     'admin_design_js' => 'admin-design-265c754cfccf.js',
     'performance_admin_css' => 'performance-admin-0e369a5354bc.css',
     'performance_admin_js' => 'performance-admin-0c53c5bb08e7.js',
@@ -22,8 +22,8 @@ return [
     'content_js' => 'content-ef60a2ae5fd1.js',
     'content_spacing_js' => 'content-spacing-b8aac2d39119.js',
     'media_js' => 'media-compatibility-316e82718e17.js',
-    'media_css' => 'media-compatibility-5ae4834f4169.css',
-    'native_media_js' => 'media-authoring-ba65f6165d3a.js',
+    'media_css' => 'media-compatibility-b0597a432626.css',
+    'native_media_js' => 'media-authoring-162e3a28c43c.js',
     'media_editor_js' => 'media-editor-6cff8e866482.js',
     'media_library_js' => 'media-library-1e16f79bb2c1.js',
     'media_library_css' => 'media-library-b4b676c91eda.css',

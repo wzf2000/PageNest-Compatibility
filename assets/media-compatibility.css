@@ -247,3 +247,11 @@
     transition-duration: 0ms !important;
   }
 }
+
+.pagenest-media-item figcaption {
+  padding: 10px 12px;
+  color: var(--pagenest-muted, #65716b);
+  font-size: 0.9em;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}

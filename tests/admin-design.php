@@ -3,6 +3,10 @@
 define('ABSPATH', __DIR__);
 $hooks = $enqueued = [];
 $authorized = true;
+function __($text, ...$args)
+{
+    return $text;
+}
 function add_action($name, $callback)
 {
     $GLOBALS['hooks'][$name][] = $callback;

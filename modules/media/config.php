@@ -17,6 +17,7 @@ function pagenest_companion_media_defaults(): array
         'autoplay' => true,
         'interval' => 2000,
         'lightbox' => true,
+        'captions' => false,
     ];
 }
 
@@ -113,7 +114,7 @@ function pagenest_companion_media_validate($input): array
                 throw new InvalidArgumentException('Invalid gallery numeric setting.');
             }
         }
-        foreach (['autoplay', 'lightbox'] as $key) {
+        foreach (['autoplay', 'lightbox', 'captions'] as $key) {
             if (!is_bool($config[$key])) {
                 throw new InvalidArgumentException('Invalid gallery boolean setting.');
             }

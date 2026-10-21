@@ -483,3 +483,93 @@ msgstr "当前使用站点图片或 Logo。"
 
 msgid "This editor image is not currently public. Public sharing uses an eligible default or no image. Check again after publishing."
 msgstr "编辑器中的这张图片目前不可公开访问。公开分享会使用可用的默认图片或不输出图片，请在发布后重新检查。"
+
+msgid "All images"
+msgstr "全部图片"
+
+msgid "Alternative text"
+msgstr "替代文本"
+
+msgid "Attachment text could not be saved."
+msgstr "无法保存附件文本。"
+
+msgid "Attachment text saved."
+msgstr "附件文本已保存。"
+
+msgid "Caption"
+msgstr "图注"
+
+msgid "Check next page"
+msgstr "检查下一页"
+
+msgid "Check saved content references"
+msgstr "检查已保存正文中的引用"
+
+msgid "First image"
+msgstr "首图"
+
+msgid "Image %d"
+msgstr "图片 %d"
+
+msgid "Media quality"
+msgstr "媒体质量"
+
+msgid "Media quality pages"
+msgstr "媒体质量分页"
+
+msgid "Missing alt text"
+msgstr "缺少替代文本"
+
+msgid "Missing both"
+msgstr "两项均缺少"
+
+msgid "Missing caption"
+msgstr "缺少图注"
+
+msgid "Missing text"
+msgstr "文本筛选"
+
+msgid "Move a selected image to the front of this block. Attachment data stays in place."
+msgstr "将已选图片移到本区块首位，不改变附件数据。"
+
+msgid "Next page"
+msgstr "下一页"
+
+msgid "No editable images on this page."
+msgstr "本页没有可编辑的图片。"
+
+msgid "No matches in the checked content."
+msgstr "已检查正文中未找到引用。"
+
+msgid "Only this scan page was checked: up to 1 MB, 500 blocks and 30 nested levels per readable post/page. Other content, templates and external uses remain unchecked. No matches does not mean unused."
+msgstr "仅检查本扫描页中可读取的文章和页面，每篇最多 1 MB、500 个区块和 30 层嵌套。其他正文、模板及站外使用尚未检查，未找到引用不代表未使用。"
+
+msgid "Previous page"
+msgstr "上一页"
+
+msgid "References to attachment #%d"
+msgstr "附件 #%d 的引用"
+
+msgid "Review each image separately, then save one attachment or submit this page. File data, ownership and existing content stay in place."
+msgstr "逐张编辑图片文本，可单独保存或提交本页。文件数据、归属及已有正文保持不变。"
+
+msgid "Save this attachment"
+msgstr "保存此附件"
+
+msgid "Save this page, with a result for each attachment"
+msgstr "保存本页，逐附件显示结果"
+
+msgid "Show image captions"
+msgstr "显示图片图注"
+
+msgid "Text is invalid or too long."
+msgstr "文本无效或过长。"
+
+msgid "This attachment changed after you opened the form. Reload and review its current text before saving."
+msgstr "附件已在表单打开后被修改。请重新加载并核对当前文本后再保存。"
+
+msgid "This page checked %1$d saved posts/pages and skipped %2$d inaccessible or oversized entries."
+msgstr "本页检查了 %1$d 篇已保存文章或页面，跳过了 %2$d 篇无权读取或过大的正文。"
+
+msgid "You cannot edit this attachment."
+msgstr "你无权编辑此附件。"

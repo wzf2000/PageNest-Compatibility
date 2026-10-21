@@ -362,6 +362,9 @@
 }
 .pn-admin .pn-diagnostics-filters :is(input, select, .button) {
   min-height: 44px;
+  height: 44px;
+  margin: 0;
+  line-height: 24px;
 }
 .pn-admin .pn-diagnostics-filters input {
   border: 1px solid #b5c0b4;
@@ -375,5 +378,30 @@
 @media (max-width: 600px) {
   .pn-diagnostics-table :is(th, td) {
     padding: 8px 6px;
+  }
+}
+
+.pn-quality-item {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 24px;
+}
+.pn-quality-item img {
+  max-width: 150px;
+  height: auto;
+}
+.pn-quality-item label {
+  display: block;
+  font-weight: 600;
+  margin-block: 12px 6px;
+}
+.pn-quality-item .button {
+  margin-top: 12px;
+  min-height: 44px;
+}
+@media (max-width: 600px) {
+  .pn-quality-item {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
   }
 }

@@ -28,6 +28,7 @@
             columns: { type: 'number', default: 3 },
             gap: { type: 'number', default: 15 },
             lightbox: { type: 'boolean', default: true },
+            captions: { type: 'boolean', default: false },
             autoplay: { type: 'boolean', default: false },
             interval: { type: 'number', default: 3000 },
           },
@@ -78,6 +79,30 @@
                         { label: t.slider, value: 'slider' },
                       ],
                       onChange: (layout) => setAttributes({ layout }),
+                    }),
+                    attrs.ids.length > 1
+                      ? el(SelectControl, {
+                          label: t.first,
+                          help: t.firstHelp,
+                          value: String(attrs.ids[0]),
+                          options: attrs.ids.map((id, index) => ({
+                            label:
+                              t.imageNumber.replace('%d', String(index + 1)) + ' (#' + id + ')',
+                            value: String(id),
+                          })),
+                          onChange: (value) => {
+                            const first = Number(value);
+                            if (attrs.ids.includes(first))
+                              setAttributes({
+                                ids: [first, ...attrs.ids.filter((id) => id !== first)],
+                              });
+                          },
+                        })
+                      : null,
+                    el(ToggleControl, {
+                      label: t.captions,
+                      checked: attrs.captions,
+                      onChange: (captions) => setAttributes({ captions }),
                     }),
                     number('columns', 1, 12),
                     number('gap', 0, 80),

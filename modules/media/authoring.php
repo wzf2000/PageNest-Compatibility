@@ -20,6 +20,7 @@ function pagenest_media_native_attributes(bool $pdf = false): array
             'columns' => ['type' => 'number', 'default' => 3],
             'gap' => ['type' => 'number', 'default' => 15],
             'lightbox' => ['type' => 'boolean', 'default' => true],
+            'captions' => ['type' => 'boolean', 'default' => false],
             'autoplay' => ['type' => 'boolean', 'default' => false],
             'interval' => ['type' => 'number', 'default' => 3000],
         ];
@@ -45,7 +46,7 @@ function pagenest_media_native_gallery($attrs): string
             $config[$key] = (int) $attrs[$key];
         }
     }
-    foreach (['lightbox', 'autoplay'] as $key) {
+    foreach (['lightbox', 'autoplay', 'captions'] as $key) {
         if (isset($attrs[$key])) {
             $config[$key] = in_array($attrs[$key], [true, 1, '1'], true);
         }
@@ -131,6 +132,13 @@ add_action('enqueue_block_editor_assets', static function () {
             'columns' => __('Columns', 'pagenest-companion'),
             'gap' => __('Image gap', 'pagenest-companion'),
             'lightbox' => __('Open images in a viewer', 'pagenest-companion'),
+            'captions' => __('Show image captions', 'pagenest-companion'),
+            'first' => __('First image', 'pagenest-companion'),
+            'firstHelp' => __(
+                'Move a selected image to the front of this block. Attachment data stays in place.',
+                'pagenest-companion',
+            ),
+            'imageNumber' => __('Image %d', 'pagenest-companion'),
             'autoplay' => __('Play slideshow automatically', 'pagenest-companion'),
             'interval' => __('Slide interval in milliseconds', 'pagenest-companion'),
             'width' => __('Viewer width', 'pagenest-companion'),
