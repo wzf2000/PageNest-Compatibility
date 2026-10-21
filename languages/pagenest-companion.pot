@@ -18,8 +18,16 @@ msgstr ""
 msgid "Add to group"
 msgstr ""
 
+#: modules/diagnostics.php:139
+msgid "Administrator access required."
+msgstr ""
+
 #: modules/reading/bootstrap.php:218
 msgid "All records"
+msgstr ""
+
+#: modules/diagnostics.php:184
+msgid "All statuses"
 msgstr ""
 
 #: modules/diagnostics.php:40
@@ -42,6 +50,10 @@ msgstr ""
 msgid "Chapter navigation"
 msgstr ""
 
+#: modules/discovery/editor.php:331
+msgid "Checking public image availability…"
+msgstr ""
+
 #: modules/reading/bootstrap.php:245
 msgid "Choose a paragraph"
 msgstr ""
@@ -54,7 +66,7 @@ msgstr ""
 msgid "Choose files from the media library to preview. Files and existing gallery mappings stay in place."
 msgstr ""
 
-#: modules/discovery/editor.php:131 modules/discovery/editor.php:215
+#: modules/discovery/editor.php:202 modules/discovery/editor.php:329
 msgid "Choose share image"
 msgstr ""
 
@@ -90,7 +102,7 @@ msgstr ""
 msgid "Complete the security check before submitting."
 msgstr ""
 
-#: modules/diagnostics.php:130
+#: modules/diagnostics.php:214
 msgid "Configuration source"
 msgstr ""
 
@@ -122,8 +134,8 @@ msgstr ""
 msgid "Device memory needs reader consent. Private records require authentication."
 msgstr ""
 
-#: modules/diagnostics.php:150
-msgid "Diagnostics are read-only and administrator-only. Configuration validity is not a live service test. No secrets, account identifiers, private record contents or filesystem paths are shown."
+#: modules/diagnostics.php:248
+msgid "Diagnostics are read-only and administrator-only. The export includes all modules, fixed boundary notes and versions. It excludes paths, URLs, accounts, credentials and user content. Configuration validity is not a live service test."
 msgstr ""
 
 #: modules/media/settings.php:102
@@ -134,7 +146,7 @@ msgstr ""
 msgid "Disabled by default. Readers separately choose whether to remember public articles on this device. Reading history is not saved to your account or synced between devices. Article IDs are sent only to check current public access."
 msgstr ""
 
-#: modules/diagnostics.php:141
+#: modules/diagnostics.php:186 modules/diagnostics.php:234
 msgid "Disabled or unavailable"
 msgstr ""
 
@@ -158,7 +170,7 @@ msgstr ""
 msgid "Enable native gallery and PDF authoring blocks"
 msgstr ""
 
-#: modules/diagnostics.php:140
+#: modules/diagnostics.php:185 modules/diagnostics.php:233
 msgid "Enabled or available"
 msgstr ""
 
@@ -172,6 +184,14 @@ msgstr ""
 
 #: modules/reading/bootstrap.php:246
 msgid "Export my records as JSON"
+msgstr ""
+
+#: modules/diagnostics.php:208
+msgid "Export safe JSON"
+msgstr ""
+
+#: modules/diagnostics.php:199
+msgid "Filter"
 msgstr ""
 
 #: modules/content/editor.php:200
@@ -196,6 +216,10 @@ msgstr ""
 
 #: modules/reading/bootstrap.php:196
 msgid "How this works"
+msgstr ""
+
+#: modules/discovery/editor.php:332
+msgid "Image availability could not be checked. Save and reopen to refresh the preview."
 msgstr ""
 
 #: modules/media/authoring.php:132
@@ -246,11 +270,11 @@ msgstr ""
 msgid "Media display"
 msgstr ""
 
-#: modules/diagnostics.php:126
+#: modules/diagnostics.php:210
 msgid "Module"
 msgstr ""
 
-#: admin-design.php:12 modules/diagnostics.php:118 modules/diagnostics.php:158 modules/diagnostics.php:159
+#: admin-design.php:12 modules/diagnostics.php:168 modules/diagnostics.php:256 modules/diagnostics.php:257
 msgid "Module diagnostics"
 msgstr ""
 
@@ -286,19 +310,31 @@ msgstr ""
 msgid "No file paths or content payloads are included in diagnostics."
 msgstr ""
 
+#: modules/diagnostics.php:244
+msgid "No matching modules."
+msgstr ""
+
 #: modules/content/editor.php:283
 msgid "No matching public content."
+msgstr ""
+
+#: modules/discovery/editor.php:235
+msgid "No public share image. Choose a public image, featured image, site image or logo."
 msgstr ""
 
 #: modules/reading/bootstrap.php:209
 msgid "No records to show."
 msgstr ""
 
+#: modules/discovery/editor.php:228
+msgid "No share description. Add a description, article excerpt or site description."
+msgstr ""
+
 #: modules/diagnostics.php:85
 msgid "Not configured"
 msgstr ""
 
-#: modules/diagnostics.php:132
+#: modules/diagnostics.php:216
 msgid "Notes"
 msgstr ""
 
@@ -338,7 +374,7 @@ msgstr ""
 msgid "Organize links to existing public articles and pages. Source content and chapter order stay with their existing owners."
 msgstr ""
 
-#: modules/discovery/editor.php:112
+#: modules/discovery/editor.php:183
 msgid "Overrides apply only when Companion SEO is enabled and another SEO plugin has not taken ownership. Blank fields inherit the article and site defaults."
 msgstr ""
 
@@ -374,7 +410,7 @@ msgstr ""
 msgid "Preview source"
 msgstr ""
 
-#: modules/discovery/editor.php:145
+#: modules/discovery/editor.php:259
 msgid "Preview uses saved article defaults and your current overrides. Save the article to apply. Draft images can be selected here; only publicly readable images appear in public sharing metadata."
 msgstr ""
 
@@ -426,7 +462,7 @@ msgstr ""
 msgid "Retry security check"
 msgstr ""
 
-#: modules/diagnostics.php:119
+#: modules/diagnostics.php:169
 msgid "Review configuration sources, output ownership and access boundaries without changing data."
 msgstr ""
 
@@ -446,8 +482,12 @@ msgstr ""
 msgid "Search and sharing metadata"
 msgstr ""
 
-#: modules/discovery/editor.php:85
+#: modules/discovery/editor.php:154
 msgid "Search and sharing preview"
+msgstr ""
+
+#: modules/diagnostics.php:176
+msgid "Search modules"
 msgstr ""
 
 #: modules/reading/bootstrap.php:222
@@ -482,15 +522,15 @@ msgstr ""
 msgid "Server content provider"
 msgstr ""
 
-#: modules/discovery/editor.php:123
+#: modules/discovery/editor.php:194
 msgid "Share description"
 msgstr ""
 
-#: modules/discovery/editor.php:117
+#: modules/discovery/editor.php:188
 msgid "Share title"
 msgstr ""
 
-#: modules/discovery/editor.php:135
+#: modules/discovery/editor.php:206
 msgid "Sharing preview"
 msgstr ""
 
@@ -506,7 +546,7 @@ msgstr ""
 msgid "Slider"
 msgstr ""
 
-#: modules/diagnostics.php:128
+#: modules/diagnostics.php:180 modules/diagnostics.php:212
 msgid "Status"
 msgstr ""
 
@@ -528,6 +568,10 @@ msgstr ""
 
 #: modules/media/settings.php:29
 msgid "The stored gallery configuration is invalid. Ask your migration administrator to repair it before changing the toggle."
+msgstr ""
+
+#: modules/discovery/editor.php:254
+msgid "This editor image is not currently public. Public sharing uses an eligible default or no image. Check again after publishing."
 msgstr ""
 
 #: modules/content/editor.php:144
@@ -563,8 +607,16 @@ msgstr ""
 msgid "Up to 20 groups and 200 links. Use Move up and Move down with a keyboard to change order. Save to update the public guide."
 msgstr ""
 
-#: modules/discovery/editor.php:133
+#: modules/discovery/editor.php:204
 msgid "Use default image"
+msgstr ""
+
+#: modules/discovery/editor.php:246
+msgid "Using the site description."
+msgstr ""
+
+#: modules/discovery/editor.php:250
+msgid "Using the site image or logo."
 msgstr ""
 
 #: modules/services/turnstile.php:13

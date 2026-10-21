@@ -271,9 +271,6 @@ msgstr "默认"
 msgid "Device memory needs reader consent. Private records require authentication."
 msgstr "本机记忆需读者同意，私人记录需身份验证。"
 
-msgid "Diagnostics are read-only and administrator-only. Configuration validity is not a live service test. No secrets, account identifiers, private record contents or filesystem paths are shown."
-msgstr "诊断仅供管理员只读查看。配置有效不代表真实服务已测试；这里不显示密钥、账号标识、私人记录正文或文件路径。"
-
 msgid "Disabled by default. New blocks select attachments directly; existing compatible blocks and imported mappings are preserved."
 msgstr "默认关闭。新区块直接选择附件，已有兼容区块和导入映射保持不变。"
 
@@ -444,3 +441,45 @@ msgstr "仅存本机，不跨设备同步。"
 
 msgid "How this works"
 msgstr "使用说明"
+
+msgid "Administrator access required."
+msgstr "需要管理员权限。"
+
+msgid "All statuses"
+msgstr "全部状态"
+
+msgid "Checking public image availability…"
+msgstr "正在检查公开分享图片…"
+
+msgid "Diagnostics are read-only and administrator-only. The export includes all modules, fixed boundary notes and versions. It excludes paths, URLs, accounts, credentials and user content. Configuration validity is not a live service test."
+msgstr "诊断仅供管理员只读查看。导出包含全部模块、固定边界说明和版本，不含路径、网址、账号、凭据或用户内容。配置有效不代表服务实际可用。"
+
+msgid "Export safe JSON"
+msgstr "导出脱敏 JSON"
+
+msgid "Filter"
+msgstr "筛选"
+
+msgid "Image availability could not be checked. Save and reopen to refresh the preview."
+msgstr "无法检查图片可用性。保存文章后重新打开可刷新预览。"
+
+msgid "No matching modules."
+msgstr "没有匹配的模块。"
+
+msgid "No public share image. Choose a public image, featured image, site image or logo."
+msgstr "缺少可公开访问的分享图片。请选择公开图片、特色图片、站点图片或 Logo。"
+
+msgid "No share description. Add a description, article excerpt or site description."
+msgstr "缺少分享摘要。请填写分享摘要、文章摘要或站点描述。"
+
+msgid "Search modules"
+msgstr "搜索模块"
+
+msgid "Using the site description."
+msgstr "当前使用站点描述。"
+
+msgid "Using the site image or logo."
+msgstr "当前使用站点图片或 Logo。"
+
+msgid "This editor image is not currently public. Public sharing uses an eligible default or no image. Check again after publishing."
+msgstr "编辑器中的这张图片目前不可公开访问。公开分享会使用可用的默认图片或不输出图片，请在发布后重新检查。"

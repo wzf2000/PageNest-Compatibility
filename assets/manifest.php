@@ -1,11 +1,11 @@
 <?php
 return [
-    'admin_design_css' => 'admin-design-39eb3408be00.css',
+    'admin_design_css' => 'admin-design-2a66e185325c.css',
     'admin_design_js' => 'admin-design-265c754cfccf.js',
     'performance_admin_css' => 'performance-admin-0e369a5354bc.css',
     'performance_admin_js' => 'performance-admin-0c53c5bb08e7.js',
-    'seo_editor_js' => 'seo-editor-9c3a0a6e6809.js',
-    'seo_editor_css' => 'seo-editor-588135333ecb.css',
+    'seo_editor_js' => 'seo-editor-1a0bd05cb599.js',
+    'seo_editor_css' => 'seo-editor-bd433d2d7b11.css',
     'discovery_admin_js' => 'discovery-admin-83b901380405.js',
     'reading_js' => 'reading-center-a0152cc3560a.js',
     'reading_css' => 'reading-center-9d63b47902db.css',

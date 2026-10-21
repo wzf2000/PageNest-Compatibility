@@ -12,6 +12,83 @@ function pagenest_seo_external_owner(): bool
             defined('SLIM_SEO_VERSION'),
     );
 }
+/** A complete public category branch; corrupt or inaccessible ancestry is omitted. */
+function pagenest_seo_category_branch($term): array
+{
+    $branch = [];
+    $seen = [];
+    while ($term) {
+        if (
+            is_wp_error($term) ||
+            $term->taxonomy !== 'category' ||
+            !is_term_publicly_viewable($term) ||
+            isset($seen[$term->term_id]) ||
+            count($seen) >= 30
+        ) {
+            return [];
+        }
+        $seen[$term->term_id] = true;
+        $link = get_term_link($term);
+        if (is_wp_error($link) || !$link) {
+            return [];
+        }
+        $branch[] = ['name' => pagenest_discovery_text($term->name, 180), 'item' => $link];
+        if (!$term->parent) {
+            return array_reverse($branch);
+        }
+        $term = get_term($term->parent, 'category');
+    }
+    return [];
+}
+function pagenest_seo_breadcrumb_parents(): array
+{
+    $object = get_queried_object();
+    if (is_singular('page')) {
+        $parents = [];
+        $seen = [(int) $object->ID => true];
+        while ($object->post_parent) {
+            $object = get_post($object->post_parent);
+            if (
+                !$object ||
+                $object->post_type !== 'page' ||
+                !pagenest_discovery_public_post($object) ||
+                isset($seen[$object->ID]) ||
+                count($seen) >= 30
+            ) {
+                return [];
+            }
+            $seen[$object->ID] = true;
+            $parents[] = [
+                'name' => pagenest_discovery_text($object->post_title, 180),
+                'item' => get_permalink($object),
+            ];
+        }
+        return array_reverse($parents);
+    }
+    if (is_category()) {
+        $branch = pagenest_seo_category_branch($object);
+        array_pop($branch);
+        return $branch;
+    }
+    if (!is_singular('post')) {
+        return [];
+    }
+    $terms = get_the_terms($object->ID, 'category');
+    if (!$terms || is_wp_error($terms)) {
+        return [];
+    }
+    // Prefer the deepest assigned public branch; ties use the lowest term ID.
+    usort($terms, static fn($a, $b) => $a->term_id <=> $b->term_id);
+    $selected = [];
+    foreach (array_slice($terms, 0, 100) as $term) {
+        $branch = pagenest_seo_category_branch($term);
+        if (count($branch) > count($selected)) {
+            $selected = $branch;
+        }
+    }
+    // Series labels alone have no public entity URL and cannot become breadcrumbs.
+    return $selected;
+}
 function pagenest_seo_metadata(): array
 {
     if (
@@ -53,8 +130,7 @@ function pagenest_seo_metadata(): array
         $defaults = pagenest_seo_defaults($post);
         $title = $overrides['title'] ?: $defaults['title'];
         $description = $overrides['description'] ?: $defaults['description'];
-        $override_image = pagenest_seo_public_image($overrides['image']) ? $overrides['image'] : 0;
-        $image = (int) ($override_image ?: $defaults['image']);
+        $image = pagenest_seo_image($post, $overrides['image']);
         if (!is_front_page()) {
             $type = $post->post_type === 'post' ? 'article' : 'website';
             $schema = [
@@ -96,6 +172,9 @@ function pagenest_seo_metadata(): array
         ];
     } elseif (is_category() || is_tag()) {
         $term = get_queried_object();
+        if (!is_term_publicly_viewable($term)) {
+            return [];
+        }
         $url = get_term_link($term);
         if (is_wp_error($url)) {
             return [];
@@ -150,12 +229,19 @@ function pagenest_seo_metadata(): array
         ],
     ];
     if ($url !== home_url('/')) {
-        $breadcrumbs['itemListElement'][] = [
-            '@type' => 'ListItem',
-            'position' => 2,
-            'name' => $title,
-            'item' => $url,
-        ];
+        $seen = [home_url('/') => true];
+        foreach (
+            array_merge(pagenest_seo_breadcrumb_parents(), [['name' => $title, 'item' => $url]])
+            as $item
+        ) {
+            if (!$item['item'] || $item['name'] === '' || isset($seen[$item['item']])) {
+                continue;
+            }
+            $seen[$item['item']] = true;
+            $breadcrumbs['itemListElement'][] =
+                ['@type' => 'ListItem', 'position' => count($breadcrumbs['itemListElement']) + 1] +
+                $item;
+        }
     }
     return ['meta' => $meta, 'schema' => [$schema, $breadcrumbs]];
 }
