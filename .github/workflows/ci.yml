@@ -18,7 +18,8 @@ permissions:
   contents: read
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    # Playwright 1.55.1 ships browser dependencies for this fixed runner.
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -91,6 +92,7 @@ jobs:
             .runtime/followups-browser-results/
             playwright-report/
             /tmp/pagenest-performance-ui-results/
+          include-hidden-files: true
           if-no-files-found: ignore
       - name: Build and verify immutable installation bundle
         env:
