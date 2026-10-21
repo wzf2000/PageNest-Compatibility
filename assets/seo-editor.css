@@ -19,3 +19,10 @@
 .pn-seo-preview img[hidden] {
   display: none;
 }
+
+[data-pn-seo-editor] [hidden] {
+  display: none !important;
+}
+[data-pn-seo-editor] .button {
+  min-height: 44px;
+}

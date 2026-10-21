@@ -18,7 +18,8 @@ permissions:
   contents: read
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    # Playwright 1.55.1 ships browser dependencies for this fixed runner.
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -75,6 +76,12 @@ jobs:
           npm run test:performance-ui
           npm run test:content-browser
           npm run test:media-browser
+      - name: Install focused Firefox and WebKit engines
+        if: matrix.php == '8.2'
+        run: npx playwright install --with-deps firefox webkit
+      - name: Run focused diagnostic, media and sharing engine matrix
+        if: matrix.php == '8.2'
+        run: npm run test:followups-browser
       - name: Upload browser failure evidence
         if: failure()
         uses: actions/upload-artifact@v4
@@ -82,8 +89,10 @@ jobs:
           name: pagenest-compatibility-browser-failures-${{ matrix.php }}-${{ inputs.source_sha || github.sha }}
           path: |
             test-results/
+            .runtime/followups-browser-results/
             playwright-report/
             /tmp/pagenest-performance-ui-results/
+          include-hidden-files: true
           if-no-files-found: ignore
       - name: Build and verify immutable installation bundle
         env:

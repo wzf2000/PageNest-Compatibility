@@ -7,6 +7,7 @@ module.exports = defineConfig({
   testMatch: '*.spec.cjs',
   testIgnore: [
     'content-browser.spec.cjs',
+    'followups-ui.spec.cjs',
     'media.spec.cjs',
     'media-library.spec.cjs',
     'performance-ui.spec.cjs',

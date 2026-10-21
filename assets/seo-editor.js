@@ -5,11 +5,25 @@
       description = root.querySelector('[data-pn-seo-description]'),
       image = root.querySelector('[data-pn-seo-image]'),
       preview = root.querySelector('[data-pn-seo-preview-image]');
+    const missingDescription = root.querySelector('[data-pn-seo-missing-description]'),
+      missingImage = root.querySelector('[data-pn-seo-missing-image]'),
+      imageStatus = root.querySelector('[data-pn-seo-image-status]'),
+      inheritedDescription = root.querySelector('[data-pn-seo-inherited-description]'),
+      inheritedImage = root.querySelector('[data-pn-seo-inherited-image]'),
+      privatePreview = root.querySelector('[data-pn-seo-private-preview]');
+    let requestNumber = 0;
     const update = () => {
       root.querySelector('[data-pn-seo-preview-title]').textContent =
-        title.value || title.placeholder;
+        title.value.trim() || title.placeholder;
       root.querySelector('[data-pn-seo-preview-description]').textContent =
-        description.value || description.placeholder;
+        description.value.trim() || description.placeholder;
+      if (missingDescription)
+        missingDescription.hidden = Boolean(
+          (description.value.trim() || description.placeholder).trim(),
+        );
+      if (inheritedDescription)
+        inheritedDescription.hidden =
+          Boolean(description.value.trim()) || root.dataset.pnSeoSiteDescription !== '1';
     };
     title.addEventListener('input', update);
     description.addEventListener('input', update);
@@ -20,6 +34,11 @@
       if (fallback) preview.src = fallback;
       else preview.removeAttribute('src');
       preview.hidden = !fallback;
+      requestNumber++;
+      if (imageStatus) imageStatus.textContent = '';
+      if (missingImage) missingImage.hidden = preview.dataset.pnSeoDefaultPublic === '1';
+      if (privatePreview) privatePreview.hidden = preview.dataset.pnSeoDefaultPrivate !== '1';
+      if (inheritedImage) inheritedImage.hidden = preview.dataset.pnSeoDefaultInherited !== '1';
     });
     root.querySelector('[data-pn-seo-select]').addEventListener('click', () => {
       const frame = wp.media({
@@ -35,8 +54,43 @@
         )
           return;
         image.value = selected.id;
-        preview.src = selected.sizes?.medium?.url || selected.url;
-        preview.hidden = false;
+        if (!root.dataset.pnSeoPost || !window.PageNestSEOEditor.url) return;
+        const currentRequest = ++requestNumber;
+        if (imageStatus) imageStatus.textContent = window.PageNestSEOEditor.checking;
+        fetch(window.PageNestSEOEditor.url, {
+          method: 'POST',
+          credentials: 'same-origin',
+          body: new URLSearchParams({
+            action: 'pagenest_seo_preview_image',
+            post: root.dataset.pnSeoPost,
+            nonce: root.dataset.pnSeoNonce,
+            image: String(selected.id),
+          }),
+        })
+          .then((response) => {
+            if (!response.ok) throw new Error('preview');
+            return response.json();
+          })
+          .then((response) => {
+            if (currentRequest !== requestNumber) return;
+            if (!response.success || typeof response.data?.image !== 'string')
+              throw new Error('preview');
+            const url = response.data.image;
+            if (url) preview.src = url;
+            else preview.removeAttribute('src');
+            preview.hidden = !url;
+            if (missingImage) missingImage.hidden = Boolean(response.data.public_image);
+            if (privatePreview) privatePreview.hidden = !response.data.private_preview;
+            if (inheritedImage) inheritedImage.hidden = !response.data.inherited;
+            if (imageStatus) imageStatus.textContent = '';
+          })
+          .catch(() => {
+            if (currentRequest !== requestNumber) return;
+            if (imageStatus) imageStatus.textContent = window.PageNestSEOEditor.failed;
+            if (missingImage) missingImage.hidden = true;
+            if (privatePreview) privatePreview.hidden = true;
+            if (inheritedImage) inheritedImage.hidden = true;
+          });
       });
       frame.open();
     });

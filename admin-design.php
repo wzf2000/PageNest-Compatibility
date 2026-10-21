@@ -38,14 +38,15 @@ function pagenest_companion_admin_header(string $title, string $description, str
     echo '</nav>';
 }
 add_action('admin_enqueue_scripts', static function ($hook): void {
-    if (!current_user_can('manage_options')) {
+    $quality = $hook === 'media_page_pagenest-media-quality' && current_user_can('upload_files');
+    if (!current_user_can('manage_options') && !$quality) {
         return;
     }
     $screens = array_map(
         static fn($slug) => 'settings_page_' . $slug,
         array_keys(pagenest_companion_admin_pages()),
     );
-    if (!in_array($hook, $screens, true)) {
+    if (!in_array($hook, $screens, true) && !$quality) {
         return;
     }
     $manifest = require __DIR__ . '/assets/manifest.php';

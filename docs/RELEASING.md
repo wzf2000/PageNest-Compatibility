@@ -2,7 +2,7 @@
 
 供维护者准备、核验和发布安装包。普通使用者直接从 仓库页面的 **Releases** 下载 ZIP，安装步骤见 [使用指南](USAGE.md)。
 
-两个仓库分别运行 push、pull request 和可复用的 CI。固定 Node.js 24.15.0、Python 3.12、Playwright 1.55.1；PHP 8.0 和 8.2 分别检查最低支持版本与兼容版本。格式检查遵循 MarkBridge 的 Prettier、PHP 插件、Markdown 中英文间距和 Black 规则，Python 文件逐个检查以避免多进程启动。生成的哈希资源只校验，不直接格式化；CI 在构建前校验，避免构建掩盖已提交资源漂移。
+两个仓库分别运行 push、pull request 和可复用的 CI。浏览器 verify job 固定使用 Ubuntu 24.04、Node.js 24.15.0、Python 3.12 和 Playwright 1.55.1；PHP 8.0 和 8.2 分别检查最低支持版本与兼容版本。格式检查遵循 MarkBridge 的 Prettier、PHP 插件、Markdown 中英文间距和 Black 规则，Python 文件逐个检查以避免多进程启动。生成的哈希资源只校验，不直接格式化；CI 在构建前校验，避免构建掩盖已提交资源漂移。
 
 PHP 测试使用内存中的 WordPress 替身，浏览器测试覆盖桌面与手机宽度，并禁止外部网络请求。它们验证公共功能和实际前端资源，不能代替完整 WordPress 安装上的插件组合验收。测试依赖、fixture、格式工具与 node_modules 不进入安装 ZIP。
 
@@ -15,3 +15,21 @@ PHP 测试使用内存中的 WordPress 替身，浏览器测试覆盖桌面与�
 ## 问题反馈
 
 在本项目仓库页面打开 **Issues**，描述版本、复现步骤和实际结果；请不要附带凭据、私人正文或完整登录回调。
+
+## 1.7.0 验证范围与浏览器边界
+
+1.7.0 的公开发行与部署由独立流程执行，CI 构建本身不会发布或部署。本轮新增小范围 `npm run test:followups-browser`，
+使用实际 PHP 界面渲染与合成 WordPress 替身，覆盖诊断 GET／键盘、媒体质量表单与分享继承提示。
+只在 CI 的 PHP 8.2 任务增加 Chromium／Firefox／WebKit 项目，不重复全部旧浏览器用例。
+
+| 层次                   | 范围                                                            | 本轮状态                                                |
+| ---------------------- | --------------------------------------------------------------- | ------------------------------------------------------- |
+| 本轮真实合成 WordPress | WordPress 7.1.3、PHP 8.5.11、MariaDB 11.4.13                    | 合成权限、保存、隐私导出和界面验证；不代表生产发布      |
+| 包接口最低支持         | WordPress 6.0+、PHP 8.0+                                        | 包头与兼容接口声明，不代表逐版实测                      |
+| 既有 CI 矩阵           | PHP 8.0／8.2、WordPress 6.8.3／MySQL 8.0 合成集成               | 保留配置；本轮尚未在远程 CI 执行                        |
+| 小范围本地 Chromium    | Playwright 1.55.1 Chromium 构建 1193                            | 四项合成界面用例通过                                    |
+| 小范围本地 Firefox     | Playwright 1.55.1 Firefox 构建 1490、官方 Ubuntu 24.04 fallback | 四项合成界面用例通过，使用任务隔离库                    |
+| WebKit CI              | Playwright 1.55.1 WebKit 构建 2203                              | 独立 CI 用例随 verify 运行；远程执行结果以 Actions 为准 |
+
+本机为 Ubuntu 26，Firefox 使用官方 Ubuntu 24.04 fallback 和任务隔离动态库；
+手机验证均为视口模拟。真实 WordPress 集成、合成替身与生产站点是不同证据，不能互相替代。

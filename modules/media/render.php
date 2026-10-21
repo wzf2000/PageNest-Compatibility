@@ -305,6 +305,10 @@ function pagenest_companion_media_gallery_render(array $config): string
         } else {
             $html .= $image;
         }
+        if (!empty($config['captions']) && trim($item->post_excerpt) !== '') {
+            $html .=
+                '<figcaption>' . esc_html(wp_strip_all_tags($item->post_excerpt)) . '</figcaption>';
+        }
         $html .= '</figure>';
     }
     return $html . '</div></section>';

@@ -271,9 +271,6 @@ msgstr "默认"
 msgid "Device memory needs reader consent. Private records require authentication."
 msgstr "本机记忆需读者同意，私人记录需身份验证。"
 
-msgid "Diagnostics are read-only and administrator-only. Configuration validity is not a live service test. No secrets, account identifiers, private record contents or filesystem paths are shown."
-msgstr "诊断仅供管理员只读查看。配置有效不代表真实服务已测试；这里不显示密钥、账号标识、私人记录正文或文件路径。"
-
 msgid "Disabled by default. New blocks select attachments directly; existing compatible blocks and imported mappings are preserved."
 msgstr "默认关闭。新区块直接选择附件，已有兼容区块和导入映射保持不变。"
 
@@ -444,3 +441,201 @@ msgstr "仅存本机，不跨设备同步。"
 
 msgid "How this works"
 msgstr "使用说明"
+
+msgid "Administrator access required."
+msgstr "需要管理员权限。"
+
+msgid "All statuses"
+msgstr "全部状态"
+
+msgid "Checking public image availability…"
+msgstr "正在检查公开分享图片…"
+
+msgid "Diagnostics are read-only and administrator-only. The export includes all modules, fixed boundary notes and versions. It excludes paths, URLs, accounts, credentials and user content. Configuration validity is not a live service test."
+msgstr "诊断仅供管理员只读查看。导出包含全部模块、固定边界说明和版本，不含路径、网址、账号、凭据或用户内容。配置有效不代表服务实际可用。"
+
+msgid "Export safe JSON"
+msgstr "导出脱敏 JSON"
+
+msgid "Filter"
+msgstr "筛选"
+
+msgid "Image availability could not be checked. Save and reopen to refresh the preview."
+msgstr "无法检查图片可用性。保存文章后重新打开可刷新预览。"
+
+msgid "No matching modules."
+msgstr "没有匹配的模块。"
+
+msgid "No public share image. Choose a public image, featured image, site image or logo."
+msgstr "缺少可公开访问的分享图片。请选择公开图片、特色图片、站点图片或 Logo。"
+
+msgid "No share description. Add a description, article excerpt or site description."
+msgstr "缺少分享摘要。请填写分享摘要、文章摘要或站点描述。"
+
+msgid "Search modules"
+msgstr "搜索模块"
+
+msgid "Using the site description."
+msgstr "当前使用站点描述。"
+
+msgid "Using the site image or logo."
+msgstr "当前使用站点图片或 Logo。"
+
+msgid "This editor image is not currently public. Public sharing uses an eligible default or no image. Check again after publishing."
+msgstr "编辑器中的这张图片目前不可公开访问。公开分享会使用可用的默认图片或不输出图片，请在发布后重新检查。"
+
+msgid "All images"
+msgstr "全部图片"
+
+msgid "Alternative text"
+msgstr "替代文本"
+
+msgid "Attachment text could not be saved."
+msgstr "无法保存附件文本。"
+
+msgid "Attachment text saved."
+msgstr "附件文本已保存。"
+
+msgid "Caption"
+msgstr "图注"
+
+msgid "Check next page"
+msgstr "检查下一页"
+
+msgid "Check saved content references"
+msgstr "检查已保存正文中的引用"
+
+msgid "First image"
+msgstr "首图"
+
+msgid "Image %d"
+msgstr "图片 %d"
+
+msgid "Media quality"
+msgstr "媒体质量"
+
+msgid "Media quality pages"
+msgstr "媒体质量分页"
+
+msgid "Missing alt text"
+msgstr "缺少替代文本"
+
+msgid "Missing both"
+msgstr "两项均缺少"
+
+msgid "Missing caption"
+msgstr "缺少图注"
+
+msgid "Missing text"
+msgstr "文本筛选"
+
+msgid "Move a selected image to the front of this block. Attachment data stays in place."
+msgstr "将已选图片移到本区块首位，不改变附件数据。"
+
+msgid "Next page"
+msgstr "下一页"
+
+msgid "No editable images on this page."
+msgstr "本页没有可编辑的图片。"
+
+msgid "No matches in the checked content."
+msgstr "已检查正文中未找到引用。"
+
+msgid "Only this scan page was checked: up to 1 MB, 500 blocks and 30 nested levels per readable post/page. Other content, templates and external uses remain unchecked. No matches does not mean unused."
+msgstr "仅检查本扫描页中可读取的文章和页面，每篇最多 1 MB、500 个区块和 30 层嵌套。其他正文、模板及站外使用尚未检查，未找到引用不代表未使用。"
+
+msgid "Previous page"
+msgstr "上一页"
+
+msgid "References to attachment #%d"
+msgstr "附件 #%d 的引用"
+
+msgid "Review each image separately, then save one attachment or submit this page. File data, ownership and existing content stay in place."
+msgstr "逐张编辑图片文本，可单独保存或提交本页。文件数据、归属及已有正文保持不变。"
+
+msgid "Save this attachment"
+msgstr "保存此附件"
+
+msgid "Save this page, with a result for each attachment"
+msgstr "保存本页，逐附件显示结果"
+
+msgid "Show image captions"
+msgstr "显示图片图注"
+
+msgid "Text is invalid or too long."
+msgstr "文本无效或过长。"
+
+msgid "This attachment changed after you opened the form. Reload and review its current text before saving."
+msgstr "附件已在表单打开后被修改。请重新加载并核对当前文本后再保存。"
+
+msgid "This page checked %1$d saved posts/pages and skipped %2$d inaccessible or oversized entries."
+msgstr "本页检查了 %1$d 篇已保存文章或页面，跳过了 %2$d 篇无权读取或过大的正文。"
+
+msgid "You cannot edit this attachment."
+msgstr "你无权编辑此附件。"
+
+msgid "Scope: saved site posts and pages you can read."
+msgstr "检查范围：站内你有权读取的已保存文章和页面。"
+
+msgid "Scope: only your own saved posts and pages."
+msgstr "检查范围：仅你本人已保存的文章和页面。"
+
+msgid "Account subject SHA-256"
+msgstr "账号标识 SHA-256 摘要"
+
+msgid "Companion configuration is unavailable. Restore the valid configuration before exporting."
+msgstr "Companion 配置不可用，请恢复有效配置后再导出。"
+
+msgid "Companion likes"
+msgstr "Companion 点赞"
+
+msgid "Companion paragraph comments and private notes"
+msgstr "Companion 段落评论与私人笔记"
+
+msgid "Companion records could not be read. Retry the export after storage is available."
+msgstr "无法读取 Companion 记录，请在存储恢复后重试导出。"
+
+msgid "Companion social connections"
+msgstr "Companion 社交绑定"
+
+msgid "Created at"
+msgstr "创建时间"
+
+msgid "Document identity"
+msgstr "文档身份"
+
+msgid "Liked at"
+msgstr "点赞时间"
+
+msgid "Paragraph anchor"
+msgstr "段落锚点"
+
+msgid "Provider"
+msgstr "供应商"
+
+msgid "Record ID"
+msgstr "记录 ID"
+
+msgid "Record UUID"
+msgstr "记录 UUID"
+
+msgid "Record text"
+msgstr "记录文本"
+
+msgid "Saved quotation"
+msgstr "已保存引用"
+
+msgid "Target post ID"
+msgstr "目标文章 ID"
+
+msgid "Visibility"
+msgstr "可见性"
+
+msgid "Previous saved quotation"
+msgstr "前次保存引用"
+
+msgid "Previous paragraph anchor"
+msgstr "前次段落锚点"
+
+msgid "Updated at"
+msgstr "更新时间"

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: PageNest Companion
  * Description: 为栖页主题提供评论邮件通知、Markdown 编辑兼容、数学公式与代码高亮支持，并提供章节链接、段落评论和点赞。
- * Version: 1.6.0
+ * Version: 1.7.0
  * Author: PageNest Contributors
  * License: GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -24,11 +24,13 @@ add_action(
     0,
 );
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/modules/privacy.php';
 try {
     $GLOBALS['pagenest_companion_profile'] = defined('PAGENEST_COMPATIBILITY_PROFILE_FILE')
         ? pagenest_companion_load_profile(PAGENEST_COMPATIBILITY_PROFILE_FILE, ABSPATH)
         : pagenest_companion_defaults();
 } catch (Throwable $error) {
+    $GLOBALS['pagenest_companion_profile_invalid'] = true;
     add_action('admin_notices', static function () {
         echo '<div class="notice notice-error"><p>PageNest Companion compatibility profile is invalid; features are disabled.</p></div>';
     });
