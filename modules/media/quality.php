@@ -80,8 +80,14 @@ function pagenest_media_quality_update(int $id, array $input): string
     ) {
         return 'conflict';
     }
-    $caption = sanitize_textarea_field($input['caption']);
-    $alt = sanitize_text_field($input['alt']);
+    $caption =
+        $input['caption'] === $input['expected_caption']
+            ? $post->post_excerpt
+            : wp_kses_post($input['caption']);
+    $alt =
+        $input['alt'] === $input['expected_alt']
+            ? $input['expected_alt']
+            : sanitize_text_field($input['alt']);
     if ($caption !== $post->post_excerpt) {
         $saved = wp_update_post(wp_slash(['ID' => $id, 'post_excerpt' => $caption]), true);
         if (is_wp_error($saved) || (int) $saved !== $id) {

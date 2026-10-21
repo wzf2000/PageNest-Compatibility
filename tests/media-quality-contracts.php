@@ -59,6 +59,10 @@ function sanitize_text_field($text)
 {
     return strip_tags($text);
 }
+function wp_kses_post($text)
+{
+    return $text;
+}
 function sanitize_textarea_field($text)
 {
     return strip_tags($text);
@@ -195,6 +199,20 @@ check(
         array_column($result['matches'], 'ID') === [9],
     'References exclude unreadable and oversized content, include resized attachment URL',
 );
+$post->post_excerpt = '<em>Existing formatted caption</em>';
+$input = [
+    'alt' => 'only alt',
+    'caption' => $post->post_excerpt,
+    'expected_alt' => 'new alt',
+    'expected_caption' => $post->post_excerpt,
+];
+check(
+    pagenest_media_quality_save(4, $input) === 'saved' &&
+        $post->post_excerpt === '<em>Existing formatted caption</em>',
+    'Editing alt preserves existing caption HTML exactly',
+);
+$post->post_excerpt = 'new caption';
+$meta[4]['_wp_attachment_image_alt'] = 'new alt';
 $input = [
     'alt' => 'batch alt',
     'caption' => 'batch caption',
