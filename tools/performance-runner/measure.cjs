@@ -138,6 +138,7 @@ async function runMeasurements(
   function stop(reason) {
     if (stopped) return;
     stopped = reason;
+    guard?.retire();
     if (activeContext) closeBounded(activeContext).catch(() => server?.kill().catch(() => {}));
     else if (server) server.kill().catch(() => {});
   }
@@ -223,6 +224,7 @@ async function runMeasurements(
         const mobile = job.profile.device === 'mobile';
         // A pair shares only its anonymous HTTP cache. Every repeated pair starts
         // in a new context; warm navigation never consumes another page's cache.
+        guard.assertHealthy();
         const context = await browser.newContext({
           viewport: mobile ? { width: 390, height: 844 } : { width: 1365, height: 768 },
           deviceScaleFactor: mobile ? 2 : 1,
@@ -246,6 +248,7 @@ async function runMeasurements(
           for (const phase of phases) {
             if (cancelled()) return { results, environment, cancelled: true };
             if (stopped) throw new Error(stopped);
+            guard.assertHealthy();
             if (Date.now() >= deadline) throw new Error('job_timeout');
             const started = performance.now();
             const row = sampleRow(target, run, phase);
@@ -282,6 +285,7 @@ async function runMeasurements(
               sampleTimer = setTimeout(
                 () => {
                   timedOut = true;
+                  guard.retire();
                   closeBounded(context).catch(() => server.kill().catch(() => {}));
                 },
                 Math.max(1, Math.min(sampleTimeoutMs, deadline - Date.now())),
@@ -303,6 +307,8 @@ async function runMeasurements(
               };
               cdp.on('Network.requestServedFromCache', (event) => cacheHit(event.requestId));
               cdp.on('Network.responseReceived', (event) => {
+                if (event.requestId === mainRequestId && event.type === 'Document')
+                  row.http_status = event.response.status;
                 if (event.response.fromDiskCache || event.response.fromPrefetchCache)
                   cacheHit(event.requestId);
               });
@@ -369,7 +375,7 @@ async function runMeasurements(
             } finally {
               clearTimeout(sampleTimer);
               sampleTimer = null;
-              guard.activate(null);
+              guard.retire();
               await closeBounded(page);
             }
             row.duration_ms = finite(performance.now() - started);
@@ -378,21 +384,26 @@ async function runMeasurements(
             if (stopped === 'cancelled' || cancelled())
               return { results, environment, cancelled: true };
             if (stopped) throw new Error(stopped);
+            guard.assertHealthy();
             if (Date.now() >= deadline) throw new Error('job_timeout');
             if (phase === 'fresh') freshSucceeded = row.status === 'ok';
           }
         } finally {
           activeContext = null;
           currentRow = null;
-          guard.activate(null);
+          guard.retire();
           await closeBounded(context);
         }
       }
     }
     if (stopped === 'cancelled' || cancelled()) return { results, environment, cancelled: true };
     if (stopped) throw new Error(stopped);
+    guard.assertHealthy();
     if (Date.now() >= deadline) throw new Error('job_timeout');
     return { results, environment, cancelled: false };
+  } catch (error) {
+    if (guard && !guard.healthy() && !stopped) throw new Error('guard_failed');
+    throw error;
   } finally {
     clearInterval(cancellationTimer);
     clearTimeout(sampleTimer);
