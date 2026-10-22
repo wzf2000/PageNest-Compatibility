@@ -157,6 +157,7 @@ function reportFailure(error) {
     'usage_once_config',
     'job_timeout',
     'resource_limit',
+    'guard_failed',
     'runtime_unrestricted',
     'runtime_not_private',
     'runtime_wrong_user',

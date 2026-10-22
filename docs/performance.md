@@ -76,7 +76,7 @@ npm run test:performance-ui
 
 每轮创建全新 browser context，首次访问记录为 fresh。paired 模式在同一 context 新建页面再次导航到相同 URL，记录为 warm；开始再次导航前清除该 origin 的全部非 HTTP 存储（包含 Cookie、localStorage、IndexedDB、CacheStorage 等），不保留 DOM 或 sessionStorage，网络保护继续生效。浏览器缓存仍服从服务器 Cache-Control；再次访问不保证命中。浏览器进程及操作系统 DNS 等不保证是冷状态。HTTP 缓存保持浏览器正常行为，不主动注入 no-cache/Pragma 请求头。若强制禁用浏览器缓存，Chromium 会附带请求指令，可能令严格的匿名 origin 缓存绕过，因此不能以这种请求判定缓存无效。服务端缓存状态仅观察允许的响应头，不触发清理或改变缓存策略。结果体现服务器本地网络与受控资源环境，不代表真实用户的完整浏览旅程。
 
-默认等待 load 后再采样 1.5 秒；FCP/LCP/CLS 是这段观察窗口内的值。长任务阻塞代理值不是 Lighthouse TBT。目前没有 Lighthouse 评分或 INP。PageNestPerformance/1.0 精确空白分隔 User-Agent token 被 Companion 浏览计数忽略，与机器人排除开关无关；该 token 不赋予登录、权限或缓存豁免。第三方分析网络因控制策略可能被拦截。
+默认等待 load 后再采样 1.5 秒；主文档响应到达时即记录 HTTP 状态，即使后续 load 超时，HTTP 200 仍与失败状态并存。HTTP 状态为 null 不能独自证明服务器没有返回响应。FCP/LCP/CLS 是这段观察窗口内的值。长任务阻塞代理值不是 Lighthouse TBT。目前没有 Lighthouse 评分或 INP。PageNestPerformance/1.0 精确空白分隔 User-Agent token 被 Companion 浏览计数忽略，与机器人排除开关无关；该 token 不赋予登录、权限或缓存豁免。第三方分析网络因控制策略可能被拦截。
 
 本地检查使用合成 WordPress 函数与临时私有目录：
 
@@ -93,7 +93,9 @@ npm run test:performance-runner
 npm run test:performance-browser
 ```
 
-开发依赖可通过已有工作区的 node_modules 复用，不自动下载浏览器。本地检查包含 PHP 与 Node 任务／报告往返、文件锁互斥、HTTP/TLS 重定向、Cookie、脚本弹窗与无限循环脚本收尾、首次／再次缓存命中、304 再验证、存储隔离、成对取消、可比条件和导出白名单，以及请求数、解码字节、HTTP/TLS 代理累计字节、并发连接上限、活动取消、总时限与进程／socket 收尾，不访问生产页面。沙箱单元合约另覆盖缺失证据、继承的 seccomp 过滤器、错误身份、取消后的迟到 launch／connect、串行清理，以及失败记录写完后终止主进程；这些 mock 不作为 OS 沙箱成功证据。成对缓存的 TLS fixture 在测试入口匹配临时证书公钥使用 SPKI 例外，避免通用证书错误绕过影响缓存测试；资源预算 TLS fixture 使用回环自签证书，不用于判断缓存命中。CLI 不提供这些测试例外。PHP 合约及本地页面测试不替代合并后的 WordPress 集成与浏览器验收。
+执行器按每个采样页面绑定独立网络保护作用域，在主动关闭页面或 context 前先退役该作用域；退役后的异步收尾与迟到事件不再影响后续采样。活动作用域的协议错误、初始化失败或子目标 CDP 失联仍立即关闭浏览器，stderr 仅输出安全码 guard_failed，队列终态沿用 runner_failed。单页导航超时记录失败样本，后续页面继续执行；fresh 失败仍跳过该轮 warm。独立执行器源码须由服务器管理员单独更新；Companion 1.8.0 安装包不会自动安装或更新服务器上的执行器。
+
+开发依赖可通过已有工作区的 node_modules 复用，不自动下载浏览器。定向生命周期检查还以真实回环 Chromium 延迟 CDP 响应直到页面超时关闭，验证后续页面的 fresh/warm 继续完成，并检查慢响应体下 HTTP 200 与导航超时的区别；单元检查覆盖退役前后的 pending 命令、迟到事件和活动目标失联时的 fail closed。其余本地检查包含 PHP 与 Node 任务／报告往返、文件锁互斥、HTTP/TLS 重定向、Cookie、脚本弹窗与无限循环脚本收尾、首次／再次缓存命中、304 再验证、存储隔离、成对取消、可比条件和导出白名单，以及请求数、解码字节、HTTP/TLS 代理累计字节、并发连接上限、活动取消、总时限与进程／socket 收尾，不访问生产页面。沙箱单元合约另覆盖缺失证据、继承的 seccomp 过滤器、错误身份、取消后的迟到 launch／connect、串行清理，以及失败记录写完后终止主进程；这些 mock 不作为 OS 沙箱成功证据。成对缓存的 TLS fixture 在测试入口匹配临时证书公钥使用 SPKI 例外，避免通用证书错误绕过影响缓存测试；资源预算 TLS fixture 使用回环自签证书，不用于判断缓存命中。CLI 不提供这些测试例外。PHP 合约及本地页面测试不替代合并后的 WordPress 集成与浏览器验收。
 
 ## 资源限制与启动检查
 

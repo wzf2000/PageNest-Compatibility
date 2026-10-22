@@ -9,8 +9,10 @@ class ChildSession extends EventEmitter {
     this.id = id;
     this.serial = 0;
     this.pending = new Map();
+    this.closed = false;
   }
   send(method, params = {}) {
+    if (this.closed) return Promise.reject(new Error('protocol_closed'));
     const id = ++this.serial;
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
@@ -31,6 +33,7 @@ class ChildSession extends EventEmitter {
     });
   }
   receive(raw) {
+    if (this.closed) return;
     const message = JSON.parse(raw);
     if (message.id) {
       const pending = this.pending.get(message.id);
@@ -42,6 +45,8 @@ class ChildSession extends EventEmitter {
     } else if (message.method) this.emit(message.method, message.params);
   }
   dispose() {
+    if (this.closed) return;
+    this.closed = true;
     for (const pending of this.pending.values()) {
       clearTimeout(pending.timer);
       pending.reject(new Error('protocol_closed'));
@@ -52,9 +57,9 @@ class ChildSession extends EventEmitter {
 }
 
 async function startGuard(browser, policy) {
-  const all = new Set();
   let active = null;
   let fault = false;
+  const scopes = new Set();
   const types = {
     Stylesheet: 'stylesheet',
     Script: 'script',
@@ -62,13 +67,49 @@ async function startGuard(browser, policy) {
     Font: 'font',
     Media: 'media',
   };
-  function intercept(session, targetInfo) {
-    session.on('Fetch.requestPaused', (event) => {
+  function fail(entry) {
+    // Only explicit retirement before our own page/context close permits ignoring
+    // in-flight teardown errors. A live child losing its CDP attachment is fatal.
+    if (entry.closed || entry.scope.retired || fault) return;
+    fault = true;
+    browser.close().catch(() => {});
+  }
+  function listen(entry, name, callback) {
+    entry.session.on(name, callback);
+    entry.listeners.push(() => entry.session.off(name, callback));
+  }
+  function dispose(entry) {
+    if (entry.closed) return;
+    entry.closed = true;
+    for (const child of entry.children.values()) dispose(child);
+    entry.children.clear();
+    for (const remove of entry.listeners) remove();
+    entry.listeners.length = 0;
+    if (entry.session instanceof ChildSession) entry.session.dispose();
+  }
+  function retire() {
+    if (!active) return;
+    const scope = active;
+    active = null;
+    scope.retired = true;
+    dispose(scope.root);
+    scopes.delete(scope);
+  }
+  function send(entry, method, params) {
+    if (entry.closed || entry.scope.retired) return Promise.reject(new Error('protocol_closed'));
+    return entry.session.send(method, params);
+  }
+  function intercept(entry) {
+    listen(entry, 'Fetch.requestPaused', (event) => {
+      if (entry.closed || entry.scope.retired) return;
       (async () => {
-        const current = active;
+        const current = entry.scope.value;
+        const targetInfo = entry.targetInfo;
         const document = event.resourceType === 'Document';
         const permittedTarget =
-          current && targetInfo.type === 'page' && targetInfo.targetId === current.targetId;
+          active === entry.scope &&
+          targetInfo.type === 'page' &&
+          targetInfo.targetId === current.targetId;
         const request = {
           url: () => event.request.url,
           method: () => event.request.method,
@@ -90,8 +131,8 @@ async function startGuard(browser, policy) {
           event.responseStatusCode < 400 &&
           event.responseStatusCode !== 304;
         if (!allowed || redirect) {
-          if (current) current.row.blocked_requests++;
-          await session.send('Fetch.failRequest', {
+          current.row.blocked_requests++;
+          await send(entry, 'Fetch.failRequest', {
             requestId: event.requestId,
             errorReason: 'BlockedByClient',
           });
@@ -99,7 +140,7 @@ async function startGuard(browser, policy) {
           const headers = (event.responseHeaders || []).filter(
             ({ name }) => !['set-cookie', 'set-cookie2'].includes(name.toLowerCase()),
           );
-          await session.send('Fetch.continueResponse', {
+          await send(entry, 'Fetch.continueResponse', {
             requestId: event.requestId,
             responseCode: event.responseStatusCode,
             // HTTP/2 has no reason phrase. Omit the optional field so Chromium
@@ -108,7 +149,8 @@ async function startGuard(browser, policy) {
             responseHeaders: headers,
           });
         } else {
-          await session.send('Network.clearBrowserCookies');
+          await send(entry, 'Network.clearBrowserCookies');
+          if (entry.closed || entry.scope.retired) return;
           const headers = Object.entries(event.request.headers)
             .filter(
               ([name]) =>
@@ -123,78 +165,109 @@ async function startGuard(browser, policy) {
             .map(([name, value]) => ({ name, value: String(value) }));
           if (current.permitted?.() === false) {
             current.row.blocked_requests++;
-            await session.send('Fetch.failRequest', {
+            await send(entry, 'Fetch.failRequest', {
               requestId: event.requestId,
               errorReason: 'BlockedByClient',
             });
           } else {
-            await session.send('Fetch.continueRequest', { requestId: event.requestId, headers });
+            await send(entry, 'Fetch.continueRequest', { requestId: event.requestId, headers });
           }
         }
-      })().catch(() => {
-        fault = true;
-        browser.close().catch(() => {});
-      });
+      })().catch(() => fail(entry));
     });
   }
-  async function enable(session) {
-    await session.send('Network.enable');
-    await session.send('Emulation.setDocumentCookieDisabled', { disabled: true }).catch(() => {});
-    await session.send('Network.setCacheDisabled', { cacheDisabled: false });
-    await session.send('Fetch.enable', {
+  async function enable(entry) {
+    await send(entry, 'Network.enable');
+    await send(entry, 'Emulation.setDocumentCookieDisabled', { disabled: true }).catch(() => {});
+    await send(entry, 'Network.setCacheDisabled', { cacheDisabled: false });
+    await send(entry, 'Fetch.enable', {
       patterns: [
         { urlPattern: '*', requestStage: 'Request' },
         { urlPattern: '*', requestStage: 'Response' },
       ],
     });
-    await session.send('Target.setAutoAttach', {
+    await send(entry, 'Target.setAutoAttach', {
       autoAttach: true,
       waitForDebuggerOnStart: true,
       flatten: false,
     });
   }
-  function install(parent) {
-    const children = new Map();
-    parent.on('Target.receivedMessageFromTarget', ({ sessionId, message }) =>
-      children.get(sessionId)?.receive(message),
-    );
-    parent.on('Target.detachedFromTarget', ({ sessionId }) => {
-      const child = children.get(sessionId);
-      child?.dispose();
-      children.delete(sessionId);
-      all.delete(child);
+  function install(entry) {
+    listen(entry, 'Target.receivedMessageFromTarget', ({ sessionId, message }) => {
+      try {
+        entry.children.get(sessionId)?.session.receive(message);
+      } catch {
+        fail(entry);
+      }
     });
-    parent.on('Target.attachedToTarget', ({ sessionId, targetInfo }) => {
-      const session = new ChildSession(parent, sessionId);
-      children.set(sessionId, session);
-      all.add(session);
-      install(session);
-      intercept(session, targetInfo);
+    listen(entry, 'Target.detachedFromTarget', ({ sessionId }) => {
+      const child = entry.children.get(sessionId);
+      if (child) {
+        dispose(child);
+        entry.children.delete(sessionId);
+        // Detach does not prove the target was destroyed; interception may be lost.
+        fail(entry);
+      }
+    });
+    listen(entry, 'Target.attachedToTarget', ({ sessionId, targetInfo }) => {
+      if (entry.closed || entry.scope.retired) return;
+      const child = {
+        session: new ChildSession(entry.session, sessionId),
+        targetInfo,
+        scope: entry.scope,
+        closed: false,
+        children: new Map(),
+        listeners: [],
+      };
+      entry.children.set(sessionId, child);
+      install(child);
+      intercept(child);
       (async () => {
-        await enable(session);
-        await session.send('Runtime.runIfWaitingForDebugger');
-      })().catch(() => {
-        fault = true;
-        browser.close().catch(() => {});
-      });
+        await enable(child);
+        await send(child, 'Runtime.runIfWaitingForDebugger');
+      })().catch(() => fail(child));
     });
   }
   return {
     async bind(session, value) {
-      active = value;
-      install(session);
-      intercept(session, { type: 'page', targetId: value.targetId });
-      await enable(session);
+      if (active || fault) throw new Error('guard_failed');
+      const scope = { value, retired: false };
+      const root = {
+        session,
+        targetInfo: { type: 'page', targetId: value.targetId },
+        scope,
+        closed: false,
+        children: new Map(),
+        listeners: [],
+      };
+      scope.root = root;
+      scopes.add(scope);
+      active = scope;
+      install(root);
+      intercept(root);
+      try {
+        await enable(root);
+      } catch (error) {
+        fail(root);
+        throw error;
+      }
     },
-    activate(value) {
-      active = value;
-    },
+    // Call synchronously before closing the bound page or its containing context.
+    // Removing listeners does not disable Fetch or release paused requests.
+    retire,
     healthy() {
       return !fault;
     },
+    assertHealthy() {
+      if (fault) throw new Error('guard_failed');
+    },
     async close() {
-      active = null;
-      for (const session of all) session.dispose();
+      retire();
+      for (const scope of scopes) {
+        scope.retired = true;
+        dispose(scope.root);
+      }
+      scopes.clear();
     },
   };
 }
