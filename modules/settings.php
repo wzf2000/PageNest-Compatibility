@@ -60,6 +60,7 @@ function pagenest_companion_settings_page()
         '为读者开启合适的互动方式。关闭功能会保留已有内容和记录。',
         'pagenest-companion',
     );
+    settings_errors('pagenest_companion_series_directories');
     echo '<div class="pn-admin-layout"><form class="pn-admin-main" action="options.php" method="post">';
     settings_fields('pagenest_companion');
     echo '<section class="pn-admin-section"><h2>文章互动</h2><p>按需选择，沿用每篇文章的配置。</p>';
@@ -85,6 +86,7 @@ function pagenest_companion_settings_page()
             '</p></div>';
     }
     echo '</section>';
+    pagenest_companion_series_settings_fields();
     $views = pagenest_companion_views_settings();
     echo '<section class="pn-admin-section"><h2>浏览计数</h2><p>记录公开文章和页面的访问。默认关闭，不关联经验奖励。</p>';
     foreach (['enabled' => '启用浏览计数', 'exclude_bots' => '排除已知机器人'] as $key => $label) {

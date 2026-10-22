@@ -73,6 +73,18 @@ function pagenest_seo_breadcrumb_parents(): array
     if (!is_singular('post')) {
         return [];
     }
+    $directory = function_exists('pagenest_companion_series_directory')
+        ? pagenest_companion_series_directory((int) $object->ID)
+        : [];
+    if ($directory) {
+        return array_map(
+            static fn($item) => [
+                'name' => pagenest_discovery_text($item['name'], 180),
+                'item' => $item['item'],
+            ],
+            $directory['parents'],
+        );
+    }
     $terms = get_the_terms($object->ID, 'category');
     if (!$terms || is_wp_error($terms)) {
         return [];

@@ -65,19 +65,24 @@ function pagenest_companion_content_chapter_render(string $html, int $id): strin
         }
     }
     $navigation = '';
-    $libraries = get_posts([
-        'post_type' => 'page',
-        'post_status' => ['private', 'publish'],
-        'meta_key' => $config['library_meta'],
-        'meta_value' => '1',
-        'posts_per_page' => 1,
-    ]);
-    if ($libraries && pagenest_companion_can_read($libraries[0])) {
+    $directory = pagenest_companion_series_directory($id);
+    $target = $directory ? get_post($directory['page_id']) : null;
+    if (!$directory) {
+        $libraries = get_posts([
+            'post_type' => 'page',
+            'post_status' => ['private', 'publish'],
+            'meta_key' => $config['library_meta'],
+            'meta_value' => '1',
+            'posts_per_page' => 1,
+        ]);
+        $target = $libraries[0] ?? null;
+    }
+    if ($target && pagenest_companion_can_read($target)) {
         $navigation =
             '<nav class="pagenest-content-nav" aria-label="' .
             esc_attr($config['labels']['navigation'] ?? 'Chapter navigation') .
             '"><a href="' .
-            esc_url(get_permalink($libraries[0])) .
+            esc_url(get_permalink($target)) .
             '">' .
             esc_html($config['labels']['return'] ?? 'Return to contents') .
             '</a></nav>';

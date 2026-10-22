@@ -44,6 +44,8 @@ function pagenest_companion_defaults()
             'document_meta' => '_pagenest_document_id',
             'link_map' => [],
             'series_order' => [],
+            'series_directories' => [],
+            'document_series' => [],
         ],
         'views' => ['legacy_meta' => '', 'legacy_owner_function' => ''],
         'likes' => [
@@ -224,6 +226,38 @@ function pagenest_companion_validate($input)
             $post_id < 1
         ) {
             throw new InvalidArgumentException('Invalid chapter link.');
+        }
+    }
+    if (count($defaults['chapters']['document_series']) > 1000) {
+        throw new InvalidArgumentException('Too many document series bindings.');
+    }
+    foreach ($defaults['chapters']['document_series'] as $document => $series) {
+        if (
+            (!is_string($document) && !is_int($document)) ||
+            (string) $document === '' ||
+            strlen((string) $document) > 200 ||
+            preg_match('/[\x00-\x1f\x7f]/u', (string) $document) ||
+            !is_string($series) ||
+            $series === '' ||
+            mb_strlen($series) > 100 ||
+            preg_match('/[\x00-\x1f\x7f]/u', $series)
+        ) {
+            throw new InvalidArgumentException('Invalid document series binding.');
+        }
+    }
+    if (count($defaults['chapters']['series_directories']) > 200) {
+        throw new InvalidArgumentException('Too many series directories.');
+    }
+    foreach ($defaults['chapters']['series_directories'] as $series => $page) {
+        if (
+            (!is_string($series) && !is_int($series)) ||
+            (string) $series === '' ||
+            mb_strlen((string) $series) > 100 ||
+            preg_match('/[\x00-\x1f\x7f]/u', (string) $series) ||
+            !is_int($page) ||
+            $page < 1
+        ) {
+            throw new InvalidArgumentException('Invalid series directory.');
         }
     }
     foreach ($defaults['chapters']['series_order'] as $id) {

@@ -81,7 +81,9 @@ jobs:
         run: npx playwright install --with-deps firefox webkit
       - name: Run focused diagnostic, media and sharing engine matrix
         if: matrix.php == '8.2'
-        run: npm run test:followups-browser
+        run: |
+          npm run test:followups-browser
+          npm run test:series-browser
       - name: Upload browser failure evidence
         if: failure()
         uses: actions/upload-artifact@v4
@@ -90,6 +92,7 @@ jobs:
           path: |
             test-results/
             .runtime/followups-browser-results/
+            .runtime/series-browser-results/
             playwright-report/
             /tmp/pagenest-performance-ui-results/
           include-hidden-files: true
