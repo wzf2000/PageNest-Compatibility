@@ -35,7 +35,7 @@ JSON 顶层必须含 `schema_version: 1`，其他节可按需指定，未知键�
 - `theme`：`legacy_stylesheet`、`setting_prefix`、`menu_locations`、`anchor_prefixes`、`class_aliases`。后三项为旧名到新名映射；设置迁移仅在主题切换时补缺，不覆盖已配置的空值。
 - `mail`：`sent_meta_keys`、`lock_option_prefixes` 字符串列表；只读旧标记和锁。
 - `paragraphs`：`post_type`、`data_meta`、`uuid_meta`、`document_meta`、`registry_meta`、`library_meta`、`enabled_meta`、`rest_namespace`、`rest_aliases`、`shortcodes`。旧记录无需重写；所有兼容 namespace 使用相同权限和缓存策略。
-- `chapters`：`series_meta`、`order_meta`、`document_meta`、`link_map`（Markdown 文件名到现有整数文章 ID）、`series_order`（稳定文档 ID 列表）。没有系列元数据时，已标记文档组成一个系列。
+- `chapters`：`series_meta`、`order_meta`、`document_meta`、`link_map`（Markdown 文件名到现有整数文章 ID）、`series_order`（稳定文档 ID 列表）、`series_directories`（系列原名到公开目录页面整数 ID 的映射，最多 200 项）、`document_series`（稳定文档 ID 到目录系列键的显式映射，最多 1000 项）。没有系列元数据时，已标记文档组成一个系列。
 - `views`：可省略，默认 `legacy_meta=""`、`legacy_owner_function=""`。旧键仅在新键缺失时只读回退；旧负责人函数存在时停止计数与底栏展示。字段使用显式 ASCII 标识，不自动发现旧插件。回退键不得等于新存储键。
 - `likes`：`counter_meta`、`record_meta`、`legacy_provider`。provider 含 `table_suffix`（加 WordPress 表前缀）、`user_column`、`post_column`、`event_column`、`event_value`、`record_column`、`record_prefix`。非空 post/event/record 条件同时成立；record 值为 `record_prefix + user_id + ':' + post_id`。表名和列名仅允许 ASCII 字母、数字、下划线，值通过 SQL 参数绑定。表不可读时拒绝新点赞。
 
@@ -225,3 +225,13 @@ unprotected, discoverable entries and reliable author heading IDs. It saves no r
 `pagenest_companion_guide` (`enabled`, `groups: [{title, items: [post IDs]}]`); it never overrides the
 server-owned content provider. All new UI messages use `pagenest-companion` gettext, with bundled
 Simplified Chinese and deterministic `npm run i18n` / `npm run i18n:check` catalogs.
+
+## 系列目录关系
+
+`chapters.series_directories` 和独立 option `pagenest_companion_series_directories` 使用同一种映射：`{"系列原名":123}`。系列名称沿用文章当前有效的 `series` 值，按原字符串精确匹配，不生成 slug，也不从文档 ID、分类或页面标题猜测。每个名称只能关联一个目录页面；原有章节身份、顺序和文档回退不变。服务器映射逐项优先于后台；后台中被覆盖的值保留，移除服务器项后恢复。内容导览设置不参与这套关系。
+
+`pagenest_companion_series_directory($post_id)` 只返回已发布、无密码的 page 及其完整公开祖先；目录、祖先缺失、非公开、受密码保护或成环时返回空数组，对管理员也相同。无映射不生成新目录。旧章节展示的返回入口在无有效映射时沿用原 library 标记；主题侧栏通过 `pagenest_series_directory` filter 接收目录数据，已存在章节顶部返回入口时不重复显示。SEO 使用同一 resolver，映射不可用时保持原分类路径。
+
+阅读设置页保存整份后台映射，校验 manage_options、专用 nonce 和表单原值摘要。失效表单、遗漏原有关联或任一无效目录都拒绝整份保存，保留旧值。选择器只列出最多 200 个公开页面，可填写其他公开页面 ID；既有关联全部保留在表单中。运行时仍重新验证目录和祖先状态，后续变为私人或草稿的目录不会进入公开导航或 SEO。
+
+旧文章没有系列元数据时，可由服务器显式配置 `chapters.document_series: {"document-a":"manual-series"}` 和 `chapters.series_directories: {"manual-series":123}`。`pagenest_companion_directory_series($post_id)` 优先使用文章现有非空系列字符串，仅在其为空时读取所配置 `document_meta` 的显式绑定。此绑定只服务于目录关系，不改变同系列推荐的旧文档分组或章节排序，不写入文章元数据；未列出的文档不会推断归属。后台显示服务器托管的目录关系及文档绑定数。
