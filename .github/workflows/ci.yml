@@ -72,8 +72,8 @@ jobs:
       - name: Check out the matching public PageNest theme
         uses: actions/checkout@v4
         with:
-          repository: wzf2000/PageNest
-          ref: fc4feee2f33f1cc21689b34e042139dfad3c43c6
+          repository: ${{ github.repository_owner }}/PageNest
+          ref: 371ac2734292c8604eeafca639325d864346dba3
           path: .runtime/pagenest-theme
           persist-credentials: false
       - name: Run frontend regressions
