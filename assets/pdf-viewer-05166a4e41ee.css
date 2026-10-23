@@ -1,0 +1,46 @@
+#mainContainer {
+  min-width: 0;
+}
+@media screen and (max-width: 380px) {
+  #toolbarContainer {
+    height: calc(2 * var(--toolbar-height));
+  }
+  #toolbarContainer #toolbarViewer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    row-gap: 4px;
+  }
+  #toolbarViewer > .toolbarHorizontalGroup {
+    height: calc(var(--toolbar-height) - 2 * var(--toolbar-vertical-padding));
+  }
+  #toolbarContainer #toolbarViewer #toolbarViewerLeft {
+    margin-inline-start: 0;
+  }
+  #toolbarViewerMiddle {
+    justify-self: end;
+  }
+  #toolbarViewerRight {
+    grid-column: 1 / -1;
+    justify-self: end;
+  }
+  #secondaryToolbar {
+    width: min(220px, calc(100% - 12px));
+  }
+  #viewerContainer {
+    top: calc(2 * var(--toolbar-height));
+  }
+  #toolbarContainer #loadingBar {
+    top: 100%;
+  }
+  html[data-toolbar-density='touch'] #toolbarContainer {
+    height: calc(3 * var(--toolbar-height));
+  }
+  html[data-toolbar-density='touch'] #toolbarContainer #toolbarViewer {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: repeat(3, minmax(0, 1fr));
+  }
+  html[data-toolbar-density='touch'] #viewerContainer {
+    top: calc(3 * var(--toolbar-height));
+  }
+}

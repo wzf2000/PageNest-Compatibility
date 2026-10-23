@@ -37,7 +37,13 @@
       if (device.enabled && Array.isArray(saved.items)) {
         device.items = saved.items
           .slice(0, 100)
-          .filter((item) => Number.isInteger(item.id) && item.id > 0 && Number.isFinite(item.time))
+          .filter(
+            (item) =>
+              Number.isInteger(item.id) &&
+              item.id > 0 &&
+              Number.isFinite(item.time) &&
+              Number.isFinite(new Date(item.time).getTime()),
+          )
           .map((item) => ({
             id: item.id,
             time: item.time,
@@ -92,38 +98,75 @@
     { passive: true },
   );
   const deviceViews = [...document.querySelectorAll('[data-pn-device]')];
+  let deviceMessage = '';
   async function renderDevice() {
     const generation = ++resolving;
+    const restore = new Map();
     deviceViews.forEach((view) => {
-      view.replaceChildren(node('h3', t.device));
-      const label = node('label'),
+      const focused = view.contains(document.activeElement) ? document.activeElement : null;
+      const focusKey = focused?.dataset.pnFocus;
+      const managementOpen = view.querySelector('.pn-reading-management')?.open;
+      if (focusKey) restore.set(view, focusKey);
+      view.replaceChildren();
+      const label = node('label', undefined, 'pn-reading-consent'),
         toggle = node('input');
       toggle.type = 'checkbox';
+      toggle.dataset.pnFocus = 'consent';
       toggle.checked = device.enabled;
       toggle.disabled = !storageOK;
       label.append(toggle, document.createTextNode(' ' + t.consent));
       toggle.addEventListener('change', () => {
         device = { enabled: toggle.checked, items: toggle.checked ? device.items : [] };
-        if (persist()) remember();
+        if (persist()) {
+          remember();
+          deviceMessage = !storageOK
+            ? t.unavailable
+            : device.enabled
+              ? t.deviceEnabled
+              : t.deviceDisabled;
+        } else deviceMessage = t.unavailable;
         renderDevice();
       });
-      const options = node('div', undefined, 'pn-reading-actions');
-      options.append(label);
+      const feedback = node('p', deviceMessage, 'pn-reading-hint');
+      feedback.setAttribute('role', 'status');
       view.append(
-        options,
+        label,
         node('p', storageOK ? t.deviceSummary : t.unavailable, 'pn-reading-hint'),
+        feedback,
       );
-      if (device.enabled)
-        options.append(
-          button(t.clear, () => {
-            device.items = [];
-            persist();
-            renderDevice();
-          }),
-        );
-      view.append(help(t.deviceHelp));
+      const content = node('div', undefined, 'pn-reading-device-list');
+      content.dataset.pnDeviceList = '';
+      view.append(content);
+      if (device.enabled) {
+        const management = node('details', undefined, 'pn-reading-management');
+        management.open = Boolean(managementOpen);
+        const clearButton = button(t.clear, () => {
+          device.items = [];
+          persist();
+          deviceMessage = storageOK ? t.deviceCleared : t.unavailable;
+          renderDevice();
+        });
+        clearButton.dataset.pnFocus = 'clear';
+        management.append(node('summary', t.manage), clearButton, node('p', t.deviceHelp));
+        view.append(management);
+      } else {
+        content.append(node('p', storageOK ? t.devicePrompt : t.unavailable, 'pn-reading-empty'));
+        view.append(help(t.deviceHelp));
+      }
+      if (device.enabled && !device.items.length)
+        content.append(node('p', t.empty, 'pn-reading-empty'));
+      if (focusKey) {
+        const replacement = view.querySelector(`[data-pn-focus="${focusKey}"]`);
+        if (replacement) replacement.focus({ preventScroll: true });
+        else if (!device.items.length) toggle.focus({ preventScroll: true });
+      }
     });
     if (!device.enabled || !device.items.length) return;
+    deviceViews.forEach((view) => {
+      const message = node('p', t.loading);
+      message.setAttribute('role', 'status');
+      view.querySelector('[data-pn-device-list]').replaceChildren(message);
+    });
     try {
       const response = await fetch(safeUrl(cfg.resolve), {
         method: 'POST',
@@ -138,39 +181,69 @@
       const live = new Map(data.items.map((item) => [item.id, item]));
       // Invalid or newly restricted articles are removed without retaining titles or URLs.
       device.items = device.items.filter((item) => live.has(item.id));
-      persist();
+      if (!persist()) {
+        renderDevice();
+        return;
+      }
       deviceViews.forEach((view) => {
-        for (const later of [false, true]) {
-          view.append(node('h4', later ? t.later : t.recent));
-          const list = node('ul');
-          for (const item of device.items.filter((item) => !later || item.later)) {
-            const current = live.get(item.id),
-              li = node('li'),
-              link = node('a', current.title);
-            link.href = safeUrl(
-              current.url +
-                (current.headings.includes(item.anchor)
-                  ? '#' + encodeURIComponent(item.anchor)
-                  : ''),
-            );
-            li.append(
-              link,
-              button(t.remove, () => {
-                device.items = device.items.filter((saved) => saved.id !== item.id);
-                persist();
-                renderDevice();
-              }),
-            );
-            list.append(li);
+        const content = view.querySelector('[data-pn-device-list]');
+        content.replaceChildren();
+        const later = view.closest('.pn-reading')?.dataset.pnView === 'later';
+        const items = device.items.filter((item) => !later || item.later);
+        const list = node('ul', undefined, 'pn-reading-device-items');
+        items.forEach((item, index) => {
+          const current = live.get(item.id),
+            li = node('li'),
+            body = node('div', undefined, 'pn-reading-item-body'),
+            link = node('a', current.title);
+          link.dataset.pnFocus = 'article-' + item.id;
+          link.href = safeUrl(
+            current.url +
+              (current.headings.includes(item.anchor) ? '#' + encodeURIComponent(item.anchor) : ''),
+          );
+          if (!later && index === 0) {
+            li.classList.add('pn-reading-continue');
+            body.append(node('span', t.continue, 'pn-reading-kicker'));
           }
-          view.append(list.childElementCount ? list : node('p', t.empty));
+          const date = node(
+            'time',
+            new Intl.DateTimeFormat(document.documentElement.lang || undefined, {
+              month: 'short',
+              day: 'numeric',
+            }).format(item.time),
+          );
+          date.dateTime = new Date(item.time).toISOString();
+          body.append(link, date);
+          const remove = button(t.remove, () => {
+            device.items = device.items.filter((saved) => saved.id !== item.id);
+            persist();
+            renderDevice();
+          });
+          remove.dataset.pnFocus = 'remove-' + item.id;
+          remove.setAttribute('aria-label', t.remove + ': ' + current.title);
+          li.append(body, remove);
+          list.append(li);
+        });
+        content.append(items.length ? list : node('p', t.empty, 'pn-reading-empty'));
+        if (restore.has(view) && document.activeElement === document.body && !view.hidden) {
+          (content.querySelector('a') || view.querySelector('input'))?.focus({
+            preventScroll: true,
+          });
         }
       });
     } catch {
-      if (generation === resolving) deviceViews.forEach((view) => view.append(node('p', t.error)));
+      if (generation === resolving)
+        deviceViews.forEach((view) => {
+          const message = node('p', t.deviceLoadError);
+          message.setAttribute('role', 'status');
+          const retry = button(t.retry, () => renderDevice());
+          retry.dataset.pnFocus = 'retry';
+          view.querySelector('[data-pn-device-list]').replaceChildren(message, retry);
+          if (restore.has(view) && document.activeElement === document.body && !view.hidden)
+            retry.focus({ preventScroll: true });
+        });
     }
   }
-  renderDevice();
   addEventListener('storage', (event) => {
     if (event.key !== key) return;
     readDevice();
@@ -214,6 +287,8 @@
     const submit = node('button', t.search);
     submit.type = 'submit';
     controls.append(qLabel, kind, submit);
+    const intro = node('p', t.privateIntro, 'pn-reading-hint');
+    const loadButton = button(t.load, () => load());
     const more = button(t.more, () => load(true));
     more.hidden = true;
     function clearPrivate(message = '') {
@@ -227,6 +302,9 @@
       pending = false;
       ids = [];
       status.textContent = message;
+      intro.hidden = false;
+      loadButton.textContent = t.load;
+      loadButton.disabled = false;
     }
     async function api(path, method = 'GET', body) {
       const turn = generation,
@@ -269,6 +347,41 @@
     }
     function card(item) {
       const article = node('article', undefined, 'pn-reading-record');
+      const feedback = () => {
+        const message = node('p');
+        message.setAttribute('role', 'status');
+        message.hidden = true;
+        return message;
+      };
+      async function act(box, control, focusTarget, message, task, focusScope = box) {
+        const current = () => box.isConnected && article.isConnected;
+        let moved = !focusScope.contains(document.activeElement);
+        const trackFocus = (event) => {
+          if (!focusScope.contains(event.target)) moved = true;
+        };
+        document.addEventListener('focusin', trackFocus);
+        document.addEventListener('pointerdown', trackFocus);
+        message.hidden = true;
+        message.textContent = '';
+        control.disabled = true;
+        try {
+          await task(current);
+        } catch (error) {
+          if (!error.stale && current()) {
+            message.textContent = error.message || t.error;
+            message.hidden = false;
+            if (!moved) {
+              control.disabled = false;
+              focusTarget.focus({ preventScroll: true });
+              message.scrollIntoView({ block: 'nearest' });
+            }
+          }
+        } finally {
+          control.disabled = false;
+          document.removeEventListener('focusin', trackFocus);
+          document.removeEventListener('pointerdown', trackFocus);
+        }
+      }
       const title = node('a', item.post_title);
       title.href = safeUrl(item.location_url);
       article.append(title, node('p', item.visibility === 'public' ? t.public : t.author_only));
@@ -279,44 +392,53 @@
       const text = node('p', item.text, 'pn-reading-note-text');
       article.append(text);
       const actions = node('div', undefined, 'pn-reading-actions');
+      const deleteMessage = feedback();
       actions.append(
-        button(t.edit, () => {
+        button(t.edit, (event) => {
           if (article.querySelector('textarea')) return;
+          const opener = event.currentTarget;
           const editor = node('textarea');
           editor.value = item.text;
           editor.maxLength = 10000;
           editor.setAttribute('aria-label', t.edit);
           const editBox = node('div');
-          const save = button(t.save, async () => {
-            save.disabled = true;
-            try {
+          const message = feedback();
+          const save = button(t.save, () =>
+            act(editBox, save, editor, message, async (current) => {
               await api(`notes/${item.id}`, 'PATCH', { text: editor.value, version: item.version });
-              await load();
-            } catch (error) {
-              if (!error.stale) status.textContent = error.message || t.error;
-            } finally {
-              save.disabled = false;
-            }
-          });
+              if (current()) await load();
+            }),
+          );
           editBox.append(
             editor,
             save,
-            button(t.cancel, () => editBox.remove()),
+            button(t.cancel, () => {
+              editBox.remove();
+              opener.focus({ preventScroll: true });
+            }),
+            message,
           );
           article.append(editBox);
           editor.focus();
         }),
-        button(t.delete, async () => {
+        button(t.delete, (event) => {
           if (!confirm(t.confirmDelete)) return;
-          try {
-            await api(`notes/${item.id}`, 'DELETE', { version: item.version });
-            await load();
-          } catch (error) {
-            if (!error.stale) status.textContent = error.message || t.error;
-          }
+          const remove = event.currentTarget;
+          return act(
+            article,
+            remove,
+            remove,
+            deleteMessage,
+            async (current) => {
+              await api(`notes/${item.id}`, 'DELETE', { version: item.version });
+              if (current()) await load();
+            },
+            remove,
+          );
         }),
-        button(t.relink, async () => {
+        button(t.relink, (event) => {
           if (article.querySelector('[data-pn-relink]')) return;
+          const opener = event.currentTarget;
           const box = node('div');
           box.dataset.pnRelink = '';
           article.append(box);
@@ -331,10 +453,11 @@
             preview.textContent = paragraphs.get(select.value) || '';
           });
           let blockCursor = 0;
-          const loadBlocks = button(t.more, async () => {
-            loadBlocks.disabled = true;
-            try {
+          const message = feedback();
+          const loadBlocks = button(t.more, () =>
+            act(box, loadBlocks, select, message, async (current) => {
               const page = await api(`blocks?post=${item.post_id}&cursor=${blockCursor}`);
+              if (!current()) return;
               for (const block of page.items) {
                 paragraphs.set(block.id, block.text);
                 const option = node('option', block.text);
@@ -343,34 +466,33 @@
               }
               blockCursor = page.next_cursor;
               loadBlocks.hidden = blockCursor === null;
-            } catch (error) {
-              if (!error.stale) status.textContent = t.error;
-            } finally {
-              loadBlocks.disabled = false;
-            }
+            }),
+          );
+          const replace = button(t.replace, () => {
+            if (!select.value) return;
+            return act(box, replace, select, message, async (current) => {
+              await api(`notes/${item.id}`, 'PATCH', {
+                block_id: select.value,
+                version: item.version,
+              });
+              if (current()) await load();
+            });
           });
           box.append(
             select,
             preview,
             loadBlocks,
-            button(t.replace, async () => {
-              if (!select.value) return;
-              try {
-                await api(`notes/${item.id}`, 'PATCH', {
-                  block_id: select.value,
-                  version: item.version,
-                });
-                await load();
-              } catch (error) {
-                if (!error.stale) status.textContent = error.message || t.error;
-              }
+            replace,
+            button(t.cancel, () => {
+              box.remove();
+              opener.focus({ preventScroll: true });
             }),
-            button(t.cancel, () => box.remove()),
+            message,
           );
           loadBlocks.click();
         }),
       );
-      article.append(actions);
+      article.append(actions, deleteMessage);
       return article;
     }
     async function load(append = false) {
@@ -378,6 +500,7 @@
       if (!append) clearPrivate();
       const turn = generation;
       pending = true;
+      loadButton.disabled = true;
       status.textContent = t.loading;
       try {
         const page = await api(
@@ -392,13 +515,18 @@
         cursor = page.next_cursor;
         more.hidden = cursor === null;
         loaded = true;
+        intro.hidden = true;
+        loadButton.textContent = t.refresh;
         status.textContent = !results.childElementCount ? t.empty : '';
       } catch (error) {
         if (!error.stale) {
           clearPrivate(t.error);
         }
       } finally {
-        if (turn === generation) pending = false;
+        if (turn === generation) {
+          pending = false;
+          loadButton.disabled = false;
+        }
       }
     }
     controls.addEventListener('submit', (event) => {
@@ -412,15 +540,11 @@
       view.append(link, help(t.privateHelp));
       return;
     }
-    view.append(
-      controls,
-      button(t.load, () => load()),
-      status,
-      results,
-      more,
-    );
+    const filters = node('details', undefined, 'pn-reading-record-filters');
+    filters.append(node('summary', t.filter), controls);
+    view.append(intro, loadButton, filters, status, results, more);
     const backup = node('details');
-    backup.append(node('summary', t.import));
+    backup.append(node('summary', t.backup));
     const file = node('input');
     file.type = 'file';
     file.accept = 'application/json,.json';
@@ -486,16 +610,78 @@
       }
     };
     centers.push({
+      view,
       clear: (message = '') => {
         clearPrivate(message);
         query.value = '';
         kind.value = 'all';
         file.value = '';
         backup.open = false;
+        filters.open = false;
       },
       validate,
     });
   });
+  document.querySelectorAll('.pn-reading').forEach((root, index) => {
+    const deviceView = root.querySelector('[data-pn-device]'),
+      records = root.querySelector('[data-pn-records]');
+    if (!deviceView || !records) return;
+    root.querySelector(':scope > hr')?.remove();
+    const tabs = node('div', undefined, 'pn-reading-tabs');
+    tabs.setAttribute('role', 'tablist');
+    tabs.setAttribute('aria-label', t.reading);
+    const entries = [
+      ['recent', t.recent],
+      ['later', t.later],
+      ['records', t.notes],
+    ];
+    const select = (selected, focus = false, initial = false) => {
+      if (!initial && root.dataset.pnView === selected) return;
+      if (root.dataset.pnView === 'records' && selected !== 'records') {
+        centers.filter((center) => root.contains(center.view)).forEach((center) => center.clear());
+      }
+      root.dataset.pnView = selected;
+      deviceView.hidden = selected === 'records';
+      records.hidden = selected !== 'records';
+      [...tabs.children].forEach((tab) => {
+        const active = tab.dataset.pnTab === selected;
+        tab.setAttribute('aria-selected', String(active));
+        tab.tabIndex = active ? 0 : -1;
+        if (active) {
+          (selected === 'records' ? records : deviceView).setAttribute('aria-labelledby', tab.id);
+          if (focus) tab.focus();
+        }
+      });
+      if (selected !== 'records' && !initial) renderDevice();
+    };
+    for (const [value, label] of entries) {
+      const tab = button(label, () => select(value));
+      tab.id = `pn-reading-${index}-tab-${value}`;
+      tab.dataset.pnTab = value;
+      tab.setAttribute('role', 'tab');
+      const panel = value === 'records' ? records : deviceView;
+      panel.id ||= `pn-reading-${index}-${value === 'records' ? 'records' : 'device'}`;
+      panel.setAttribute('role', 'tabpanel');
+      panel.tabIndex = 0;
+      tab.setAttribute('aria-controls', panel.id);
+      tabs.append(tab);
+    }
+    tabs.addEventListener('keydown', (event) => {
+      const direction = getComputedStyle(tabs).direction === 'rtl' ? -1 : 1;
+      let next = entries.findIndex(([value]) => value === root.dataset.pnView);
+      if (event.key === 'ArrowRight') next = (next + direction + entries.length) % entries.length;
+      else if (event.key === 'ArrowLeft')
+        next = (next - direction + entries.length) % entries.length;
+      else if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = entries.length - 1;
+      else return;
+      event.preventDefault();
+      select(entries[next][0], true);
+    });
+    root.prepend(tabs);
+    select('recent', false, true);
+  });
+  renderDevice();
   const dialog = document.querySelector('.pn-reading-dialog');
   let dialogOpener;
   document.querySelectorAll('[data-pn-open-reading]').forEach((opener) => {

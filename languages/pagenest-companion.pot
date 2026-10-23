@@ -10,15 +10,19 @@ msgstr ""
 msgid "Add [pagenest_my_reading] to an existing page or use the PageNest reading entry. No page or menu is created automatically. Private records require sign-in and remain in page memory."
 msgstr ""
 
-#: modules/content/editor.php:198
+#: modules/content/editor.php:285
+msgid "Add a group first."
+msgstr ""
+
+#: modules/content/editor.php:200
 msgid "Add group"
 msgstr ""
 
-#: modules/content/editor.php:280
+#: modules/content/editor.php:291
 msgid "Add link"
 msgstr ""
 
-#: modules/content/editor.php:206
+#: modules/content/editor.php:208
 msgid "Add to group"
 msgstr ""
 
@@ -30,7 +34,7 @@ msgstr ""
 msgid "All images"
 msgstr ""
 
-#: modules/reading/bootstrap.php:218
+#: modules/reading/bootstrap.php:244
 msgid "All records"
 msgstr ""
 
@@ -58,11 +62,15 @@ msgstr ""
 msgid "Attachment text saved."
 msgstr ""
 
-#: modules/reading/bootstrap.php:201
+#: modules/reading/bootstrap.php:206
+msgid "Backup and import"
+msgstr ""
+
+#: modules/reading/bootstrap.php:222
 msgid "Browser storage is unavailable. Device reading is paused."
 msgstr ""
 
-#: modules/reading/bootstrap.php:231
+#: modules/reading/bootstrap.php:257
 msgid "Cancel"
 msgstr ""
 
@@ -86,11 +94,11 @@ msgstr ""
 msgid "Checking public image availability…"
 msgstr ""
 
-#: modules/reading/bootstrap.php:245
+#: modules/reading/bootstrap.php:271
 msgid "Choose a paragraph"
 msgstr ""
 
-#: modules/reading/bootstrap.php:243
+#: modules/reading/bootstrap.php:269
 msgid "Choose a replacement paragraph"
 msgstr ""
 
@@ -110,7 +118,7 @@ msgstr ""
 msgid "Choose up to 200 records."
 msgstr ""
 
-#: modules/reading/bootstrap.php:205
+#: modules/reading/bootstrap.php:226
 msgid "Clear device records"
 msgstr ""
 
@@ -120,6 +128,10 @@ msgstr ""
 
 #: modules/media/authoring.php:132
 msgid "Columns"
+msgstr ""
+
+#: modules/reading/bootstrap.php:191
+msgid "Comments and notes"
 msgstr ""
 
 #: modules/paragraph-comments.php:774
@@ -162,12 +174,20 @@ msgstr ""
 msgid "Content guide"
 msgstr ""
 
-#: modules/content/editor.php:284
+#: modules/reading/bootstrap.php:192
+msgid "Continue reading"
+msgstr ""
+
+#: modules/content/editor.php:295
 msgid "Could not load content. Try again."
 msgstr ""
 
-#: modules/reading/bootstrap.php:225
+#: modules/reading/bootstrap.php:251
 msgid "Could not load records. Sign in again if your session expired."
+msgstr ""
+
+#: modules/reading/bootstrap.php:227
+msgid "Could not load this device's reading list. Try again."
 msgstr ""
 
 #: modules/privacy.php:101
@@ -178,16 +198,28 @@ msgstr ""
 msgid "Default"
 msgstr ""
 
-#: modules/reading/bootstrap.php:232
+#: modules/reading/bootstrap.php:258
 msgid "Delete"
 msgstr ""
 
-#: modules/reading/bootstrap.php:233
+#: modules/reading/bootstrap.php:259
 msgid "Delete this record permanently?"
+msgstr ""
+
+#: modules/reading/bootstrap.php:200
+msgid "Device memory disabled and records cleared."
+msgstr ""
+
+#: modules/reading/bootstrap.php:199
+msgid "Device memory enabled."
 msgstr ""
 
 #: modules/diagnostics.php:47
 msgid "Device memory needs reader consent. Private records require authentication."
+msgstr ""
+
+#: modules/reading/bootstrap.php:204
+msgid "Device records cleared."
 msgstr ""
 
 #: modules/diagnostics.php:248
@@ -210,7 +242,7 @@ msgstr ""
 msgid "Document identity"
 msgstr ""
 
-#: modules/reading/bootstrap.php:229
+#: modules/reading/bootstrap.php:255
 msgid "Edit text"
 msgstr ""
 
@@ -218,16 +250,20 @@ msgstr ""
 msgid "Enable My reading"
 msgstr ""
 
-#: modules/content/editor.php:153
+#: modules/content/editor.php:155
 msgid "Enable content guide"
 msgstr ""
 
-#: modules/reading/bootstrap.php:257
+#: modules/reading/bootstrap.php:283
 msgid "Enable device memory in My reading first."
 msgstr ""
 
 #: modules/media/settings.php:100
 msgid "Enable native gallery and PDF authoring blocks"
+msgstr ""
+
+#: modules/reading/bootstrap.php:194
+msgid "Enable the option above to keep reading here."
 msgstr ""
 
 #: modules/diagnostics.php:185 modules/diagnostics.php:233
@@ -242,7 +278,7 @@ msgstr ""
 msgid "Existing shortcode and block owners take precedence. Attachment access is checked during rendering."
 msgstr ""
 
-#: modules/reading/bootstrap.php:246
+#: modules/reading/bootstrap.php:272
 msgid "Export my records as JSON"
 msgstr ""
 
@@ -254,7 +290,11 @@ msgstr ""
 msgid "Filter"
 msgstr ""
 
-#: modules/content/editor.php:200
+#: modules/reading/bootstrap.php:205
+msgid "Filter records"
+msgstr ""
+
+#: modules/content/editor.php:202
 msgid "Find existing content"
 msgstr ""
 
@@ -270,15 +310,15 @@ msgstr ""
 msgid "Grid"
 msgstr ""
 
-#: modules/content/editor.php:162 modules/content/editor.php:275
+#: modules/content/editor.php:164 modules/content/editor.php:284
 msgid "Group"
 msgstr ""
 
-#: modules/content/editor.php:164 modules/content/editor.php:276
+#: modules/content/editor.php:166 modules/content/editor.php:287
 msgid "Group title"
 msgstr ""
 
-#: modules/reading/bootstrap.php:196
+#: modules/content/editor.php:144 modules/discovery/bootstrap.php:144 modules/media/settings.php:110 modules/reading/bootstrap.php:217 modules/settings.php:118
 msgid "How this works"
 msgstr ""
 
@@ -295,15 +335,15 @@ msgstr ""
 msgid "Image gap"
 msgstr ""
 
-#: modules/reading/bootstrap.php:247
+#: modules/reading/bootstrap.php:273
 msgid "Import a JSON backup"
 msgstr ""
 
-#: modules/reading/bootstrap.php:248
+#: modules/reading/bootstrap.php:274
 msgid "Import keeps records private and reuses existing UUIDs. Review per-record results; it never publishes a record."
 msgstr ""
 
-#: modules/reading/bootstrap.php:252
+#: modules/reading/bootstrap.php:278
 msgid "Import processed. Reload records to review the results."
 msgstr ""
 
@@ -319,7 +359,7 @@ msgstr ""
 msgid "Likes"
 msgstr ""
 
-#: modules/content/editor.php:208 modules/reading/bootstrap.php:217
+#: modules/content/editor.php:210 modules/reading/bootstrap.php:243
 msgid "Load more"
 msgstr ""
 
@@ -327,12 +367,16 @@ msgstr ""
 msgid "Load more comments"
 msgstr ""
 
-#: modules/reading/bootstrap.php:216
+#: modules/reading/bootstrap.php:242
 msgid "Load my records"
 msgstr ""
 
-#: modules/content/editor.php:282 modules/reading/bootstrap.php:224
+#: modules/content/editor.php:293 modules/reading/bootstrap.php:250
 msgid "Loading…"
+msgstr ""
+
+#: modules/reading/bootstrap.php:198
+msgid "Manage device records"
 msgstr ""
 
 #: modules/media/settings.php:7
@@ -379,19 +423,19 @@ msgstr ""
 msgid "Move a selected image to the front of this block. Attachment data stays in place."
 msgstr ""
 
-#: modules/content/editor.php:278
+#: modules/content/editor.php:289
 msgid "Move down"
 msgstr ""
 
-#: modules/content/editor.php:277
+#: modules/content/editor.php:288
 msgid "Move up"
 msgstr ""
 
-#: modules/reading/bootstrap.php:210
+#: modules/reading/bootstrap.php:236
 msgid "My comments and private notes"
 msgstr ""
 
-#: admin-design.php:9 modules/diagnostics.php:44 modules/reading/bootstrap.php:20 modules/reading/bootstrap.php:21 modules/reading/bootstrap.php:29 modules/reading/bootstrap.php:74 modules/reading/bootstrap.php:83
+#: admin-design.php:9 modules/diagnostics.php:44 modules/reading/bootstrap.php:190 modules/reading/bootstrap.php:20 modules/reading/bootstrap.php:21 modules/reading/bootstrap.php:29 modules/reading/bootstrap.php:74 modules/reading/bootstrap.php:83
 msgid "My reading"
 msgstr ""
 
@@ -419,6 +463,10 @@ msgstr ""
 msgid "No file paths or content payloads are included in diagnostics."
 msgstr ""
 
+#: modules/content/editor.php:286
+msgid "No links in this group yet."
+msgstr ""
+
 #: modules/media/quality.php:453
 msgid "No matches in the checked content."
 msgstr ""
@@ -427,7 +475,7 @@ msgstr ""
 msgid "No matching modules."
 msgstr ""
 
-#: modules/content/editor.php:283
+#: modules/content/editor.php:294
 msgid "No matching public content."
 msgstr ""
 
@@ -435,8 +483,12 @@ msgstr ""
 msgid "No public share image. Choose a public image, featured image, site image or logo."
 msgstr ""
 
-#: modules/reading/bootstrap.php:209
+#: modules/reading/bootstrap.php:235
 msgid "No records to show."
+msgstr ""
+
+#: modules/content/editor.php:219
+msgid "No saved groups yet."
 msgstr ""
 
 #: modules/discovery/editor.php:228
@@ -455,7 +507,7 @@ msgstr ""
 msgid "Offer device reading history and access to the signed-in reader’s own records."
 msgstr ""
 
-#: modules/reading/bootstrap.php:190
+#: modules/reading/bootstrap.php:211
 msgid "On this device"
 msgstr ""
 
@@ -467,11 +519,11 @@ msgstr ""
 msgid "Only this scan page was checked: up to 1 MB, 500 blocks and 30 nested levels per readable post/page. Other content, templates and external uses remain unchecked. No matches does not mean unused."
 msgstr ""
 
-#: modules/reading/bootstrap.php:211
+#: modules/reading/bootstrap.php:237
 msgid "Only your own records are shown. Private text stays in page memory and is cleared when you leave or hide the page."
 msgstr ""
 
-#: modules/reading/bootstrap.php:238
+#: modules/reading/bootstrap.php:264
 msgid "Open article location"
 msgstr ""
 
@@ -479,7 +531,7 @@ msgstr ""
 msgid "Open images in a viewer"
 msgstr ""
 
-#: modules/reading/bootstrap.php:197
+#: modules/reading/bootstrap.php:218
 msgid "Optional browser storage. No account history or device sync. Article IDs are checked with the site before display. Reading position does not mark an article as read."
 msgstr ""
 
@@ -523,11 +575,11 @@ msgstr ""
 msgid "Play slideshow automatically"
 msgstr ""
 
-#: modules/content/editor.php:210
+#: modules/content/editor.php:212
 msgid "Preview saved guide"
 msgstr ""
 
-#: modules/content/editor.php:190 modules/content/editor.php:281
+#: modules/content/editor.php:192 modules/content/editor.php:292
 msgid "Preview source"
 msgstr ""
 
@@ -547,7 +599,7 @@ msgstr ""
 msgid "Previous saved quotation"
 msgstr ""
 
-#: modules/reading/bootstrap.php:220
+#: modules/reading/bootstrap.php:246
 msgid "Private notes"
 msgstr ""
 
@@ -555,7 +607,7 @@ msgstr ""
 msgid "Provider"
 msgstr ""
 
-#: modules/reading/bootstrap.php:219
+#: modules/reading/bootstrap.php:245
 msgid "Public comments"
 msgstr ""
 
@@ -563,7 +615,7 @@ msgstr ""
 msgid "Public search suggestions"
 msgstr ""
 
-#: modules/reading/bootstrap.php:207
+#: modules/reading/bootstrap.php:233
 msgid "Read later"
 msgstr ""
 
@@ -575,7 +627,7 @@ msgstr ""
 msgid "Read-only server configuration"
 msgstr ""
 
-#: modules/reading/bootstrap.php:206
+#: modules/reading/bootstrap.php:232
 msgid "Recent reading"
 msgstr ""
 
@@ -591,7 +643,7 @@ msgstr ""
 msgid "Record text"
 msgstr ""
 
-#: modules/reading/bootstrap.php:221
+#: modules/reading/bootstrap.php:247
 msgid "Reference needs review"
 msgstr ""
 
@@ -600,16 +652,24 @@ msgstr ""
 msgid "References to attachment #%d"
 msgstr ""
 
-#: modules/reading/bootstrap.php:191
+#: modules/reading/bootstrap.php:193
+msgid "Refresh records"
+msgstr ""
+
+#: modules/reading/bootstrap.php:212
 msgid "Remember my reading on this device"
 msgstr ""
 
-#: modules/content/editor.php:279 modules/reading/bootstrap.php:208
+#: modules/content/editor.php:290 modules/reading/bootstrap.php:234
 msgid "Remove"
 msgstr ""
 
-#: modules/reading/bootstrap.php:244
+#: modules/reading/bootstrap.php:270
 msgid "Replace saved reference"
+msgstr ""
+
+#: modules/reading/bootstrap.php:231
+msgid "Retry"
 msgstr ""
 
 #: modules/services/turnstile.php:159
@@ -624,7 +684,7 @@ msgstr ""
 msgid "Review each image separately, then save one attachment or submit this page. File data, ownership and existing content stay in place."
 msgstr ""
 
-#: modules/reading/bootstrap.php:230
+#: modules/reading/bootstrap.php:256
 msgid "Save text"
 msgstr ""
 
@@ -636,7 +696,7 @@ msgstr ""
 msgid "Save this page, with a result for each attachment"
 msgstr ""
 
-#: modules/reading/bootstrap.php:256
+#: modules/reading/bootstrap.php:282
 msgid "Saved for later on this device."
 msgstr ""
 
@@ -652,7 +712,7 @@ msgstr ""
 msgid "Scope: saved site posts and pages you can read."
 msgstr ""
 
-#: modules/content/editor.php:204
+#: modules/content/editor.php:206
 msgid "Search"
 msgstr ""
 
@@ -668,15 +728,15 @@ msgstr ""
 msgid "Search modules"
 msgstr ""
 
-#: modules/reading/bootstrap.php:222
+#: modules/reading/bootstrap.php:248
 msgid "Search my text and references"
 msgstr ""
 
-#: modules/content/editor.php:202
+#: modules/content/editor.php:204
 msgid "Search public articles and pages"
 msgstr ""
 
-#: modules/reading/bootstrap.php:223
+#: modules/reading/bootstrap.php:249
 msgid "Search records"
 msgstr ""
 
@@ -716,7 +776,7 @@ msgstr ""
 msgid "Show image captions"
 msgstr ""
 
-#: modules/reading/bootstrap.php:215
+#: modules/reading/bootstrap.php:241
 msgid "Sign in to view your records"
 msgstr ""
 
@@ -732,7 +792,7 @@ msgstr ""
 msgid "Status"
 msgstr ""
 
-#: modules/reading/bootstrap.php:192
+#: modules/reading/bootstrap.php:213
 msgid "Stored on this device only. No device sync."
 msgstr ""
 
@@ -744,15 +804,19 @@ msgstr ""
 msgid "Text is invalid or too long."
 msgstr ""
 
-#: modules/content/editor.php:285
+#: modules/content/editor.php:296
 msgid "The guide has reached its group or link limit."
 msgstr ""
 
-#: modules/reading/bootstrap.php:239
+#: modules/content/editor.php:218
+msgid "The guide is disabled. Saved groups are kept."
+msgstr ""
+
+#: modules/reading/bootstrap.php:265
 msgid "The original paragraph changed or is ambiguous. The saved reference is preserved; review it before choosing a replacement."
 msgstr ""
 
-#: modules/reading/bootstrap.php:234
+#: modules/reading/bootstrap.php:260
 msgid "The record changed. Reload and compare before saving. Your input is retained in this open page."
 msgstr ""
 
@@ -768,7 +832,7 @@ msgstr ""
 msgid "This editor image is not currently public. Public sharing uses an eligible default or no image. Check again after publishing."
 msgstr ""
 
-#: modules/content/editor.php:144
+#: modules/content/editor.php:146
 msgid "This guide uses its own setting and [pagenest_content_guide] shortcode. Existing server content configuration is read-only and is not imported or overwritten."
 msgstr ""
 
@@ -797,12 +861,16 @@ msgstr ""
 msgid "Tools keep their own access controls; this page does not run or repair them."
 msgstr ""
 
-#: modules/content/editor.php:183
+#: modules/content/editor.php:185
 #, php-format
 msgid "Unavailable source #%d"
 msgstr ""
 
-#: modules/content/editor.php:155
+#: admin-design.php:67
+msgid "Unsaved changes."
+msgstr ""
+
+#: modules/content/editor.php:157
 msgid "Up to 20 groups and 200 links. Use Move up and Move down with a keyboard to change order. Save to update the public guide."
 msgstr ""
 
@@ -854,6 +922,10 @@ msgstr ""
 msgid "You cannot read this article."
 msgstr ""
 
-#: modules/content/editor.php:286
+#: modules/content/editor.php:297
 msgid "You have unsaved guide changes."
+msgstr ""
+
+#: modules/reading/bootstrap.php:207
+msgid "Your records load only when you choose to view them."
 msgstr ""

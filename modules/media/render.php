@@ -107,6 +107,18 @@ function pagenest_companion_media_assets(bool $editor = false): void
             null,
             true,
         );
+        if (!$editor) {
+            wp_localize_script('pagenest-media', 'PageNestMedia', [
+                'pdfViewerUrl' => plugins_url(
+                    'assets/vendor/pdfjs-6.4.299/web/viewer.html',
+                    $root . '/pagenest-compatibility.php',
+                ),
+                'pdfViewerStyles' => plugins_url(
+                    'assets/' . $manifest['pdf_viewer_css'],
+                    $root . '/pagenest-compatibility.php',
+                ),
+            ]);
+        }
         if ($editor) {
             wp_localize_script('pagenest-media-editor', 'pagenestCompanionMediaEditor', [
                 'blocks' => array_keys($GLOBALS['pagenest_companion_media_owned'] ?? []),
@@ -405,7 +417,7 @@ function pagenest_companion_media_pdf($attrs): string
     $width = pagenest_companion_media_dimension($attrs['width'] ?? '', true);
     $height = pagenest_companion_media_dimension($attrs['height'] ?? '', false);
     pagenest_companion_media_assets();
-    return '<div class="pagenest-media-pdf"><iframe class="pagenest-media-pdf-frame" title="' .
+    return '<div class="pagenest-media-pdf"><iframe class="pagenest-media-pdf-frame" data-pagenest-pdf-viewer title="' .
         esc_attr__('PDF viewer', 'pagenest-companion') .
         '" src="' .
         esc_url($viewer . '?file=' . rawurlencode($url)) .

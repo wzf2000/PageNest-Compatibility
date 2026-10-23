@@ -639,3 +639,57 @@ msgstr "前次段落锚点"
 
 msgid "Updated at"
 msgstr "更新时间"
+
+msgid "Comments and notes"
+msgstr "评论与笔记"
+
+msgid "Continue reading"
+msgstr "继续阅读"
+
+msgid "Manage device records"
+msgstr "管理本机记录"
+
+msgid "Device memory enabled."
+msgstr "已开启本机阅读记录。"
+
+msgid "Device memory disabled and records cleared."
+msgstr "已关闭并清除本机记录。"
+
+msgid "Device records cleared."
+msgstr "已清除本机记录。"
+
+msgid "Filter records"
+msgstr "筛选记录"
+
+msgid "Backup and import"
+msgstr "备份与导入"
+
+msgid "Your records load only when you choose to view them."
+msgstr "点击后才会加载你的记录。"
+
+msgid "Refresh records"
+msgstr "刷新记录"
+
+msgid "Enable the option above to keep reading here."
+msgstr "开启上方选项，即可记录并继续阅读。"
+
+msgid "No links in this group yet."
+msgstr "这个分组还没有链接。"
+
+msgid "Add a group first."
+msgstr "请先添加分组。"
+
+msgid "Unsaved changes."
+msgstr "有未保存的更改"
+
+msgid "No saved groups yet."
+msgstr "暂无已保存的分组。"
+
+msgid "The guide is disabled. Saved groups are kept."
+msgstr "导览已关闭，已保存的分组仍会保留。"
+
+msgid "Could not load this device's reading list. Try again."
+msgstr "本机阅读列表加载失败，请重试。"
+
+msgid "Retry"
+msgstr "重试"

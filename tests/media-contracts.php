@@ -388,6 +388,10 @@ check(
     'Independent PDF viewer and native fallback link',
 );
 check(
+    str_contains($pdf, 'data-pagenest-pdf-viewer'),
+    'Only owned PDF frames advertise the optional viewer adaptation',
+);
+check(
     !str_contains(pagenest_companion_media_pdf(['id' => 15, 'embed' => 'off']), '<iframe'),
     'Link-only PDF semantics',
 );

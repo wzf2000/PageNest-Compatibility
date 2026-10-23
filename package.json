@@ -26,7 +26,8 @@
     "test:performance-ui": "playwright test --config tests/performance-ui-playwright.config.cjs",
     "test:reading": "php tests/reading-contracts.php",
     "i18n": "python3 tools/i18n.py",
-    "i18n:check": "python3 tools/i18n.py --check"
+    "i18n:check": "python3 tools/i18n.py --check",
+    "test:reader-ux-webkit": "playwright test --config tests/reader-ux-playwright.config.cjs"
   },
   "devDependencies": {
     "@prettier/plugin-php": "0.25.0",
@@ -37,6 +38,6 @@
     "@playwright/test": "1.55.1",
     "prismjs": "1.30.0"
   },
-  "version": "1.8.0",
+  "version": "1.9.0",
   "license": "GPL-2.0-or-later"
 }

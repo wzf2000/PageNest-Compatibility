@@ -333,8 +333,50 @@
         link.addEventListener('click', (event) => open(event, original, links.indexOf(original)));
     });
   };
+  const pdfFrames = new WeakSet();
+  const pdfSelector =
+    '.pagenest-media-pdf > iframe.pagenest-media-pdf-frame[data-pagenest-pdf-viewer]';
+  const initializePdf = (frame) => {
+    const config = window.PageNestMedia;
+    if (pdfFrames.has(frame) || !config?.pdfViewerUrl || !config?.pdfViewerStyles) return;
+    let viewer, stylesheet;
+    try {
+      viewer = new URL(config.pdfViewerUrl, location.href);
+      stylesheet = new URL(config.pdfViewerStyles, location.href);
+      if (viewer.origin !== location.origin || stylesheet.origin !== location.origin) return;
+    } catch {
+      return;
+    }
+    pdfFrames.add(frame);
+    const adapt = () => {
+      try {
+        const source = new URL(frame.src, location.href);
+        if (source.origin !== viewer.origin || source.pathname !== viewer.pathname) return;
+        const document = frame.contentDocument;
+        if (
+          !document ||
+          document.location.origin !== viewer.origin ||
+          document.location.pathname !== viewer.pathname ||
+          !document.head
+        )
+          return;
+        if (document.querySelector('link[data-pagenest-pdf-style]')) return;
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = stylesheet.href;
+        link.dataset.pagenestPdfStyle = '';
+        document.head.append(link);
+      } catch {
+        /* Cross-origin or redirected frames keep their own presentation. */
+      }
+    };
+    frame.addEventListener('load', adapt);
+    adapt();
+  };
   const scan = (root) => {
     if (root.matches?.('[data-pagenest-media]')) initialize(root);
+    if (root.matches?.(pdfSelector)) initializePdf(root);
+    root.querySelectorAll?.(pdfSelector).forEach(initializePdf);
     root.querySelectorAll?.('[data-pagenest-media]').forEach(initialize);
   };
   scan(document);

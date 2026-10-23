@@ -7,8 +7,13 @@
     groups = form.querySelector('[data-pn-guide-groups]'),
     target = form.querySelector('[data-pn-guide-target]'),
     status = form.querySelector('[data-pn-guide-status]'),
+    dirtyStatus = form.querySelector('[data-pn-guide-dirty]'),
     catalog = form.querySelector('[data-pn-guide-catalog]'),
     more = form.querySelector('[data-pn-guide-more]');
+  let selectedGroup = groups.children[Number(target.value)] || groups.firstElementChild;
+  target.addEventListener('change', () => {
+    selectedGroup = groups.children[Number(target.value)] || null;
+  });
   let dirty = false,
     page = 1,
     nextPage = null,
@@ -28,11 +33,11 @@
   };
   function changed() {
     dirty = true;
-    status.textContent = t.unsaved;
+    if (dirtyStatus) dirtyStatus.textContent = t.unsaved;
     renumber();
   }
   function renumber() {
-    const chosen = Number(target.value);
+    if (selectedGroup?.parentElement !== groups) selectedGroup = groups.firstElementChild;
     target.replaceChildren();
     [...groups.children].forEach((group, index) => {
       group.querySelector('[data-pn-group-title]').name =
@@ -48,13 +53,22 @@
       actions.children[0].disabled = index === 0;
       actions.children[1].disabled = index === groups.children.length - 1;
       const items = group.querySelector('[data-pn-guide-items]');
+      group.querySelector('[data-pn-group-empty]').hidden = items.children.length > 0;
       [...items.children].forEach((item, j) => {
         const actions = item.querySelector('[data-pn-item-actions]');
         actions.children[0].disabled = j === 0;
         actions.children[1].disabled = j === items.children.length - 1;
       });
     });
-    if (target.options.length) target.value = Math.min(chosen, target.options.length - 1);
+    target.disabled = groups.children.length === 0;
+    if (target.disabled) {
+      const placeholder = el('option', t.addGroupFirst);
+      placeholder.value = '';
+      target.append(placeholder);
+    } else target.value = [...groups.children].indexOf(selectedGroup);
+    catalog.querySelectorAll('[data-pn-catalog-add]').forEach((control) => {
+      control.disabled = target.disabled;
+    });
   }
   function actions(container, item) {
     const move = (direction) => {
@@ -78,8 +92,11 @@
     );
   }
   function setup(group) {
+    const empty = el('p', t.emptyGroup);
+    empty.className = 'pn-admin-empty';
+    empty.dataset.pnGroupEmpty = '';
+    group.append(empty);
     actions(group.querySelector('[data-pn-group-actions]'), group);
-    group.querySelector('[data-pn-group-title]').addEventListener('input', changed);
     group
       .querySelectorAll('[data-pn-guide-item]')
       .forEach((item) => actions(item.querySelector('[data-pn-item-actions]'), item));
@@ -108,7 +125,6 @@
     groups.append(group);
     setup(group);
     changed();
-    target.value = groups.children.length - 1;
     title.focus();
   });
   async function search(append = false) {
@@ -143,40 +159,37 @@
         preview.href = url.href;
         preview.target = '_blank';
         preview.rel = 'noopener';
-        li.append(
-          preview,
-          document.createTextNode(' '),
-          button(t.add, () => {
-            const group = groups.children[Number(target.value)],
-              count = groups.querySelectorAll('[data-pn-guide-item]').length;
-            if (!group || count >= 200) {
-              status.textContent = t.limit;
-              return;
-            }
-            const items = group.querySelector('[data-pn-guide-items]');
-            if (
-              [...items.querySelectorAll('input')].some((input) => Number(input.value) === item.id)
-            )
-              return;
-            const row = el('li'),
-              input = el('input'),
-              text = el('span', item.title + ' '),
-              actionsBox = el('div');
-            row.dataset.pnGuideItem = '';
-            input.type = 'hidden';
-            input.value = item.id;
-            actionsBox.dataset.pnItemActions = '';
-            row.append(input, text, preview.cloneNode(true), actionsBox);
-            items.append(row);
-            actions(actionsBox, row);
-            changed();
-          }),
-        );
+        const add = button(t.add, () => {
+          const group = groups.children[Number(target.value)],
+            count = groups.querySelectorAll('[data-pn-guide-item]').length;
+          if (!group || count >= 200) {
+            status.textContent = t.limit;
+            return;
+          }
+          const items = group.querySelector('[data-pn-guide-items]');
+          if ([...items.querySelectorAll('input')].some((input) => Number(input.value) === item.id))
+            return;
+          const row = el('li'),
+            input = el('input'),
+            text = el('span', item.title + ' '),
+            actionsBox = el('div');
+          row.dataset.pnGuideItem = '';
+          input.type = 'hidden';
+          input.value = item.id;
+          actionsBox.dataset.pnItemActions = '';
+          row.append(input, text, preview.cloneNode(true), actionsBox);
+          items.append(row);
+          actions(actionsBox, row);
+          changed();
+        });
+        add.dataset.pnCatalogAdd = '';
+        add.disabled = target.disabled;
+        li.append(preview, document.createTextNode(' '), add);
         catalog.append(li);
       });
       nextPage = data.next_page;
       more.hidden = nextPage === null;
-      status.textContent = catalog.childElementCount ? (dirty ? t.unsaved : '') : t.empty;
+      status.textContent = catalog.childElementCount ? '' : t.empty;
     } catch {
       if (turn === generation) status.textContent = t.error;
     }
@@ -189,8 +202,8 @@
     }
   });
   more.addEventListener('click', () => search(true));
-  form.addEventListener('input', () => {
-    dirty = true;
+  form.addEventListener('input', (event) => {
+    if (event.target.name) changed();
   });
   form.addEventListener('submit', () => {
     dirty = false;

@@ -1,0 +1,505 @@
+/* Companion settings only. Never restyle the WordPress shell or other plugins. */
+.pn-admin {
+  --pn-ink: #293630;
+  --pn-muted: #65716b;
+  --pn-accent: #426354;
+  --pn-line: #dfe4dc;
+  --pn-paper: #fffefb;
+  max-width: 1180px;
+  color: var(--pn-ink);
+  padding: 12px 12px 40px 0;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.pn-admin * {
+  box-sizing: border-box;
+}
+.pn-admin-header {
+  padding: 4px 0 16px;
+  max-width: 780px;
+}
+.pn-admin .pn-admin-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: var(--pn-accent);
+  margin: 0 0 8px;
+}
+.pn-admin .pn-admin-header h1 {
+  font-size: clamp(24px, 2.3vw, 28px);
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  color: var(--pn-ink);
+  margin: 0;
+  padding: 0;
+}
+.pn-admin .pn-admin-intro {
+  color: var(--pn-muted);
+  font-size: 14px;
+  line-height: 1.65;
+  margin: 8px 0 0;
+}
+.pn-admin a {
+  color: var(--pn-accent);
+  text-underline-offset: 4px;
+}
+.pn-admin-nav {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 20px;
+  overflow-x: auto;
+  padding: 4px;
+  scroll-padding-inline: 8px;
+  border-bottom: 1px solid var(--pn-line);
+  margin: 0 0 16px;
+}
+.pn-admin-nav a {
+  flex: none;
+  white-space: nowrap;
+  padding: 12px 0;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  min-height: 44px;
+}
+.pn-admin-nav a[aria-current='page'] {
+  color: var(--pn-ink);
+  border-bottom-color: var(--pn-accent);
+  font-weight: 600;
+}
+.pn-admin-nav a:hover {
+  border-bottom-color: var(--pn-line);
+}
+.pn-admin :is(a, button, input, textarea, select, summary):focus-visible {
+  outline: 2px solid var(--pn-accent);
+  outline-offset: 3px;
+  box-shadow: none;
+}
+.pn-admin-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.pn-admin-main {
+  min-width: 0;
+}
+.pn-admin-section {
+  background: var(--pn-paper);
+  border: 1px solid var(--pn-line);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 0 0 16px;
+}
+.pn-admin :is(h2, h3) {
+  color: var(--pn-ink);
+  line-height: 1.4;
+}
+.pn-admin-section > h2:first-child,
+.pn-admin-section form > h2:first-child {
+  margin-top: 0;
+}
+.pn-admin h2 {
+  font-size: 19px;
+  margin: 0 0 10px;
+  font-weight: 600;
+}
+.pn-admin p {
+  font-size: 14px;
+  line-height: 1.75;
+}
+.pn-admin-help {
+  border-top: 2px solid var(--pn-accent);
+  padding-top: 18px;
+  color: var(--pn-muted);
+}
+.pn-admin-help h2 {
+  font-size: 15px;
+}
+.pn-admin-help p {
+  font-size: 13px;
+}
+.pn-admin .pn-admin-setting {
+  padding: 14px 0;
+  margin: 0;
+  border-bottom: 1px solid var(--pn-line);
+}
+.pn-admin .pn-admin-setting:last-child {
+  border: 0;
+}
+.pn-admin-setting label {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  font-weight: 550;
+}
+.pn-admin-setting input[type='checkbox'] {
+  flex-shrink: 0;
+  margin: 4px 0 0;
+}
+.pn-admin .pn-admin-description {
+  display: block;
+  color: var(--pn-muted);
+  font-size: 13px;
+  font-weight: 400;
+  margin: 6px 0 0 28px;
+}
+.pn-admin input[type='checkbox'] {
+  accent-color: var(--pn-accent);
+}
+.pn-admin input[type='checkbox']:checked::before {
+  filter: grayscale(1);
+}
+.pn-admin
+  :is(
+    input[type='text'],
+    input[type='search'],
+    input[type='url'],
+    input[type='password'],
+    input[type='number'],
+    textarea,
+    select
+  ) {
+  border: 1px solid #b5c0b4;
+  border-radius: 7px;
+  min-height: 44px;
+  max-width: 100%;
+  color: var(--pn-ink);
+  background: #fff;
+  padding: 8px 12px;
+}
+.pn-admin
+  :is(
+    input[type='text'],
+    input[type='search'],
+    input[type='url'],
+    input[type='password'],
+    input[type='number'],
+    select:not([multiple]):not([size]),
+    select:not([multiple])[size='1']
+  ) {
+  height: 44px;
+  line-height: 1.5;
+}
+.pn-admin textarea {
+  width: 100%;
+  min-height: 116px;
+  resize: vertical;
+}
+.pn-admin select {
+  padding-right: 30px;
+}
+.pn-admin-field {
+  margin: 16px 0;
+}
+.pn-admin-field > label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.pn-admin .button {
+  color: var(--pn-accent);
+  background: transparent;
+  border-color: #bac7bc;
+  border-radius: 7px;
+  padding: 6px 16px;
+  min-height: 44px;
+  font-size: 13px;
+  line-height: 28px;
+  text-shadow: none;
+  box-shadow: none;
+}
+.pn-admin .button:hover {
+  background: #edf1e9;
+  color: #293630;
+  border-color: var(--pn-accent);
+}
+.pn-admin .button-primary {
+  background: var(--pn-accent);
+  color: #fff;
+  border-color: var(--pn-accent);
+}
+.pn-admin .button-primary:hover {
+  background: #304e40;
+  color: #fff;
+}
+.pn-admin .submit {
+  margin: 20px 0 0;
+  padding: 0;
+}
+.pn-admin .notice {
+  margin: 16px 0;
+  border-radius: 0 8px 8px 0;
+  box-shadow: none;
+}
+.pn-admin-state {
+  display: inline-block;
+  color: #72521c;
+  background: #f7efd9;
+  font-size: 12px;
+  padding: 2px 10px;
+  border-radius: 20px;
+  margin: 0 0 16px;
+}
+.pn-admin [hidden] {
+  display: none !important;
+}
+.pn-admin-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--pn-muted);
+  font-size: 12px;
+}
+.pn-admin-provider {
+  margin: 0 0 8px;
+  border: 1px solid var(--pn-line);
+  border-radius: 10px;
+  background: var(--pn-paper);
+}
+.pn-admin-provider > summary {
+  cursor: pointer;
+  padding: 20px 24px;
+  font-size: 16px;
+  font-weight: 600;
+}
+.pn-admin-provider[open] > summary {
+  border-bottom: 1px solid var(--pn-line);
+}
+.pn-admin-provider > form {
+  padding: 24px;
+}
+.pn-admin-provider .pn-provider-status {
+  float: right;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--pn-muted);
+  margin-left: 14px;
+}
+.pn-admin-provider input:not([type='checkbox']):not([type='hidden']) {
+  width: 100%;
+}
+.pn-admin-provider form > p:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.pn-admin-image-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.pn-admin-image-actions [role='status'] {
+  font-size: 13px;
+  color: var(--pn-muted);
+}
+@media (max-width: 1050px) {
+  .pn-admin-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .pn-admin-help {
+    max-width: 760px;
+  }
+}
+@media (max-width: 600px) {
+  .pn-admin {
+    padding: 8px 0 40px;
+  }
+  .pn-admin-header {
+    padding-bottom: 18px;
+  }
+  .pn-admin-nav {
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .pn-admin-section {
+    padding: 16px;
+  }
+  .pn-admin-provider > form {
+    padding: 18px;
+  }
+  .pn-admin-provider > summary {
+    padding: 18px;
+  }
+  .pn-admin .button {
+    white-space: normal;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pn-admin .button,
+  .pn-admin-nav a {
+    transition:
+      background-color 0.15s,
+      border-color 0.15s;
+  }
+}
+[data-pn-guide-group] {
+  border: 1px solid var(--pn-admin-border, #d0d7d2);
+  padding: 16px;
+  margin-block: 16px;
+  min-width: 0;
+}
+[data-pn-guide-group] input {
+  max-width: 100%;
+}
+[data-pn-group-actions],
+[data-pn-item-actions] {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-block: 8px;
+}
+[data-pn-guide-items] > li,
+[data-pn-guide-catalog] > li {
+  margin-block: 12px;
+  overflow-wrap: anywhere;
+}
+
+[data-pn-guide-group] > label {
+  display: block;
+}
+[data-pn-guide-group] [data-pn-group-title] {
+  display: block;
+  width: min(100%, 36em);
+  min-height: 40px;
+  margin-top: 6px;
+}
+
+.pn-diagnostics-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: end;
+  margin-block: 20px;
+}
+.pn-diagnostics-filters label {
+  display: grid;
+  gap: 6px;
+  max-width: 100%;
+}
+.pn-admin .pn-diagnostics-filters :is(input, select, .button) {
+  min-height: 44px;
+  height: 44px;
+  margin: 0;
+  line-height: 24px;
+}
+.pn-admin .pn-diagnostics-filters input {
+  border: 1px solid #b5c0b4;
+  border-radius: 7px;
+  padding: 8px 12px;
+  max-width: 100%;
+}
+.pn-diagnostics-table :is(th, td) {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 600px) {
+  .pn-diagnostics-table :is(th, td) {
+    padding: 8px 6px;
+  }
+}
+
+.pn-quality-item {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 24px;
+}
+.pn-quality-item img {
+  max-width: 150px;
+  height: auto;
+}
+.pn-quality-item label {
+  display: block;
+  font-weight: 600;
+  margin-block: 12px 6px;
+}
+.pn-quality-item .button {
+  margin-top: 12px;
+  min-height: 44px;
+}
+@media (max-width: 600px) {
+  .pn-quality-item {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+}
+
+.pn-admin-field > label,
+[data-pn-series-directories] .pn-admin-field label {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+[data-pn-series-directories] .pn-admin-field {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+[data-pn-series-directories] .pn-admin-field input {
+  width: 100%;
+}
+.pn-admin-savebar {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px;
+  background: var(--pn-paper);
+  border-top: 1px solid var(--pn-line);
+}
+.pn-admin .pn-admin-savebar .submit,
+.pn-admin .pn-admin-savebar .pn-admin-state {
+  margin: 0;
+}
+.pn-admin-help > summary,
+.pn-admin-inline-help > summary {
+  min-height: 44px;
+  cursor: pointer;
+  color: var(--pn-accent);
+}
+.pn-admin-help {
+  border-top: 1px solid var(--pn-line);
+  padding-top: 12px;
+}
+.pn-admin-inline-help {
+  margin-bottom: 16px;
+}
+.pn-admin-empty {
+  padding: 12px 16px;
+  border: 1px dashed var(--pn-line);
+  color: var(--pn-muted);
+  font-size: 13px;
+}
+.pn-guide-search-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(180px, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.pn-guide-query-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pn-guide-query-actions input {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+}
+.pn-guide-search-row select {
+  width: 100%;
+}
+@media (max-width: 600px) {
+  [data-pn-series-directories] .pn-admin-field,
+  .pn-guide-search-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .pn-guide-search-row .pn-admin-field {
+    margin: 8px 0;
+  }
+}

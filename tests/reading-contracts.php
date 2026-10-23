@@ -264,6 +264,32 @@ check(
     pagenest_discovery_text('[unknown secret="PRIVATE"]text[/unknown]') === '',
 );
 check(
+    'tensor dimensions remain static text',
+    pagenest_discovery_text('Tensor [B,T,D] and [a,b]') === 'Tensor [B,T,D] and [a,b]',
+);
+check(
+    'unknown dotted shortcode rejected',
+    pagenest_discovery_text('[unknown.private secret="PRIVATE"]') === '',
+);
+check(
+    'unknown shortcode punctuation remains rejected',
+    pagenest_discovery_text('[unknown:private secret="PRIVATE"]') === '',
+);
+$excerptPost = clone $posts[1];
+$excerptPost->post_excerpt = 'Explicit public summary';
+$excerptPost->post_content = '[unknown secret="PRIVATE"]';
+check(
+    'valid explicit excerpt takes precedence',
+    pagenest_discovery_excerpt($excerptPost, '') === 'Explicit public summary',
+);
+$excerptPost->post_excerpt = '[unknown secret="PRIVATE"]';
+$excerptPost->post_content =
+    '<!-- private attribute --><p>Public shape [B,T,D]</p><script>SECRET</script>';
+check(
+    'unsafe excerpt falls back to saved static body',
+    pagenest_discovery_excerpt($excerptPost, '') === 'Public shape [B,T,D]',
+);
+check(
     'new reading default disabled',
     !pagenest_reading_enabled() && pagenest_reading_markup() === '',
 );

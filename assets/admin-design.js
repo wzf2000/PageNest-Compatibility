@@ -2,13 +2,30 @@
   'use strict';
   const root = document.querySelector('.pn-admin');
   if (!root) return;
+  const nav = root.querySelector('.pn-admin-nav');
+  const reveal = (item) => {
+    if (!nav || !item) return;
+    const bounds = nav.getBoundingClientRect(),
+      current = item.getBoundingClientRect();
+    if (current.left < bounds.left + 4) nav.scrollLeft += current.left - bounds.left - 4;
+    else if (current.right > bounds.right - 4) nav.scrollLeft += current.right - bounds.right + 4;
+  };
+  reveal(nav?.querySelector('[aria-current="page"]'));
+  nav?.addEventListener('focusin', (event) => reveal(event.target.closest('a')));
   root.querySelectorAll('form').forEach((form) => {
-    const status = document.createElement('p');
+    if (form.method.toLowerCase() !== 'post' || form.matches('[data-pn-guide-form]')) return;
+    const submit =
+      form.querySelector(':scope > .submit, :scope > [data-pn-savebar]') ||
+      form.querySelector('button[type="submit"], input[type="submit"]')?.closest('p');
+    const status = document.createElement('span');
     status.className = 'pn-admin-state';
     status.role = 'status';
     status.hidden = true;
-    status.textContent = '有未保存的更改';
-    form.prepend(status);
+    status.textContent = window.PageNestAdmin?.unsaved || 'Unsaved changes.';
+    if (submit) {
+      submit.classList.add('pn-admin-savebar');
+      submit.append(status);
+    } else form.append(status);
     const value = (field) => {
       if (field.matches('input[type="checkbox"], input[type="radio"]')) return field.checked;
       if (field.matches('select'))

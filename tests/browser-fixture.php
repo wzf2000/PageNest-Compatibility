@@ -158,8 +158,15 @@ $paragraph_html =
     $manifest['comments_js'] .
     '"></script></body></html>';
 file_put_contents($out . '/paragraph.html', $paragraph_html);
-// Use real sibling assets locally; the minimum reading-layout contract keeps CI independent.
-$theme_assets = dirname(__DIR__, 2) . '/PageNest/assets';
+// CI pins a public theme checkout; standalone fixtures retain the minimum layout contract.
+$theme_root = getenv('PAGENEST_TEST_THEME_ROOT');
+$theme_assets = ($theme_root ?: dirname(__DIR__, 2) . '/PageNest') . '/assets';
+if (
+    $theme_root &&
+    (!is_file($theme_assets . '/layout.css') || !is_file($theme_assets . '/reading.js'))
+) {
+    throw new RuntimeException('Configured PageNest fixture assets are missing');
+}
 @mkdir($out . '/theme', 0777, true);
 $real_theme =
     !getenv('PAGENEST_TEST_MINIMAL_LAYOUT') &&
@@ -238,7 +245,9 @@ $reading_html =
     '<details class="pagenest-toc" hidden open><summary>本文目录</summary><nav aria-label="本文目录"></nav></details>' .
     '<section class="pagenest-widget"><h2>相关阅读</h2><p>Neutral related article</p></section>' .
     '<section class="pagenest-widget"><h2>交流与更多</h2><p>Neutral community link</p></section>' .
-    '</div></aside></div></main><script src="/theme/reading.js"></script>' .
+    '</div></aside></div></main>' .
+    '<script>window.pagenestReadingL10n={body:"文章正文",toggleHeading:"展开或收起：%s",expandAll:"展开全部",collapseAll:"收起全部",currentPosition:"包含当前阅读位置"};</script>' .
+    '<script src="/theme/reading.js"></script>' .
     '<script>window.fixtureRealTheme=' .
     ($real_theme ? 'true' : 'false') .
     ';window.PageNestComments={post:10,api:"/api/",nonce:"synthetic-nonce",user:1,loginUrl:"/login",displayName:"Synthetic reader",avatarUrl:""};</script>' .

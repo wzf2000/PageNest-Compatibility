@@ -187,6 +187,27 @@ add_action('wp_enqueue_scripts', static function () {
                 ]
                 : null,
         'text' => [
+            'reading' => __('My reading', 'pagenest-companion'),
+            'notes' => __('Comments and notes', 'pagenest-companion'),
+            'continue' => __('Continue reading', 'pagenest-companion'),
+            'refresh' => __('Refresh records', 'pagenest-companion'),
+            'devicePrompt' => __(
+                'Enable the option above to keep reading here.',
+                'pagenest-companion',
+            ),
+            'manage' => __('Manage device records', 'pagenest-companion'),
+            'deviceEnabled' => __('Device memory enabled.', 'pagenest-companion'),
+            'deviceDisabled' => __(
+                'Device memory disabled and records cleared.',
+                'pagenest-companion',
+            ),
+            'deviceCleared' => __('Device records cleared.', 'pagenest-companion'),
+            'filter' => __('Filter records', 'pagenest-companion'),
+            'backup' => __('Backup and import', 'pagenest-companion'),
+            'privateIntro' => __(
+                'Your records load only when you choose to view them.',
+                'pagenest-companion',
+            ),
             'device' => __('On this device', 'pagenest-companion'),
             'consent' => __('Remember my reading on this device', 'pagenest-companion'),
             'deviceSummary' => __(
@@ -203,6 +224,11 @@ add_action('wp_enqueue_scripts', static function () {
                 'pagenest-companion',
             ),
             'clear' => __('Clear device records', 'pagenest-companion'),
+            'deviceLoadError' => __(
+                "Could not load this device's reading list. Try again.",
+                'pagenest-companion',
+            ),
+            'retry' => __('Retry', 'pagenest-companion'),
             'recent' => __('Recent reading', 'pagenest-companion'),
             'later' => __('Read later', 'pagenest-companion'),
             'remove' => __('Remove', 'pagenest-companion'),

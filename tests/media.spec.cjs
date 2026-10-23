@@ -265,3 +265,34 @@ test('a partial final group keeps every visible image accessible and clones open
   await aligned(page, 0);
   await expect(page.locator('[data-pagenest-lightbox]').first()).toBeFocused();
 });
+
+test('PDF attachment chrome follows host tokens and retains independent fallbacks', async ({
+  page,
+}) => {
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await page.setContent(
+    `<style>${fs.readFileSync(path.join(root, 'assets/media-compatibility.css'), 'utf8')}</style><div class="pagenest-media-pdf"><iframe class="pagenest-media-pdf-frame" title="PDF" srcdoc="<p>Paper</p>"></iframe><p><a href="#file">Download PDF</a></p></div>`,
+  );
+  await expect(page.locator('.pagenest-media-pdf')).toHaveCSS(
+    'background-color',
+    'rgb(244, 247, 251)',
+  );
+  await page.addStyleTag({
+    content:
+      ':root{--pagenest-soft:#2c3745;--pagenest-border:#465363;--pagenest-text:#dce3ec;--pagenest-content-link:#a5cdf8}',
+  });
+  await expect(page.locator('.pagenest-media-pdf')).toHaveCSS(
+    'background-color',
+    'rgb(44, 55, 69)',
+  );
+  await expect(page.locator('.pagenest-media-pdf > p')).toHaveCSS('color', 'rgb(220, 227, 236)');
+  await expect(page.locator('.pagenest-media-pdf a')).toHaveCSS('color', 'rgb(165, 205, 248)');
+  await page.addStyleTag({
+    content:
+      ':root{--pagenest-soft:#eef1eb;--pagenest-text:#293630;--pagenest-content-link:#426354}',
+  });
+  await expect(page.locator('.pagenest-media-pdf')).toHaveCSS(
+    'background-color',
+    'rgb(238, 241, 235)',
+  );
+});

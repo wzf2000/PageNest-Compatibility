@@ -29,6 +29,7 @@ for key, name in [
     ("content_spacing_js", "content-spacing.js"),
     ("media_js", "media-compatibility.js"),
     ("media_css", "media-compatibility.css"),
+    ("pdf_viewer_css", "pdf-viewer.css"),
     ("native_media_js", "media-authoring.js"),
     ("media_editor_js", "media-editor.js"),
     ("media_library_js", "media-library.js"),
