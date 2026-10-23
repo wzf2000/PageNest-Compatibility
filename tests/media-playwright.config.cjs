@@ -1,7 +1,7 @@
 const { defineConfig } = require('@playwright/test');
 module.exports = defineConfig({
   testDir: '.',
-  testMatch: ['media.spec.cjs', 'media-library.spec.cjs'],
+  testMatch: ['media.spec.cjs', 'media-library.spec.cjs', 'pdf-viewer.spec.cjs'],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,

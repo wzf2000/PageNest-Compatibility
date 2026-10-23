@@ -10,6 +10,7 @@ module.exports = defineConfig({
     'followups-ui.spec.cjs',
     'media.spec.cjs',
     'media-library.spec.cjs',
+    'pdf-viewer.spec.cjs',
     'performance-ui.spec.cjs',
   ],
   use: { baseURL: 'http://127.0.0.1:18780', trace: 'retain-on-failure' },

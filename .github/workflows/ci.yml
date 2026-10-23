@@ -69,7 +69,16 @@ jobs:
         run: |
           node tools/ci-browser-userns.test.cjs
           node tools/ci-browser-userns.cjs
+      - name: Check out the matching public PageNest theme
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/PageNest
+          ref: 371ac2734292c8604eeafca639325d864346dba3
+          path: .runtime/pagenest-theme
+          persist-credentials: false
       - name: Run frontend regressions
+        env:
+          PAGENEST_TEST_THEME_ROOT: ${{ github.workspace }}/.runtime/pagenest-theme
         run: |
           npm run test:frontend
           npm run test:performance-browser
@@ -84,6 +93,11 @@ jobs:
         run: |
           npm run test:followups-browser
           npm run test:series-browser
+      - name: Run focused reader UX WebKit regressions
+        env:
+          PAGENEST_TEST_THEME_ROOT: ${{ github.workspace }}/.runtime/pagenest-theme
+        if: matrix.php == '8.2'
+        run: npm run test:reader-ux-webkit
       - name: Upload browser failure evidence
         if: failure()
         uses: actions/upload-artifact@v4
@@ -93,6 +107,7 @@ jobs:
             test-results/
             .runtime/followups-browser-results/
             .runtime/series-browser-results/
+            .runtime/reader-ux-webkit-results/
             playwright-report/
             /tmp/pagenest-performance-ui-results/
           include-hidden-files: true

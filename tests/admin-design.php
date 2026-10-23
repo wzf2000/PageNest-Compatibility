@@ -23,6 +23,7 @@ function wp_enqueue_style($handle, $source, ...$args)
 {
     $GLOBALS['enqueued'][] = $source;
 }
+function wp_localize_script(...$args) {}
 function wp_enqueue_script($handle, $source, ...$args)
 {
     $GLOBALS['enqueued'][] = $source;

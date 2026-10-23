@@ -63,4 +63,7 @@ add_action('admin_enqueue_scripts', static function ($hook): void {
         null,
         true,
     );
+    wp_localize_script('pagenest-companion-admin', 'PageNestAdmin', [
+        'unsaved' => __('Unsaved changes.', 'pagenest-companion'),
+    ]);
 });

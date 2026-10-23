@@ -140,12 +140,14 @@ function pagenest_guide_page(): void
         ),
         'pagenest-guide',
     );
-    echo '<p>' .
+    echo '<details class="pn-admin-inline-help"><summary>' .
+        esc_html__('How this works', 'pagenest-companion') .
+        '</summary><p>' .
         esc_html__(
             'This guide uses its own setting and [pagenest_content_guide] shortcode. Existing server content configuration is read-only and is not imported or overwritten.',
             'pagenest-companion',
         ) .
-        '</p><div class="pn-admin-layout"><form class="pn-admin-main" method="post" action="options.php" data-pn-guide-form>';
+        '</p></details><div class="pn-admin-layout"><form class="pn-admin-main" method="post" action="options.php" data-pn-guide-form>';
     settings_fields('pagenest_guide');
     echo '<section class="pn-admin-section"><label><input type="checkbox" name="pagenest_companion_guide[enabled]" value="1" ' .
         checked($options['enabled'], true, false) .
@@ -198,21 +200,28 @@ function pagenest_guide_page(): void
         esc_html__('Add group', 'pagenest-companion') .
         '</button></section><section class="pn-admin-section"><h2>' .
         esc_html__('Find existing content', 'pagenest-companion') .
-        '</h2><label>' .
+        '</h2><div class="pn-guide-search-row"><div class="pn-admin-field"><label for="pn-guide-query">' .
         esc_html__('Search public articles and pages', 'pagenest-companion') .
-        '<input type="search" data-pn-guide-query maxlength="100"></label><button class="button" type="button" data-pn-guide-search>' .
+        '</label><div class="pn-guide-query-actions"><input id="pn-guide-query" type="search" data-pn-guide-query maxlength="100"><button class="button" type="button" data-pn-guide-search>' .
         esc_html__('Search', 'pagenest-companion') .
-        '</button><label>' .
+        '</button></div></div><div class="pn-admin-field"><label for="pn-guide-target">' .
         esc_html__('Add to group', 'pagenest-companion') .
-        '<select data-pn-guide-target></select></label><p data-pn-guide-status role="status"></p><ul data-pn-guide-catalog></ul><button type="button" class="button" data-pn-guide-more hidden>' .
+        '</label><select id="pn-guide-target" data-pn-guide-target></select></div></div><p data-pn-guide-status role="status"></p><ul data-pn-guide-catalog></ul><button type="button" class="button" data-pn-guide-more hidden>' .
         esc_html__('Load more', 'pagenest-companion') .
         '</button></section><section class="pn-admin-section"><h2>' .
         esc_html__('Preview saved guide', 'pagenest-companion') .
         '</h2>' .
-        pagenest_guide_render() .
-        '</section>';
+        (pagenest_guide_render() ?:
+            '<p class="pn-admin-empty">' .
+                esc_html(
+                    $options['groups']
+                        ? __('The guide is disabled. Saved groups are kept.', 'pagenest-companion')
+                        : __('No saved groups yet.', 'pagenest-companion'),
+                ) .
+                '</p>') .
+        '</section><div class="pn-admin-savebar" data-pn-savebar>';
     submit_button();
-    echo '</form></div></div>';
+    echo '<span data-pn-guide-dirty role="status"></span></div></form></div></div>';
 }
 add_action('rest_api_init', static function () {
     register_rest_route('pagenest/v1', '/guide/catalog', [
@@ -273,6 +282,8 @@ add_action('admin_enqueue_scripts', static function ($hook) {
         'nonce' => wp_create_nonce('wp_rest'),
         'text' => [
             'group' => __('Group', 'pagenest-companion'),
+            'addGroupFirst' => __('Add a group first.', 'pagenest-companion'),
+            'emptyGroup' => __('No links in this group yet.', 'pagenest-companion'),
             'title' => __('Group title', 'pagenest-companion'),
             'up' => __('Move up', 'pagenest-companion'),
             'down' => __('Move down', 'pagenest-companion'),

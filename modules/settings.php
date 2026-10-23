@@ -114,7 +114,9 @@ function pagenest_companion_settings_page()
         esc_attr($views['template']) .
         '"><p id="pn-view-help">使用 <code>%VIEW_COUNT%</code> 显示次数，支持纯文本。</p></div></section>';
     submit_button('保存阅读设置');
-    echo '</form><aside class="pn-admin-help"><h2>先配置，再保存</h2><p>本页更改在保存后生效，已有评论、点赞和计数不会因关闭功能而删除。</p><h2>关于浏览量</h2><p>仅对实际渲染的公开页面计数；缓存命中可能不计入。启用不会扫描或迁移旧文章。</p><h2>更多站点能力</h2><p>搜索、媒体和社交登录各有独立设置页，不必在这里一次完成。</p></aside></div></div>';
+    echo '</form><details class="pn-admin-help"><summary>' .
+        esc_html__('How this works', 'pagenest-companion') .
+        '</summary><h2>先配置，再保存</h2><p>本页更改在保存后生效，已有评论、点赞和计数不会因关闭功能而删除。</p><h2>关于浏览量</h2><p>仅对实际渲染的公开页面计数；缓存命中可能不计入。启用不会扫描或迁移旧文章。</p><h2>更多站点能力</h2><p>搜索、媒体和社交登录各有独立设置页，不必在这里一次完成。</p></details></div></div>';
 }
 add_action('add_meta_boxes_post', static function () {
     add_meta_box(

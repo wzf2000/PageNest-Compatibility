@@ -14,6 +14,8 @@ npm run format:check
 npm test
 npx playwright install --only-shell chromium
 npm run test:frontend
+npx playwright install --with-deps webkit
+npm run test:reader-ux-webkit
 npm run test:content
 npm run test:content-browser
 npm run test:media
@@ -28,6 +30,10 @@ npm run package:check
 ## 测试边界
 
 快速 PHP 测试使用内存中的 WordPress 替身；浏览器测试覆盖桌面与手机宽度，并禁止外部网络请求。插件的通知测试不实际发信。它们验证公共功能和实际前端资源，不能代替完整 WordPress 安装上的插件组合验收。测试依赖、fixture、格式工具与 node_modules 不进入安装 ZIP。
+
+CI 在浏览器测试前检出固定提交的公开 PageNest 主题，通过 `PAGENEST_TEST_THEME_ROOT` 指定主题目录。
+本地需要验证组合布局时可将该变量指向自己的主题检出；未指定时优先使用相邻 `PageNest`，缺少主题则使用合成的最小阅读布局。
+显式指定目录却缺少资源时检查失败，避免组合测试悄悄回退。主题资源不进入插件安装包。
 
 ## 提交与发行
 

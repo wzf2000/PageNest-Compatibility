@@ -561,7 +561,7 @@ function pagenest_media_quality_page(): void
             '</button></div></section>';
     }
     if ($shown) {
-        echo '<p><button class="button button-primary" type="submit" name="pn_save_all" value="1">' .
+        echo '<p data-pn-savebar><button class="button button-primary" type="submit" name="pn_save_all" value="1">' .
             esc_html__('Save this page, with a result for each attachment', 'pagenest-companion') .
             '</button></p>';
     }

@@ -3,6 +3,20 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '..');
 const text = {
+  reading: 'My reading',
+  notes: 'Comments and notes',
+  continue: 'Continue reading',
+  refresh: 'Refresh records',
+  devicePrompt: 'Enable the option above to keep reading here.',
+  deviceLoadError: 'Could not load the device reading list. Try again.',
+  retry: 'Retry',
+  manage: 'Manage device records',
+  deviceEnabled: 'Device memory enabled.',
+  deviceDisabled: 'Device memory disabled and records cleared.',
+  deviceCleared: 'Device records cleared.',
+  filter: 'Filter records',
+  backup: 'Backup and import',
+  privateIntro: 'Your records load only when you choose to view them.',
   device: 'On this device',
   consent: 'Remember my reading on this device',
   deviceHelp: 'Optional browser storage; article IDs are checked with the site.',
@@ -117,6 +131,7 @@ for (const width of [1440, 390]) {
       later: true,
       anchor: 'stable',
     });
+    await page.getByRole('tab', { name: text.notes, exact: true }).click();
     await page.getByRole('button', { name: text.load, exact: true }).click();
     await expect(page.getByRole('button', { name: text.more, exact: true })).toBeVisible();
     await page.getByRole('button', { name: text.more, exact: true }).click();
@@ -149,6 +164,7 @@ test('late private response cannot restore a page after leaving', async ({ page 
     await route.fulfill({ json: { items: [record], next_cursor: null } }).catch(() => {});
   });
   await fixture(page, 390);
+  await page.getByRole('tab', { name: text.notes, exact: true }).click();
   await page.getByRole('button', { name: text.load, exact: true }).click();
   await page.evaluate(() => window.dispatchEvent(new Event('pagehide')));
   release();
@@ -168,6 +184,8 @@ test('plain permalink REST routes keep query arguments separate', async ({ page 
     search = url.searchParams.get('q');
     return route.fulfill({ json: { items: [record], next_cursor: null } });
   });
+  await page.getByRole('tab', { name: text.notes, exact: true }).click();
+  await page.locator('.pn-reading-record-filters > summary').click();
   await page.getByLabel(text.q).fill('query with spaces');
   await page.getByRole('button', { name: text.search, exact: true }).click();
   await expect(page.locator('.pn-reading-note-text')).toHaveText(record.text);
@@ -187,11 +205,16 @@ test('authorization loss clears sensitive search and every center', async ({ pag
     390,
     '<section class="pn-reading"><div data-pn-device></div><div data-pn-records></div></section>',
   );
+  for (const tab of await page.getByRole('tab', { name: text.notes, exact: true }).all())
+    await tab.click();
+  for (const summary of await page.locator('.pn-reading-record-filters > summary').all())
+    await summary.click();
   const searches = page.getByLabel(text.q);
   await searches.nth(0).fill('Sensitive medical search');
   await searches.nth(1).fill('Another private search');
-  await page.getByRole('button', { name: text.load, exact: true }).nth(0).click();
-  await page.getByRole('button', { name: text.load, exact: true }).nth(1).click();
+  for (const root of await page.locator('.pn-reading').all()) {
+    await root.getByRole('button', { name: text.load, exact: true }).click();
+  }
   await expect(page.locator('.pn-reading-note-text')).toHaveCount(2);
   await page.evaluate(() => window.dispatchEvent(new Event('focus')));
   await expect(page.locator('.pn-reading-note-text')).toHaveCount(0);
@@ -231,6 +254,10 @@ test('disabling the record service clears sensitive search in all centers', asyn
     390,
     '<section class="pn-reading"><div data-pn-device></div><div data-pn-records></div></section>',
   );
+  for (const tab of await page.getByRole('tab', { name: text.notes, exact: true }).all())
+    await tab.click();
+  for (const summary of await page.locator('.pn-reading-record-filters > summary').all())
+    await summary.click();
   const searches = page.getByLabel(text.q);
   await searches.nth(0).fill('Sensitive search');
   await searches.nth(1).fill('Another sensitive search');
@@ -242,7 +269,7 @@ test('disabling the record service clears sensitive search in all centers', asyn
 test('reading explanations stay collapsed beside concise privacy hints', async ({ page }) => {
   await fixture(page, 390);
   await expect(page.getByText(text.deviceSummary, { exact: true })).toBeVisible();
-  await expect(page.getByRole('heading', { name: text.records, exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: text.records, exact: true })).not.toBeVisible();
   await expect(page.getByText(text.deviceHelp, { exact: true })).not.toBeVisible();
   await expect(page.getByText(text.privateHelp, { exact: true })).not.toBeVisible();
   const help = page.locator('.pn-reading-help');
@@ -252,3 +279,290 @@ test('reading explanations stay collapsed beside concise privacy hints', async (
   await expect(page.getByLabel(text.consent)).not.toBeChecked();
   expect(await page.evaluate(() => localStorage.getItem('pagenest.reading.v1'))).toBeNull();
 });
+
+test('tabs request private records only explicitly and discard responses after switching away', async ({
+  page,
+}) => {
+  let requests = 0,
+    release;
+  const pending = new Promise((resolve) => {
+    release = resolve;
+  });
+  await page.route('**/records/my-records?*', async (route) => {
+    requests++;
+    await pending;
+    await route.fulfill({ json: { items: [record], next_cursor: null } }).catch(() => {});
+  });
+  await fixture(page, 390);
+  const recent = page.getByRole('tab', { name: text.recent, exact: true });
+  await recent.focus();
+  await page.keyboard.press('End');
+  await expect(page.getByRole('tab', { name: text.notes })).toBeFocused();
+  await expect(page.getByRole('button', { name: text.load, exact: true })).toBeVisible();
+  expect(requests).toBe(0);
+  await page.getByRole('button', { name: text.load, exact: true }).click();
+  await expect.poll(() => requests).toBe(1);
+  await recent.click();
+  release();
+  await expect(page.locator('.pn-reading-note-text')).toHaveCount(0);
+  await page.getByRole('tab', { name: text.notes }).click();
+  await expect(page.getByRole('button', { name: text.load, exact: true })).toBeVisible();
+  expect(requests).toBe(1);
+});
+
+test('device controls retain focus and provide consent and removal feedback', async ({ page }) => {
+  await fixture(page, 390);
+  await page.getByLabel(text.consent).check();
+  await expect(page.getByLabel(text.consent)).toBeFocused();
+  await expect(page.getByRole('status').filter({ hasText: text.deviceEnabled })).toBeVisible();
+  await expect(page.locator('.pn-reading-device-items a')).toHaveCount(1);
+  await page.getByRole('button', { name: 'Remove: Public article', exact: true }).click();
+  await expect(page.getByLabel(text.consent)).toBeFocused();
+  await expect(page.locator('.pn-reading-device-items a')).toHaveCount(0);
+  await page.getByLabel(text.consent).uncheck();
+  await expect(page.getByLabel(text.consent)).toBeFocused();
+  await expect(page.getByRole('status').filter({ hasText: text.deviceDisabled })).toBeVisible();
+  expect(
+    await page.evaluate(() => JSON.parse(localStorage.getItem('pagenest.reading.v1'))),
+  ).toEqual({ enabled: false, items: [] });
+});
+
+test('damaged dates are removed and multiple centers initialize with one public resolve', async ({
+  page,
+}) => {
+  await page.addInitScript(() =>
+    localStorage.setItem(
+      'pagenest.reading.v1',
+      JSON.stringify({ enabled: true, items: [{ id: 99, time: 1e100, later: true, anchor: '' }] }),
+    ),
+  );
+  let requests = 0;
+  page.on('request', (request) => {
+    if (request.url().endsWith('/resolve')) requests++;
+  });
+  await fixture(
+    page,
+    390,
+    '<section class="pn-reading"><div data-pn-device></div><div data-pn-records></div></section>',
+  );
+  await expect(page.locator('.pn-reading-device-items a')).toHaveCount(2);
+  expect(requests).toBe(1);
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('pagenest.reading.v1')));
+  expect(stored.items.map((item) => item.id)).toEqual([1]);
+  const ids = await page
+    .locator('[role=tab], [role=tabpanel]')
+    .evaluateAll((nodes) => nodes.map((node) => node.id));
+  expect(new Set(ids).size).toBe(ids.length);
+});
+
+test('card-local failures preserve edits and restore the matching action on cancel', async ({
+  page,
+}) => {
+  await page.route('**/records/my-records?*', (route) =>
+    route.fulfill({
+      json: {
+        items: Array.from({ length: 10 }, (_, index) => ({ ...record, id: index + 1 })),
+        next_cursor: null,
+      },
+    }),
+  );
+  await page.route('**/records/notes/10', (route) =>
+    route.fulfill({ status: 409, json: { code: 'version_conflict' } }),
+  );
+  await page.route('**/records/blocks?*', (route) =>
+    route.fulfill({ status: 500, json: { code: 'unavailable' } }),
+  );
+  await fixture(page, 390);
+  await page.getByRole('tab', { name: text.notes, exact: true }).click();
+  await page.getByRole('button', { name: text.load, exact: true }).click();
+  const card = page.locator('.pn-reading-record').last();
+  await card.getByRole('button', { name: text.edit, exact: true }).click();
+  await card.getByRole('textbox').fill('Keep this private edit');
+  await card.getByRole('button', { name: text.save, exact: true }).click();
+  const message = card.getByRole('status').filter({ hasText: text.conflict });
+  await expect(message).toBeInViewport();
+  await expect(card.getByRole('textbox')).toHaveValue('Keep this private edit');
+  await expect(card.getByRole('textbox')).toBeFocused();
+  await card.getByRole('button', { name: text.cancel, exact: true }).click();
+  await expect(card.getByRole('button', { name: text.edit, exact: true })).toBeFocused();
+  await card.getByRole('button', { name: text.relink, exact: true }).click();
+  await expect(card.getByRole('status').filter({ hasText: text.error })).toBeVisible();
+  await card.getByRole('button', { name: text.cancel, exact: true }).click();
+  await expect(card.getByRole('button', { name: text.relink, exact: true })).toBeFocused();
+  page.once('dialog', (dialog) => dialog.accept());
+  await card.getByRole('button', { name: text.delete, exact: true }).click();
+  await expect(card.getByRole('status').filter({ hasText: text.conflict })).toBeInViewport();
+  await expect(card.getByRole('button', { name: text.delete, exact: true })).toBeFocused();
+});
+
+for (const scenario of ['cancel', 'leave', 'move focus']) {
+  test(`pending private edit cannot undo ${scenario}`, async ({ page }) => {
+    let release;
+    let started = false;
+    let reads = 0;
+    const pending = new Promise((resolve) => {
+      release = resolve;
+    });
+    await page.route('**/records/my-records?*', (route) => {
+      reads++;
+      return route.fulfill({ json: { items: [record], next_cursor: null } });
+    });
+    await page.route('**/records/notes/11', async (route) => {
+      started = true;
+      await pending;
+      await route
+        .fulfill({
+          status: scenario === 'cancel' ? 200 : 409,
+          json: scenario === 'cancel' ? {} : { code: 'version_conflict' },
+        })
+        .catch(() => {});
+    });
+    await fixture(page, 390);
+    await page.getByRole('tab', { name: text.notes, exact: true }).click();
+    await page.getByRole('button', { name: text.load, exact: true }).click();
+    const card = page.locator('.pn-reading-record');
+    await card.getByRole('button', { name: text.edit, exact: true }).click();
+    await card.getByRole('textbox').fill('Pending private edit');
+    await card.getByRole('button', { name: text.save, exact: true }).click();
+    await expect.poll(() => started).toBe(true);
+    if (scenario === 'cancel')
+      await card.getByRole('button', { name: text.cancel, exact: true }).click();
+    else if (scenario === 'leave')
+      await page.getByRole('tab', { name: text.recent, exact: true }).click();
+    else await page.getByRole('button', { name: text.refresh, exact: true }).focus();
+    release();
+    if (scenario === 'move focus') {
+      await expect(card.getByRole('status').filter({ hasText: text.conflict })).toBeVisible();
+      await expect(page.getByRole('button', { name: text.refresh, exact: true })).toBeFocused();
+      await expect(card.getByRole('textbox')).toHaveValue('Pending private edit');
+    } else {
+      await page.waitForTimeout(100);
+      await expect(page.getByRole('textbox', { name: text.edit, exact: true })).toHaveCount(0);
+      expect(reads).toBe(1);
+      if (scenario === 'cancel')
+        await expect(card.getByRole('button', { name: text.edit, exact: true })).toBeFocused();
+      else {
+        await expect(card).toHaveCount(0);
+        await expect(page.getByRole('tab', { name: text.recent, exact: true })).toBeFocused();
+      }
+    }
+  });
+}
+
+test('a delayed delete failure leaves a newly focused editor alone', async ({ page }) => {
+  let release;
+  let started = false;
+  const pending = new Promise((resolve) => {
+    release = resolve;
+  });
+  await page.route('**/records/my-records?*', (route) =>
+    route.fulfill({ json: { items: [record], next_cursor: null } }),
+  );
+  await page.route('**/records/notes/11', async (route) => {
+    started = true;
+    await pending;
+    await route.fulfill({ status: 409, json: { code: 'version_conflict' } });
+  });
+  await fixture(page, 390);
+  await page.getByRole('tab', { name: text.notes, exact: true }).click();
+  await page.getByRole('button', { name: text.load, exact: true }).click();
+  const card = page.locator('.pn-reading-record');
+  page.once('dialog', (dialog) => dialog.accept());
+  await card.getByRole('button', { name: text.delete, exact: true }).click();
+  await expect.poll(() => started).toBe(true);
+  await card.getByRole('button', { name: text.edit, exact: true }).click();
+  release();
+  await expect(card.getByRole('status').filter({ hasText: text.conflict })).toBeVisible();
+  await expect(card.getByRole('textbox')).toBeFocused();
+});
+
+test('device list retries public IDs without requesting private records or losing keyboard focus', async ({
+  page,
+}) => {
+  let requests = 0;
+  let privateRequests = 0;
+  const ids = [];
+  await fixture(page, 390);
+  await page.route('**/records/**', (route) => {
+    privateRequests++;
+    return route.fulfill({ json: { items: [], next_cursor: null } });
+  });
+  await page.route('**/resolve', (route) => {
+    requests++;
+    ids.push(route.request().postDataJSON().ids);
+    return requests < 3
+      ? route.fulfill({ status: 503, json: {} })
+      : route.fulfill({
+          json: {
+            items: [
+              {
+                id: 1,
+                title: 'Public article',
+                url: locationUrl('/article/1'),
+                headings: ['stable'],
+              },
+            ],
+          },
+        });
+  });
+  await page.getByLabel(text.consent).check();
+  const view = page.locator('[data-pn-device]');
+  await expect(view.getByRole('status').filter({ hasText: text.deviceLoadError })).toBeVisible();
+  expect(
+    await page.evaluate(() =>
+      JSON.parse(localStorage.getItem('pagenest.reading.v1')).items.map((item) => item.id),
+    ),
+  ).toEqual([1]);
+  await view.getByRole('button', { name: text.retry, exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await expect.poll(() => requests).toBe(2);
+  await expect(view.getByRole('button', { name: text.retry, exact: true })).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(view.getByRole('link', { name: 'Public article', exact: true })).toBeFocused();
+  expect(ids).toEqual([[1], [1], [1]]);
+  expect(privateRequests).toBe(0);
+});
+
+for (const action of ['disable', 'move focus']) {
+  test(`a pending device retry respects ${action}`, async ({ page }) => {
+    let requests = 0;
+    let release;
+    const pending = new Promise((resolve) => {
+      release = resolve;
+    });
+    await fixture(page, 390);
+    await page.route('**/resolve', async (route) => {
+      if (++requests === 1) return route.fulfill({ status: 503, json: {} });
+      await pending;
+      await route.fulfill({
+        json: {
+          items: [
+            {
+              id: 1,
+              title: 'Public article',
+              url: locationUrl('/article/1'),
+              headings: ['stable'],
+            },
+          ],
+        },
+      });
+    });
+    await page.getByLabel(text.consent).check();
+    await page.getByRole('button', { name: text.retry, exact: true }).click();
+    await expect.poll(() => requests).toBe(2);
+    if (action === 'disable') await page.getByLabel(text.consent).uncheck();
+    else await page.getByRole('tab', { name: text.recent, exact: true }).focus();
+    release();
+    if (action === 'disable') {
+      await page.waitForTimeout(100);
+      await expect(page.getByLabel(text.consent)).not.toBeChecked();
+      await expect(page.getByRole('link', { name: 'Public article', exact: true })).toHaveCount(0);
+      expect(
+        await page.evaluate(() => JSON.parse(localStorage.getItem('pagenest.reading.v1'))),
+      ).toEqual({ enabled: false, items: [] });
+    } else {
+      await expect(page.getByRole('link', { name: 'Public article', exact: true })).toBeVisible();
+      await expect(page.getByRole('tab', { name: text.recent, exact: true })).toBeFocused();
+    }
+  });
+}

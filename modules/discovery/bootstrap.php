@@ -46,13 +46,21 @@ function pagenest_discovery_public_post($post): bool
     }
     return true;
 }
+function pagenest_discovery_has_shortcodes(string $value): bool
+{
+    // Comma-separated one-letter dimensions are plain notation, e.g. [B, T, D] or [a,b].
+    // Keep unknown shortcode names and their attributes out of all public summaries.
+    $value = preg_replace('/\[(?:[a-zA-Z][0-9]*\s*,\s*)+[a-zA-Z][0-9]*\s*\]/', '', $value);
+    return (bool) preg_match('/\[\/?[a-zA-Z][^\]]*\]/', $value);
+}
 function pagenest_discovery_text(string $value, int $limit = 160): string
 {
     // Never render shortcodes or apply the_content: private/tool rendering is outside this module.
     // Unknown or disabled shortcode syntax is not safe excerpt material either.
-    if (preg_match('/\[\/?[a-zA-Z][^\]]*\]/', $value)) {
+    if (pagenest_discovery_has_shortcodes($value)) {
         return '';
     }
+    $value = preg_replace('#<(script|style)\b[^>]*>.*?</\1\s*>#is', '', $value);
     $value = wp_strip_all_tags($value, true);
     $value = preg_replace(
         '/\s+/u',
@@ -132,7 +140,9 @@ function pagenest_discovery_settings_page(): void
             : '使用站点 Logo') .
         '</span></div></div></section>';
     submit_button('保存搜索与分享设置');
-    echo '</form><aside class="pn-admin-help"><h2>内容优先</h2><p>文章描述优先使用手写摘要，再使用站点描述。不会从正文提取短代码或私人信息。</p><h2>保留已有设置</h2><p>启用不会改写文章、媒体或链接。关闭功能保留这里的配置。</p><h2>与 WordPress 协作</h2><p>核心继续处理标题、标准地址和站点地图。其他 SEO 插件接管时，基础元信息会自动停止输出。</p></aside></div></div>';
+    echo '</form><details class="pn-admin-help"><summary>' .
+        esc_html__('How this works', 'pagenest-companion') .
+        '</summary><h2>内容优先</h2><p>文章描述优先使用手写摘要，再使用站点描述。不会从正文提取短代码或私人信息。</p><h2>保留已有设置</h2><p>启用不会改写文章、媒体或链接。关闭功能保留这里的配置。</p><h2>与 WordPress 协作</h2><p>核心继续处理标题、标准地址和站点地图。其他 SEO 插件接管时，基础元信息会自动停止输出。</p></details></div></div>';
 }
 require_once __DIR__ . '/search.php';
 require_once __DIR__ . '/seo.php';

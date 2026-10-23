@@ -218,7 +218,10 @@ function pagenest_discovery_filters($input): array
 }
 function pagenest_discovery_excerpt($post, string $query): string
 {
-    $text = pagenest_discovery_text($post->post_content ?: $post->post_excerpt, 200000);
+    $text = pagenest_discovery_text($post->post_excerpt ?? '', 200000);
+    if ($text === '') {
+        $text = pagenest_discovery_text($post->post_content, 200000);
+    }
     $position = $query !== '' ? mb_stripos($text, $query) : false;
     $start = $position === false ? 0 : max(0, $position - 50);
     return ($start ? '…' : '') .
@@ -231,7 +234,7 @@ function pagenest_discovery_sections($post, string $query = ''): array
     if (
         !$post ||
         strlen($post->post_content) > 1000000 ||
-        preg_match('/\[(?:\/?)[a-zA-Z][^\]]*\]/', $post->post_content)
+        pagenest_discovery_has_shortcodes($post->post_content)
     ) {
         return [];
     }
