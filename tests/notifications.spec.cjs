@@ -26,7 +26,17 @@ const text = {
 };
 async function fixture(
   page,
-  { plain = false, signedIn = true, status = 200, code = '', delayed = false } = {},
+  {
+    plain = false,
+    signedIn = true,
+    status = 200,
+    code = '',
+    delayed = false,
+    delayedRead = false,
+    panels = 0,
+    listResponse = null,
+    itemCount = 1,
+  } = {},
 ) {
   const calls = [];
   let read = false;
@@ -56,38 +66,39 @@ async function fixture(
         body: '<!doctype html><title>Notifications fixture</title><body></body>',
       });
     calls.push({ url: route.request().url(), body: route.request().postDataJSON() });
-    if (delayed) await waiting;
+    if (delayed || (delayedRead && url.pathname.endsWith('/read'))) await waiting;
     if (status !== 200) return route.fulfill({ status, json: { code } });
     const action = plain ? url.searchParams.get('rest_route') : url.pathname;
     if (action.endsWith('/read')) read = true;
     if (action.endsWith('/preference')) enabled = route.request().postDataJSON().enabled;
     const pageNumber = Number(url.searchParams.get('page') || 1);
+    const list = listResponse?.({ read, pageNumber, enabled }) ?? {
+      items: Array.from({ length: itemCount }, (_, index) => ({
+        id: pageNumber * 10 + index,
+        title: 'Synthetic public article',
+        author: 'Synthetic Writer',
+        url: origin + '/article/#comment-' + index,
+        created: '2026-10-24T12:00:00Z',
+        read,
+      })),
+      page: pageNumber,
+      pages: 2,
+      recentUnread: read ? 0 : 2,
+      enabled,
+    };
     await route.fulfill({
       json: action.endsWith('/read')
         ? { read: true }
         : action.endsWith('/preference')
           ? { enabled }
-          : {
-              items: [
-                {
-                  id: pageNumber,
-                  title: 'Synthetic public article',
-                  author: 'Synthetic Writer',
-                  url: origin + '/article/#comment-' + pageNumber,
-                  created: '2026-10-24T12:00:00Z',
-                  read,
-                },
-              ],
-              page: pageNumber,
-              pages: 2,
-              recentUnread: read ? 0 : 2,
-              enabled,
-            },
+          : list,
     });
   });
   await page.goto(origin);
+  const panel =
+    '<section class="pn-notifications" data-pn-notifications><h2>Notifications</h2><button data-pn-notifications-load hidden>Load notifications</button><div data-pn-notifications-status role="status"></div><div data-pn-notifications-result></div></section>';
   await page.setContent(
-    `<style>body{font:16px system-ui;margin:16px}${fs.readFileSync(path.join(root, 'assets/notifications.css'), 'utf8')}</style><button data-pn-open-notifications hidden>Notifications</button><dialog class="pn-notifications-dialog" aria-labelledby="notification-title"><div class="pn-notifications-toolbar"><h2 id="notification-title">Notifications</h2><button data-pn-close-notifications>Close</button></div><section class="pn-notifications" data-pn-notifications><h2>Notifications</h2><p>Load to check the latest 100 eligible replies.</p><button data-pn-notifications-load hidden>Load notifications</button><div data-pn-notifications-status role="status"></div><div data-pn-notifications-result></div></section></dialog>`,
+    `<style>body{font:16px system-ui;margin:16px}${fs.readFileSync(path.join(root, 'assets/notifications.css'), 'utf8')}</style>${panel.repeat(panels)}<button data-pn-open-notifications hidden>Notifications</button><dialog class="pn-notifications-dialog" aria-labelledby="notification-title"><div class="pn-notifications-toolbar"><h2 id="notification-title">Notifications</h2><button data-pn-close-notifications>Close</button></div><section class="pn-notifications" data-pn-notifications><h2>Notifications</h2><p>Load to check the latest 100 eligible replies.</p><button data-pn-notifications-load hidden>Load notifications</button><div data-pn-notifications-status role="status"></div><div data-pn-notifications-result></div></section></dialog>`,
   );
   await page.evaluate((value) => {
     window.PageNestNotifications = value;
@@ -95,7 +106,14 @@ async function fixture(
   await page.addScriptTag({
     content: fs.readFileSync(path.join(root, 'assets/notifications.js'), 'utf8'),
   });
-  return { calls, release };
+  return {
+    calls,
+    release,
+    setError: (nextStatus, nextCode) => {
+      status = nextStatus;
+      code = nextCode;
+    },
+  };
 }
 for (const plain of [false, true]) {
   test(`explicit open, pagination, read and opt-out with ${plain ? 'plain' : 'pretty'} permalinks`, async ({
@@ -109,7 +127,7 @@ for (const plain of [false, true]) {
     await page.getByRole('button', { name: 'Mark as read' }).click();
     await expect(page.getByRole('button', { name: 'Mark as read' })).toHaveCount(0);
     await expect(page.locator('[data-pn-notifications-status]')).toHaveText(
-      'Unread in recent replies: 1',
+      'Unread in recent replies: 0',
     );
     await page.getByRole('button', { name: 'Next' }).click();
     await expect(page.locator('.pn-notifications nav span')).toHaveText('2 / 2');
@@ -174,3 +192,171 @@ for (const width of [1440, 390]) {
     await expect(page.getByRole('button', { name: 'Notifications', exact: true })).toBeFocused();
   });
 }
+
+test('mark read reloads the server count and removes newly revoked entries', async ({ page }) => {
+  const { calls } = await fixture(page, {
+    listResponse: ({ read, enabled }) => ({
+      items: read
+        ? []
+        : [
+            {
+              id: 7,
+              title: 'Will be revoked',
+              author: 'Writer',
+              url: origin + '/#comment-7',
+              created: '2026-10-24T12:00:00Z',
+              read: false,
+            },
+          ],
+      page: 1,
+      pages: 1,
+      recentUnread: read ? 0 : 12,
+      enabled,
+    }),
+  });
+  await page.getByRole('button', { name: 'Notifications', exact: true }).click();
+  await page.getByRole('button', { name: text.mark }).click();
+  await expect(page.locator('[data-pn-notifications-status]')).toHaveText(`${text.recent} 0`);
+  await expect(page.getByRole('link', { name: /Will be revoked/ })).toHaveCount(0);
+  await expect(page.getByText(text.empty)).toBeVisible();
+  await expect(page.getByRole('button', { name: text.refresh, exact: true })).toBeFocused();
+  expect(calls).toHaveLength(3);
+  expect(calls[2].url).toContain('page=1');
+});
+test('mutations and authentication failures invalidate other loaded panels', async ({ page }) => {
+  const { calls, setError } = await fixture(page, { panels: 2 });
+  const panels = page.locator('[data-pn-notifications]').filter({ visible: true });
+  for (let index = 0; index < 2; index++)
+    await panels.nth(index).getByRole('button', { name: text.load, exact: true }).click();
+  await expect(panels.nth(1).locator('li')).toHaveCount(1);
+  await panels.nth(0).getByRole('button', { name: text.mark }).click();
+  await expect(panels.nth(0).locator('[data-pn-notifications-status]')).toHaveText(
+    `${text.recent} 0`,
+  );
+  await expect(panels.nth(1).locator('[data-pn-notifications-result]')).toBeEmpty();
+  expect(calls).toHaveLength(4);
+  await panels.nth(1).getByRole('button', { name: text.load, exact: true }).click();
+  await expect(panels.nth(1).locator('li')).toHaveCount(1);
+  await panels.nth(0).getByText(text.settings, { exact: true }).click();
+  await panels.nth(0).getByRole('checkbox').uncheck();
+  await expect(panels.nth(0).locator('[data-pn-notifications-status]')).toHaveText(text.saved);
+  await expect(panels.nth(1).locator('[data-pn-notifications-result]')).toBeEmpty();
+  await panels.nth(1).getByRole('button', { name: text.load, exact: true }).click();
+  await expect(panels.nth(1).locator('li')).toHaveCount(1);
+  setError(403, 'rest_cookie_invalid_nonce');
+  await panels.nth(0).getByRole('button', { name: text.refresh, exact: true }).click();
+  await expect(panels.nth(0).locator('[data-pn-notifications-status]')).toContainText(text.expired);
+  await expect(panels.nth(1).locator('[data-pn-notifications-result]')).toBeEmpty();
+});
+test('anonymous shortcode keeps its sign-in prompt after pagehide and visibility purge', async ({
+  page,
+}) => {
+  const { calls } = await fixture(page, { signedIn: false, panels: 1 });
+  const panel = page.locator('[data-pn-notifications]').first();
+  await expect(panel.getByRole('link', { name: text.login })).toBeVisible();
+  await page.evaluate(() => window.dispatchEvent(new Event('pagehide')));
+  await expect(panel.getByRole('link', { name: text.login })).toBeVisible();
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, value: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+    Object.defineProperty(document, 'hidden', { configurable: true, value: false });
+  });
+  await expect(panel.getByRole('link', { name: text.login })).toBeVisible();
+  await expect(panel.getByRole('button', { name: text.load })).toHaveCount(0);
+  expect(calls).toHaveLength(0);
+});
+for (const viewport of [
+  { width: 320, height: 640 },
+  { width: 390, height: 844 },
+  { width: 740, height: 320 },
+]) {
+  test(`close remains reachable after a long list scroll at ${viewport.width}x${viewport.height} and 200% text`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await fixture(page, { itemCount: 10 });
+    await page.addStyleTag({ content: 'body { font-size: 200%; }' });
+    await page.getByRole('button', { name: 'Notifications', exact: true }).click();
+    await expect(page.locator('.pn-notifications li')).toHaveCount(10);
+    const dateWidth = await page
+      .locator('.pn-notifications li p')
+      .first()
+      .evaluate((element) => ({
+        width: element.getBoundingClientRect().width,
+        rowWidth: element.closest('li').getBoundingClientRect().width,
+        fontSize: parseFloat(getComputedStyle(element).fontSize),
+      }));
+    expect(dateWidth.width).toBeGreaterThanOrEqual(
+      Math.min(dateWidth.rowWidth - 16, dateWidth.fontSize * 8),
+    );
+    await page.locator('dialog').evaluate((element) => {
+      element.scrollTop = element.scrollHeight;
+    });
+    const close = page.getByRole('button', { name: 'Close', exact: true });
+    await expect(close).toBeInViewport();
+    await page.locator('.pn-notifications li a').last().focus();
+    const focusIsBelowToolbar = await page.locator('dialog').evaluate((element) => {
+      const active = document.activeElement.getBoundingClientRect();
+      const toolbar = element.querySelector('.pn-notifications-toolbar').getBoundingClientRect();
+      return {
+        activeTop: active.top,
+        activeBottom: active.bottom,
+        toolbarBottom: toolbar.bottom,
+        dialogBottom: element.getBoundingClientRect().bottom,
+        scrollPadding: getComputedStyle(element).scrollPaddingBlockStart,
+      };
+    });
+    expect(
+      focusIsBelowToolbar.activeTop,
+      JSON.stringify(focusIsBelowToolbar),
+    ).toBeGreaterThanOrEqual(focusIsBelowToolbar.toolbarBottom);
+    expect(
+      focusIsBelowToolbar.activeBottom,
+      JSON.stringify(focusIsBelowToolbar),
+    ).toBeLessThanOrEqual(focusIsBelowToolbar.dialogBottom);
+    expect(
+      await page
+        .locator('dialog')
+        .evaluate((element) => element.scrollWidth <= element.clientWidth),
+    ).toBeTruthy();
+    await close.focus();
+    await expect(close).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('dialog')).not.toBeVisible();
+  });
+}
+
+test('a canceled mutation response cannot clear another panel loaded afterward', async ({
+  page,
+}) => {
+  const { calls, release } = await fixture(page, { panels: 2, delayedRead: true });
+  await page.evaluate(() => {
+    const nativeFetch = window.fetch.bind(window);
+    // Model a response already in flight when AbortController can no longer stop it.
+    window.fetch = async (url, options) => {
+      const read = String(url).endsWith('/read');
+      const response = await nativeFetch(url, read ? { ...options, signal: undefined } : options);
+      if (read) {
+        const json = response.json.bind(response);
+        response.json = async () => {
+          const body = await json();
+          window.delayedReadFinished = true;
+          return body;
+        };
+      }
+      return response;
+    };
+  });
+  const panels = page.locator('[data-pn-notifications]').filter({ visible: true });
+  await panels.nth(0).getByRole('button', { name: text.load, exact: true }).click();
+  await panels.nth(0).getByRole('button', { name: text.mark }).click();
+  await expect.poll(() => calls.length).toBe(2);
+  await page.evaluate(() => window.dispatchEvent(new Event('pagehide')));
+  await panels.nth(1).getByRole('button', { name: text.load, exact: true }).click();
+  await expect(panels.nth(1).locator('li')).toHaveCount(1);
+  release();
+  await page.waitForFunction(() => window.delayedReadFinished);
+  await expect(panels.nth(1).locator('li')).toHaveCount(1);
+  await expect(panels.nth(0).locator('[data-pn-notifications-result]')).toBeEmpty();
+  expect(calls).toHaveLength(3);
+});

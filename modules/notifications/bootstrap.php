@@ -158,17 +158,28 @@ function pagenest_notifications_list($request)
                 get_comment_meta($reply->comment_ID, '_pagenest_notification_read', true) === '1',
         ];
     }
-    $page = max(1, min(10, (int) $request->get_param('page')));
+    $pages = max(1, (int) ceil(count($items) / 10));
+    $page = max(1, min($pages, (int) $request->get_param('page')));
     return new WP_REST_Response([
         'items' => array_slice($items, ($page - 1) * 10, 10),
         'page' => $page,
-        'pages' => max(1, (int) ceil(count($items) / 10)),
+        'pages' => $pages,
         'recentUnread' => count(array_filter($items, static fn($item) => !$item['read'])),
         'enabled' => get_user_meta($user, '_pagenest_notifications_off', true) !== '1',
     ]);
 }
+function pagenest_notifications_positive_id($value): bool
+{
+    return (is_int($value) && $value > 0) ||
+        (is_string($value) &&
+            preg_match('/^[1-9][0-9]*$/D', $value) === 1 &&
+            filter_var($value, FILTER_VALIDATE_INT) !== false);
+}
 function pagenest_notifications_read($request)
 {
+    if (!pagenest_notifications_positive_id($request->get_param('id'))) {
+        return pagenest_notifications_error('notifications_input', 400);
+    }
     $id = (int) $request->get_param('id');
     $reply = get_comment($id);
     $user = get_current_user_id();
@@ -212,6 +223,17 @@ add_action('rest_api_init', static function () {
             'methods' => $method,
             'permission_callback' => 'pagenest_notifications_permission',
             'callback' => $callback,
+            'args' =>
+                $suffix === '/read'
+                    ? [
+                        'id' => [
+                            'required' => true,
+                            'validate_callback' => static fn(
+                                $value,
+                            ) => pagenest_notifications_positive_id($value),
+                        ],
+                    ]
+                    : [],
         ]);
     }
 });

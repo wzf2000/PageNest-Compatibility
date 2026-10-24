@@ -121,6 +121,9 @@ function get_comments($args)
             ) === (int) $args['meta_value'],
         ),
     );
+    if (($args['order'] ?? '') === 'DESC') {
+        usort($rows, static fn($a, $b) => $b->comment_ID <=> $a->comment_ID);
+    }
     return array_slice($rows, $args['offset'] ?? 0, $args['number']);
 }
 class Request
@@ -173,8 +176,47 @@ $comments[2] = (object) [
 $reply = $comments[2];
 pagenest_notifications_submitted(2, 1);
 check(count(pagenest_notifications_list(new Request())->data['items']) === 1, 'new reply');
+$page = pagenest_notifications_list(new Request(['page' => 2]))->data;
+check(
+    $page['page'] === 1 && $page['pages'] === 1 && count($page['items']) === 1,
+    'clamp to current accessible pages',
+);
+$before_list = $meta;
+pagenest_notifications_list(new Request());
+check($meta === $before_list, 'GET does not mark notifications as read or mutate metadata');
+foreach (
+    [null, [], [2], true, false, 0, -2, 2.9, '2.9', '2foo', ' 2', '2e0', '92233720368547758070']
+    as $bad_id
+) {
+    check(
+        pagenest_notifications_read(new Request(['id' => $bad_id]))->code === 'notifications_input',
+        'malformed read ID rejected',
+    );
+}
+
 pagenest_notifications_approved('approved', 'hold', $reply);
 check(count($meta[2]) === 4, 'approval is idempotent');
+$saved_comments = $comments;
+$saved_meta = $meta;
+for ($recent_id = 200; $recent_id <= 304; $recent_id++) {
+    $comments[$recent_id] = clone $reply;
+    $comments[$recent_id]->comment_ID = $recent_id;
+    $meta[$recent_id] = $meta[2];
+}
+$comments[304]->comment_approved = '0';
+$meta[303]['_pagenest_notification_read'] = '1';
+$before_list = $meta;
+$window = pagenest_notifications_list(new Request(['page' => 10]))->data;
+check(
+    $window['recentUnread'] === 98 &&
+        $window['pages'] === 10 &&
+        count($window['items']) === 9 &&
+        $window['items'][8]['id'] === 205,
+    'newest 100 own events, current moderation and unread window',
+);
+check($meta === $before_list, 'bounded GET never writes read flags');
+$comments = $saved_comments;
+$meta = $saved_meta;
 $current = 8;
 check(
     pagenest_notifications_read(new Request(['id' => 2]))->code === 'notifications_missing',

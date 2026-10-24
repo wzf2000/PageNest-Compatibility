@@ -4,6 +4,10 @@
   if (!config) return;
   const t = config.text;
   const states = [];
+  const invalidateOthers = (root) =>
+    states.forEach((state) => {
+      if (state.root !== root) state.purge();
+    });
   const make = (tag, text, parent) => {
     const element = document.createElement(tag);
     if (text) element.textContent = text;
@@ -32,6 +36,10 @@
     const load = root.querySelector('[data-pn-notifications-load]');
     let generation = 0;
     let controller;
+    const loginPrompt = () => {
+      const login = make('a', t.login, status);
+      login.href = config.login;
+    };
     const purge = () => {
       generation++;
       controller?.abort();
@@ -41,6 +49,7 @@
       root.removeAttribute('aria-busy');
       load.disabled = false;
       load.textContent = t.load;
+      if (!config.nonce) loginPrompt();
     };
     const request = async (suffix = '', body) => {
       controller?.abort();
@@ -67,18 +76,19 @@
       }
       return response.json();
     };
+    const sessionExpired = () => {
+      purge();
+      status.textContent = t.expired;
+      loginPrompt();
+    };
     const fail = (error) => {
-      result.replaceChildren();
-      status.textContent =
-        error.status === 401 || error.code === 'rest_cookie_invalid_nonce'
-          ? t.expired
-          : error.status === 403
-            ? t.off
-            : t.error;
       if (error.status === 401 || error.code === 'rest_cookie_invalid_nonce') {
-        const link = make('a', t.login, status);
-        link.href = config.login;
+        states.forEach((state) => state.sessionExpired());
+        return;
       }
+      if (error.status === 403) invalidateOthers(root);
+      result.replaceChildren();
+      status.textContent = error.status === 403 ? t.off : t.error;
     };
     const run = async (operation) => {
       const token = ++generation;
@@ -115,9 +125,11 @@
       choice.addEventListener('change', () => {
         const enabled = choice.checked;
         choice.disabled = true;
+        invalidateOthers(root);
         run(async (active) => {
           await request('/preference', { enabled });
           if (!active()) return;
+          invalidateOthers(root);
           data.enabled = enabled;
           result.querySelectorAll('button, input').forEach((element) => {
             element.disabled = false;
@@ -147,13 +159,21 @@
         if (!item.read) {
           const mark = button(t.mark, row, () => {
             mark.disabled = true;
+            invalidateOthers(root);
             run(async (active) => {
               await request('/read', { id: item.id });
               if (!active()) return;
-              item.read = true;
-              data.recentUnread = Math.max(0, data.recentUnread - 1);
-              render(data);
-              result.querySelector(`[data-notification-id="${item.id}"] a`)?.focus();
+              invalidateOthers(root);
+              // The current page and count can both change in another window or
+              // after source moderation; only a fresh server projection is usable.
+              result.replaceChildren();
+              const latest = await request(`?page=${data.page}`);
+              if (!active()) return;
+              render(latest);
+              const focusTarget =
+                result.querySelector(`[data-notification-id="${item.id}"] a`) || load;
+              if (focusTarget === load) load.disabled = false;
+              focusTarget.focus();
             });
           });
         }
@@ -175,18 +195,24 @@
     load.hidden = false;
     if (!config.nonce) {
       load.hidden = true;
-      const login = make('a', t.login, status);
-      login.href = config.login;
+      loginPrompt();
     } else load.addEventListener('click', () => fetchPage());
-    states.push({ root, purge, fetchPage });
+    states.push({ root, purge, fetchPage, sessionExpired });
   });
   const dialog = document.querySelector('.pn-notifications-dialog');
-  if (dialog && typeof dialog.showModal === 'function') {
+  if (config.nonce && dialog && typeof dialog.showModal === 'function') {
     const state = states.find((entry) => dialog.contains(entry.root));
+    const toolbar = dialog.querySelector('.pn-notifications-toolbar');
+    const scrollGap = () => {
+      dialog.style.scrollPaddingBlockStart = `${toolbar.getBoundingClientRect().height + 12}px`;
+    };
+    if (typeof ResizeObserver === 'function') new ResizeObserver(scrollGap).observe(toolbar);
+    window.addEventListener('resize', scrollGap);
     document.querySelectorAll('[data-pn-open-notifications]').forEach((open) => {
       open.hidden = false;
       open.addEventListener('click', () => {
         if (!dialog.open) dialog.showModal();
+        scrollGap();
         state?.fetchPage();
       });
     });

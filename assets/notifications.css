@@ -10,7 +10,9 @@
   width: min(760px, calc(100vw - 32px));
   max-height: 85dvh;
   overflow: auto;
-  padding: 24px;
+  --pn-notifications-padding: 24px;
+  padding: var(--pn-notifications-padding);
+  scroll-padding-block-start: 120px;
   border: 1px solid var(--pagenest-border, #dce2dc);
   border-radius: 12px;
 }
@@ -58,8 +60,8 @@
   padding: 0;
 }
 .pn-notifications li {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px 16px;
   border-block-start: 1px solid var(--pagenest-border, #dce2dc);
@@ -80,7 +82,7 @@
 }
 @media (max-width: 540px) {
   .pn-notifications-dialog {
-    padding: 16px;
+    --pn-notifications-padding: 16px;
   }
 }
 @media (prefers-color-scheme: dark) {
@@ -101,6 +103,14 @@
 }
 
 .pn-notifications-toolbar {
+  position: sticky;
+  inset-block-start: calc(-1 * var(--pn-notifications-padding));
+  z-index: 1;
+  margin-block-start: calc(-1 * var(--pn-notifications-padding));
+  margin-inline: calc(-1 * var(--pn-notifications-padding));
+  padding: 12px var(--pn-notifications-padding);
+  border-block-end: 1px solid var(--pagenest-border, #dce2dc);
+  background: inherit;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -108,6 +118,9 @@
 }
 .pn-notifications-toolbar h2 {
   margin: 0;
+  min-width: 0;
+  font-size: 1.125em;
+  line-height: 1.3;
 }
 .pn-notifications-dialog .pn-notifications > h2 {
   display: none;
@@ -123,12 +136,18 @@
   display: contents;
 }
 .pn-notifications li a {
-  grid-column: 1 / -1;
+  flex-basis: 100%;
+  min-width: 0;
 }
 .pn-notifications li p {
-  grid-column: 1;
+  flex: 1 1 8em;
+  min-width: min(100%, 8em);
   font-size: 0.9em;
 }
 .pn-notifications li > button {
-  grid-column: 2;
+  flex: 0 0 auto;
+}
+
+.pn-notifications-toolbar button {
+  flex-shrink: 0;
 }

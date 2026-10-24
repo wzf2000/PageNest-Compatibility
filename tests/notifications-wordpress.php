@@ -186,6 +186,95 @@ try {
         'Erase cannot regenerate historic event',
     );
     update_user_meta($reader, '_pagenest_notifications_off', '0');
+    $window_ids = [];
+    for ($index = 0; $index < 105; $index++) {
+        $window_id = wp_new_comment(
+            [
+                'comment_post_ID' => $post,
+                'comment_parent' => $parent,
+                'user_id' => $writer,
+                'comment_author' => 'Synthetic Writer',
+                'comment_content' => 'Window ' . $index . ' ' . $token,
+                'comment_approved' => 1,
+            ],
+            true,
+        );
+        pn_notification_assert(!is_wp_error($window_id), 'Synthetic recent-window reply');
+        $comment_ids[] = $window_id;
+        $window_ids[] = $window_id;
+        if ($index >= 5) {
+            update_comment_meta($window_id, '_pagenest_notification_read', '1');
+        }
+    }
+    delete_comment_meta($window_ids[103], '_pagenest_notification_read');
+    wp_set_comment_status($window_ids[104], 'hold');
+    $read_before = array_map(
+        static fn($window_id) => get_comment_meta($window_id, '_pagenest_notification_read', true),
+        $window_ids,
+    );
+    $window = pn_notification_request('GET', '')->get_data();
+    $last = pn_notification_request('GET', '', ['page' => 10])->get_data();
+    pn_notification_assert(
+        $window['recentUnread'] === 1 &&
+            $window['pages'] === 10 &&
+            $window['items'][0]['id'] === $window_ids[103] &&
+            count($last['items']) === 9 &&
+            $last['items'][8]['id'] === $window_ids[5],
+        'Newest 100 descending, outside-window unread excluded and current moderation filtered',
+    );
+    pn_notification_assert(
+        array_map(
+            static fn($window_id) => get_comment_meta(
+                $window_id,
+                '_pagenest_notification_read',
+                true,
+            ),
+            $window_ids,
+        ) === $read_before,
+        'List GET does not mutate read metadata',
+    );
+    foreach (
+        [
+            null,
+            true,
+            false,
+            [],
+            [$window_ids[103]],
+            0,
+            -1,
+            2.5,
+            '2.5',
+            '1foo',
+            '1e0',
+            ' 1',
+            '92233720368547758070',
+        ]
+        as $malformed_id
+    ) {
+        pn_notification_assert(
+            pn_notification_request('POST', '/read', ['id' => $malformed_id])->get_status() === 400,
+            'Malformed ID rejected at REST route',
+        );
+    }
+    wp_set_current_user($writer);
+    pn_notification_assert(
+        pn_notification_request('GET', '')->get_data()['recentUnread'] === 0 &&
+            pn_notification_request('GET', '')->get_data()['items'] === [],
+        'GET returns only current recipient records',
+    );
+    wp_set_current_user($reader);
+    wp_update_post(['ID' => $post, 'post_status' => 'private']);
+    $hidden = pn_notification_request('GET', '', ['page' => 2])->get_data();
+    pn_notification_assert(
+        $hidden['items'] === [] &&
+            $hidden['recentUnread'] === 0 &&
+            $hidden['page'] === 1 &&
+            $hidden['pages'] === 1 &&
+            pn_notification_request('POST', '/read', ['id' => $window_ids[103]])->get_status() ===
+                404,
+        'Hidden source neither counted nor readable; actual page clamped',
+    );
+    wp_update_post(['ID' => $post, 'post_status' => 'publish']);
     $deletion_reply = wp_new_comment(
         [
             'comment_post_ID' => $post,
