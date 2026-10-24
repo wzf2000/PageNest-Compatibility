@@ -82,6 +82,8 @@ async function format() {
     seo_editor_js: 'seo-editor.js',
     seo_editor_css: 'seo-editor.css',
     discovery_admin_js: 'discovery-admin.js',
+    notifications_js: 'notifications.js',
+    notifications_css: 'notifications.css',
     reading_js: 'reading-center.js',
     reading_css: 'reading-center.css',
     guide_admin_js: 'guide-admin.js',

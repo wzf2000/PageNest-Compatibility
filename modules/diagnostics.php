@@ -49,6 +49,17 @@ function pagenest_companion_diagnostics(): array
             'pagenest-companion',
         ),
     ];
+    if (function_exists('pagenest_notifications_enabled')) {
+        $rows[] = [
+            __('Notifications', 'pagenest-companion'),
+            pagenest_notifications_enabled(),
+            $stored('pagenest_companion_notifications'),
+            __(
+                'Replies to signed-in readers’ ordinary comments. Email settings are separate.',
+                'pagenest-companion',
+            ),
+        ];
+    }
     $rows[] = [
         __('Content guide', 'pagenest-companion'),
         pagenest_guide_options()['enabled'],

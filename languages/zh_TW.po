@@ -1,0 +1,80 @@
+msgid ""
+msgstr "Project-Id-Version: PageNest Companion\nPO-Revision-Date: 2026-10-13 00:00+0000\nLast-Translator: PageNest Companion Contributors\nLanguage-Team: PageNest Companion Contributors\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\nX-Domain: pagenest-companion\nLanguage: zh_TW\nPlural-Forms: nplurals=1; plural=0;\n"
+
+msgid "Notifications"
+msgstr "通知"
+
+msgid "Notifications could not be loaded. Try again."
+msgstr "無法載入通知，請重試。"
+
+msgid "Replies to signed-in readers’ ordinary comments. Email settings are separate."
+msgstr "為登入讀者的普通留言回覆提供站內通知，郵件設定獨立管理。"
+
+msgid "Enable notifications"
+msgstr "啟用站內通知"
+
+msgid "Disabled by default. Only new comment submissions are eligible; existing comments are not backfilled. Add [pagenest_notifications] to an existing page for other themes."
+msgstr "預設關閉。僅處理啟用後新提交的留言，不補發歷史通知。其他佈景主題可在現有頁面加入 [pagenest_notifications]。"
+
+msgid "Recent replies to your comments."
+msgstr "查看最近的留言回覆。"
+
+msgid "Load notifications"
+msgstr "載入通知"
+
+msgid "Enable JavaScript to load notifications."
+msgstr "請啟用 JavaScript 以載入通知。"
+
+msgid "Loading notifications…"
+msgstr "正在載入通知…"
+
+msgid "No recent replies to show."
+msgstr "暫無可顯示的近期回覆。"
+
+msgid "Your session expired. Sign in again."
+msgstr "登入已過期，請重新登入。"
+
+msgid "Notifications are currently unavailable."
+msgstr "站內通知目前無法使用。"
+
+msgid "Sign in to view your notifications."
+msgstr "登入後查看站內通知。"
+
+msgid "Read"
+msgstr "已讀"
+
+msgid "Unread"
+msgstr "未讀"
+
+msgid "Mark as read"
+msgstr "標為已讀"
+
+msgid "Receive future comment reply notifications"
+msgstr "接收今後的留言回覆通知"
+
+msgid "This preference does not change comment email settings."
+msgstr "此偏好不影響留言郵件設定。"
+
+msgid "Unread in recent replies:"
+msgstr "最近回覆中的未讀："
+
+msgid "Notification preference saved."
+msgstr "已儲存通知偏好。"
+
+msgid "Notification preferences"
+msgstr "通知偏好"
+
+msgid "Previous"
+msgstr "上一頁"
+
+msgid "Next"
+msgstr "下一頁"
+
+msgid "Close"
+msgstr "關閉"
+
+msgid "Refresh notifications"
+msgstr "重新整理通知"
+
+msgid "Only the latest 100 eligible replies are checked."
+msgstr "僅檢查最近 100 則符合接收條件的回覆。"

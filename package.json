@@ -5,7 +5,7 @@
     "format": "node tools/format.cjs --write",
     "format:check": "node tools/format.cjs --check",
     "package": "python3 tools/package.py",
-    "test": "php tests/service-config.php && php tests/social-contracts.php && php tests/companion-contracts.php && php tests/followups-contracts.php && php tests/series-contracts.php && php tests/privacy-contracts.php && php tests/teaching-paragraphs.php && php tests/views.php && php tests/views.php cache && php tests/comment-mail-state.php && php tests/prism-compatibility.php && python3 -m unittest discover -s tests -p \"test_release.py\"",
+    "test": "php tests/service-config.php && php tests/social-contracts.php && php tests/companion-contracts.php && php tests/followups-contracts.php && php tests/series-contracts.php && php tests/privacy-contracts.php && php tests/teaching-paragraphs.php && php tests/views.php && php tests/views.php cache && php tests/notifications-contracts.php && php tests/comment-mail-state.php && php tests/prism-compatibility.php && python3 -m unittest discover -s tests -p \"test_release.py\"",
     "test:frontend": "playwright test",
     "test:series-browser": "playwright test --config tests/series-playwright.config.cjs",
     "test:followups-browser": "playwright test --config tests/followups-playwright.config.cjs",
@@ -27,7 +27,9 @@
     "test:reading": "php tests/reading-contracts.php",
     "i18n": "python3 tools/i18n.py",
     "i18n:check": "python3 tools/i18n.py --check",
-    "test:reader-ux-webkit": "playwright test --config tests/reader-ux-playwright.config.cjs"
+    "test:reader-ux-webkit": "playwright test --config tests/reader-ux-playwright.config.cjs",
+    "test:notifications": "php tests/notifications-contracts.php",
+    "test:notifications-browser": "playwright test --config tests/notifications-playwright.config.cjs"
   },
   "devDependencies": {
     "@prettier/plugin-php": "0.25.0",

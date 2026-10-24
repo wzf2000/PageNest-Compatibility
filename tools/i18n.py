@@ -153,6 +153,11 @@ def main():
         "pagenest-companion.pot": pot(messages),
         "pagenest-companion-zh_CN.mo": validate(messages, entries),
     }
+    # Traditional Chinese currently covers the standalone notifications module;
+    # untranslated legacy modules retain their normal gettext fallback.
+    traditional = read_po(LANGUAGES / "zh_TW.po")
+    subset = [item for item in messages if item["id"] in traditional]
+    files["pagenest-companion-zh_TW.mo"] = validate(subset, traditional)
     for name, data in files.items():
         path = LANGUAGES / name
         if args.check:

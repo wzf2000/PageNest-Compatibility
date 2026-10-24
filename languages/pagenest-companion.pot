@@ -26,7 +26,7 @@ msgstr ""
 msgid "Add to group"
 msgstr ""
 
-#: modules/diagnostics.php:139
+#: modules/diagnostics.php:150
 msgid "Administrator access required."
 msgstr ""
 
@@ -38,7 +38,7 @@ msgstr ""
 msgid "All records"
 msgstr ""
 
-#: modules/diagnostics.php:184
+#: modules/diagnostics.php:195
 msgid "All statuses"
 msgstr ""
 
@@ -122,7 +122,7 @@ msgstr ""
 msgid "Clear device records"
 msgstr ""
 
-#: modules/reading/bootstrap.php:85
+#: modules/notifications/presentation.php:83 modules/reading/bootstrap.php:85
 msgid "Close"
 msgstr ""
 
@@ -166,11 +166,11 @@ msgstr ""
 msgid "Complete the security check before submitting."
 msgstr ""
 
-#: modules/diagnostics.php:214
+#: modules/diagnostics.php:225
 msgid "Configuration source"
 msgstr ""
 
-#: admin-design.php:10 modules/content/editor.php:136 modules/content/editor.php:71 modules/content/editor.php:72 modules/content/editor.php:86 modules/diagnostics.php:53
+#: admin-design.php:14 modules/content/editor.php:136 modules/content/editor.php:71 modules/content/editor.php:72 modules/content/editor.php:86 modules/diagnostics.php:64
 msgid "Content guide"
 msgstr ""
 
@@ -222,7 +222,7 @@ msgstr ""
 msgid "Device records cleared."
 msgstr ""
 
-#: modules/diagnostics.php:248
+#: modules/diagnostics.php:259
 msgid "Diagnostics are read-only and administrator-only. The export includes all modules, fixed boundary notes and versions. It excludes paths, URLs, accounts, credentials and user content. Configuration validity is not a live service test."
 msgstr ""
 
@@ -230,11 +230,15 @@ msgstr ""
 msgid "Disabled by default. New blocks select attachments directly; existing compatible blocks and imported mappings are preserved."
 msgstr ""
 
+#: modules/notifications/presentation.php:34
+msgid "Disabled by default. Only new comment submissions are eligible; existing comments are not backfilled. Add [pagenest_notifications] to an existing page for other themes."
+msgstr ""
+
 #: modules/reading/bootstrap.php:43
 msgid "Disabled by default. Readers separately choose whether to remember public articles on this device. Reading history is not saved to your account or synced between devices. Article IDs are sent only to check current public access."
 msgstr ""
 
-#: modules/diagnostics.php:186 modules/diagnostics.php:234
+#: modules/diagnostics.php:197 modules/diagnostics.php:245
 msgid "Disabled or unavailable"
 msgstr ""
 
@@ -244,6 +248,10 @@ msgstr ""
 
 #: modules/reading/bootstrap.php:255
 msgid "Edit text"
+msgstr ""
+
+#: modules/notifications/presentation.php:63
+msgid "Enable JavaScript to load notifications."
 msgstr ""
 
 #: modules/reading/bootstrap.php:41
@@ -262,11 +270,15 @@ msgstr ""
 msgid "Enable native gallery and PDF authoring blocks"
 msgstr ""
 
+#: modules/notifications/presentation.php:32
+msgid "Enable notifications"
+msgstr ""
+
 #: modules/reading/bootstrap.php:194
 msgid "Enable the option above to keep reading here."
 msgstr ""
 
-#: modules/diagnostics.php:185 modules/diagnostics.php:233
+#: modules/diagnostics.php:196 modules/diagnostics.php:244
 msgid "Enabled or available"
 msgstr ""
 
@@ -274,7 +286,7 @@ msgstr ""
 msgid "Existing object permissions and compatibility profile apply."
 msgstr ""
 
-#: modules/diagnostics.php:63
+#: modules/diagnostics.php:74
 msgid "Existing shortcode and block owners take precedence. Attachment access is checked during rendering."
 msgstr ""
 
@@ -282,11 +294,11 @@ msgstr ""
 msgid "Export my records as JSON"
 msgstr ""
 
-#: modules/diagnostics.php:208
+#: modules/diagnostics.php:219
 msgid "Export safe JSON"
 msgstr ""
 
-#: modules/diagnostics.php:199 modules/media/quality.php:410
+#: modules/diagnostics.php:210 modules/media/quality.php:410
 msgid "Filter"
 msgstr ""
 
@@ -347,7 +359,7 @@ msgstr ""
 msgid "Import processed. Reload records to review the results."
 msgstr ""
 
-#: modules/diagnostics.php:56
+#: modules/diagnostics.php:67
 msgid "Independent of the server-owned content configuration."
 msgstr ""
 
@@ -371,6 +383,14 @@ msgstr ""
 msgid "Load my records"
 msgstr ""
 
+#: modules/notifications/presentation.php:130 modules/notifications/presentation.php:61
+msgid "Load notifications"
+msgstr ""
+
+#: modules/notifications/presentation.php:136
+msgid "Loading notifications…"
+msgstr ""
+
 #: modules/content/editor.php:293 modules/reading/bootstrap.php:250
 msgid "Loading…"
 msgstr ""
@@ -379,11 +399,15 @@ msgstr ""
 msgid "Manage device records"
 msgstr ""
 
+#: modules/notifications/presentation.php:144
+msgid "Mark as read"
+msgstr ""
+
 #: modules/media/settings.php:7
 msgid "Media compatibility"
 msgstr ""
 
-#: modules/diagnostics.php:60
+#: modules/diagnostics.php:71
 msgid "Media display"
 msgstr ""
 
@@ -411,11 +435,11 @@ msgstr ""
 msgid "Missing text"
 msgstr ""
 
-#: modules/diagnostics.php:210
+#: modules/diagnostics.php:221
 msgid "Module"
 msgstr ""
 
-#: admin-design.php:12 modules/diagnostics.php:168 modules/diagnostics.php:256 modules/diagnostics.php:257
+#: admin-design.php:16 modules/diagnostics.php:179 modules/diagnostics.php:267 modules/diagnostics.php:268
 msgid "Module diagnostics"
 msgstr ""
 
@@ -435,7 +459,7 @@ msgstr ""
 msgid "My comments and private notes"
 msgstr ""
 
-#: admin-design.php:9 modules/diagnostics.php:44 modules/reading/bootstrap.php:190 modules/reading/bootstrap.php:20 modules/reading/bootstrap.php:21 modules/reading/bootstrap.php:29 modules/reading/bootstrap.php:74 modules/reading/bootstrap.php:83
+#: admin-design.php:13 modules/diagnostics.php:44 modules/reading/bootstrap.php:190 modules/reading/bootstrap.php:20 modules/reading/bootstrap.php:21 modules/reading/bootstrap.php:29 modules/reading/bootstrap.php:74 modules/reading/bootstrap.php:83
 msgid "My reading"
 msgstr ""
 
@@ -443,12 +467,16 @@ msgstr ""
 msgid "My reading requires JavaScript for device storage and private record access."
 msgstr ""
 
-#: modules/diagnostics.php:69
+#: modules/diagnostics.php:80
 msgid "Native media authoring"
 msgstr ""
 
-#: modules/diagnostics.php:72
+#: modules/diagnostics.php:83
 msgid "New blocks select existing attachments and do not migrate old blocks."
+msgstr ""
+
+#: modules/notifications/presentation.php:146
+msgid "Next"
 msgstr ""
 
 #: modules/media/quality.php:578
@@ -459,7 +487,7 @@ msgstr ""
 msgid "No editable images on this page."
 msgstr ""
 
-#: modules/diagnostics.php:86
+#: modules/diagnostics.php:97
 msgid "No file paths or content payloads are included in diagnostics."
 msgstr ""
 
@@ -471,7 +499,7 @@ msgstr ""
 msgid "No matches in the checked content."
 msgstr ""
 
-#: modules/diagnostics.php:244
+#: modules/diagnostics.php:255
 msgid "No matching modules."
 msgstr ""
 
@@ -481,6 +509,10 @@ msgstr ""
 
 #: modules/discovery/editor.php:235
 msgid "No public share image. Choose a public image, featured image, site image or logo."
+msgstr ""
+
+#: modules/notifications/presentation.php:137
+msgid "No recent replies to show."
 msgstr ""
 
 #: modules/reading/bootstrap.php:235
@@ -495,12 +527,32 @@ msgstr ""
 msgid "No share description. Add a description, article excerpt or site description."
 msgstr ""
 
-#: modules/diagnostics.php:85
+#: modules/diagnostics.php:96
 msgid "Not configured"
 msgstr ""
 
-#: modules/diagnostics.php:216
+#: modules/diagnostics.php:227
 msgid "Notes"
+msgstr ""
+
+#: modules/notifications/presentation.php:154
+msgid "Notification preference saved."
+msgstr ""
+
+#: modules/notifications/presentation.php:153
+msgid "Notification preferences"
+msgstr ""
+
+#: admin-design.php:10 modules/diagnostics.php:54 modules/notifications/presentation.php:20 modules/notifications/presentation.php:44 modules/notifications/presentation.php:45 modules/notifications/presentation.php:57 modules/notifications/presentation.php:70 modules/notifications/presentation.php:81 modules/notifications/privacy.php:115 modules/notifications/privacy.php:135 modules/notifications/privacy.php:142 modules/notifications/privacy.php:75
+msgid "Notifications"
+msgstr ""
+
+#: modules/notifications/presentation.php:140
+msgid "Notifications are currently unavailable."
+msgstr ""
+
+#: modules/notifications/bootstrap.php:115 modules/notifications/presentation.php:138
+msgid "Notifications could not be loaded. Try again."
 msgstr ""
 
 #: modules/reading/bootstrap.php:30
@@ -513,6 +565,10 @@ msgstr ""
 
 #: modules/diagnostics.php:33
 msgid "Only public, unprotected and discoverable entries are returned."
+msgstr ""
+
+#: modules/notifications/presentation.php:132
+msgid "Only the latest 100 eligible replies are checked."
 msgstr ""
 
 #: modules/media/quality.php:438
@@ -535,7 +591,7 @@ msgstr ""
 msgid "Optional browser storage. No account history or device sync. Article IDs are checked with the site before display. Reading position does not mark an article as read."
 msgstr ""
 
-#: modules/diagnostics.php:100
+#: modules/diagnostics.php:111
 msgid "Optional service configuration"
 msgstr ""
 
@@ -587,6 +643,10 @@ msgstr ""
 msgid "Preview uses saved article defaults and your current overrides. Save the article to apply. Draft images can be selected here; only publicly readable images appear in public sharing metadata."
 msgstr ""
 
+#: modules/notifications/presentation.php:145
+msgid "Previous"
+msgstr ""
+
 #: modules/media/quality.php:577
 msgid "Previous page"
 msgstr ""
@@ -615,6 +675,10 @@ msgstr ""
 msgid "Public search suggestions"
 msgstr ""
 
+#: modules/notifications/presentation.php:142
+msgid "Read"
+msgstr ""
+
 #: modules/reading/bootstrap.php:233
 msgid "Read later"
 msgstr ""
@@ -623,12 +687,20 @@ msgstr ""
 msgid "Read later on this device"
 msgstr ""
 
-#: modules/diagnostics.php:84
+#: modules/diagnostics.php:95
 msgid "Read-only server configuration"
+msgstr ""
+
+#: modules/notifications/presentation.php:147 modules/notifications/privacy.php:119
+msgid "Receive future comment reply notifications"
 msgstr ""
 
 #: modules/reading/bootstrap.php:232
 msgid "Recent reading"
+msgstr ""
+
+#: modules/notifications/presentation.php:59
+msgid "Recent replies to your comments."
 msgstr ""
 
 #: modules/privacy.php:89
@@ -652,6 +724,10 @@ msgstr ""
 msgid "References to attachment #%d"
 msgstr ""
 
+#: modules/notifications/presentation.php:131
+msgid "Refresh notifications"
+msgstr ""
+
 #: modules/reading/bootstrap.php:193
 msgid "Refresh records"
 msgstr ""
@@ -668,6 +744,10 @@ msgstr ""
 msgid "Replace saved reference"
 msgstr ""
 
+#: modules/diagnostics.php:57 modules/notifications/presentation.php:21
+msgid "Replies to signed-in readers’ ordinary comments. Email settings are separate."
+msgstr ""
+
 #: modules/reading/bootstrap.php:231
 msgid "Retry"
 msgstr ""
@@ -676,7 +756,7 @@ msgstr ""
 msgid "Retry security check"
 msgstr ""
 
-#: modules/diagnostics.php:169
+#: modules/diagnostics.php:180
 msgid "Review configuration sources, output ownership and access boundaries without changing data."
 msgstr ""
 
@@ -724,7 +804,7 @@ msgstr ""
 msgid "Search and sharing preview"
 msgstr ""
 
-#: modules/diagnostics.php:176
+#: modules/diagnostics.php:187
 msgid "Search modules"
 msgstr ""
 
@@ -748,15 +828,15 @@ msgstr ""
 msgid "Select or reorder images"
 msgstr ""
 
-#: modules/diagnostics.php:92
+#: modules/diagnostics.php:103
 msgid "Server configuration"
 msgstr ""
 
-#: modules/diagnostics.php:103
+#: modules/diagnostics.php:114
 msgid "Server configuration and WordPress setting"
 msgstr ""
 
-#: modules/diagnostics.php:78
+#: modules/diagnostics.php:89
 msgid "Server content provider"
 msgstr ""
 
@@ -776,6 +856,10 @@ msgstr ""
 msgid "Show image captions"
 msgstr ""
 
+#: modules/notifications/presentation.php:141
+msgid "Sign in to view your notifications."
+msgstr ""
+
 #: modules/reading/bootstrap.php:241
 msgid "Sign in to view your records"
 msgstr ""
@@ -788,7 +872,7 @@ msgstr ""
 msgid "Slider"
 msgstr ""
 
-#: modules/diagnostics.php:180 modules/diagnostics.php:212
+#: modules/diagnostics.php:191 modules/diagnostics.php:223
 msgid "Status"
 msgstr ""
 
@@ -836,7 +920,7 @@ msgstr ""
 msgid "This guide uses its own setting and [pagenest_content_guide] shortcode. Existing server content configuration is read-only and is not imported or overwritten."
 msgstr ""
 
-#: modules/diagnostics.php:105
+#: modules/diagnostics.php:116
 msgid "This is a configuration check only. It does not send mail, authenticate with a provider, or test delivery."
 msgstr ""
 
@@ -845,11 +929,15 @@ msgstr ""
 msgid "This page checked %1$d saved posts/pages and skipped %2$d inaccessible or oversized entries."
 msgstr ""
 
+#: modules/notifications/presentation.php:148
+msgid "This preference does not change comment email settings."
+msgstr ""
+
 #: modules/discovery/search.php:192
 msgid "Tool"
 msgstr ""
 
-#: modules/diagnostics.php:90
+#: modules/diagnostics.php:101
 msgid "Tool registry"
 msgstr ""
 
@@ -857,7 +945,7 @@ msgstr ""
 msgid "Tools and games"
 msgstr ""
 
-#: modules/diagnostics.php:93
+#: modules/diagnostics.php:104
 msgid "Tools keep their own access controls; this page does not run or repair them."
 msgstr ""
 
@@ -866,7 +954,15 @@ msgstr ""
 msgid "Unavailable source #%d"
 msgstr ""
 
-#: admin-design.php:67
+#: modules/notifications/presentation.php:143
+msgid "Unread"
+msgstr ""
+
+#: modules/notifications/presentation.php:152
+msgid "Unread in recent replies:"
+msgstr ""
+
+#: admin-design.php:71
 msgid "Unsaved changes."
 msgstr ""
 
@@ -910,7 +1006,7 @@ msgstr ""
 msgid "WordPress setting"
 msgstr ""
 
-#: modules/diagnostics.php:104
+#: modules/diagnostics.php:115
 msgid "WordPress setting or defaults"
 msgstr ""
 
@@ -928,4 +1024,8 @@ msgstr ""
 
 #: modules/reading/bootstrap.php:207
 msgid "Your records load only when you choose to view them."
+msgstr ""
+
+#: modules/notifications/presentation.php:139
+msgid "Your session expired. Sign in again."
 msgstr ""
