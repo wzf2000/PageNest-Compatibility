@@ -5,7 +5,12 @@ const base = require('../playwright.config.cjs');
 module.exports = defineConfig({
   ...base,
   testDir: __dirname,
-  testMatch: ['reading-center.spec.cjs', 'admin-design.spec.cjs', 'pdf-viewer.spec.cjs'],
+  testMatch: [
+    'reading-center.spec.cjs',
+    'admin-design.spec.cjs',
+    'pdf-viewer.spec.cjs',
+    'notifications.spec.cjs',
+  ],
   testIgnore: [],
   outputDir: '../.runtime/reader-ux-webkit-results',
   forbidOnly: !!process.env.CI,

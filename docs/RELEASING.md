@@ -4,7 +4,8 @@
 
 两个仓库分别运行 push、pull request 和可复用的 CI。浏览器 verify job 固定使用 Ubuntu 24.04、Node.js 24.15.0、Python 3.12 和 Playwright 1.55.1；PHP 8.0 和 8.2 分别检查最低支持版本与兼容版本。格式检查遵循 MarkBridge 的 Prettier、PHP 插件、Markdown 中英文间距和 Black 规则，Python 文件逐个检查以避免多进程启动。生成的哈希资源只校验，不直接格式化；CI 在构建前校验，避免构建掩盖已提交资源漂移。
 
-`npm run test:reader-ux-webkit` 复用本轮阅读中心、后台反馈／导览目标和自有 PDF 阅读器测试，只增加 WebKit 引擎。
+`npm run test:reader-ux-webkit` 复用阅读中心、后台反馈／导览目标、自有 PDF 阅读器和站内通知测试，只增加 WebKit 引擎。
+通知回归覆盖手机布局、未读状态、登录失效、请求取消与多面板同步；真实 WordPress 通知权限与最近 100 条窗口另由两个 PHP 集成任务验证。
 PDF 用例实际加载随包的 PDF.js 与合成双页文件，操作翻页、缩放、窄框菜单并校验下载字节；不以按钮可见代替下载验证。
 CI 在 PHP 8.2 的 Ubuntu 24.04 任务执行该门禁，失败时上传 `.runtime/reader-ux-webkit-results/` 的 trace。
 浏览器任务同时检出固定提交的公开 PageNest 主题并显式传入路径，不读取站点私有目录；配套主题独立发行。
