@@ -2,7 +2,7 @@
 /**
  * Plugin Name: PageNest Companion
  * Description: 为栖页主题提供评论邮件通知、Markdown 编辑兼容、数学公式与代码高亮支持，并提供章节链接、段落评论和点赞。
- * Version: 1.9.0
+ * Version: 1.10.0
  * Author: PageNest Contributors
  * License: GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -71,6 +71,7 @@ require_once __DIR__ . '/modules/tools/bootstrap.php';
 require_once __DIR__ . '/modules/discovery/bootstrap.php';
 require_once __DIR__ . '/modules/performance/bootstrap.php';
 require_once __DIR__ . '/modules/reading/bootstrap.php';
+require_once __DIR__ . '/modules/notifications/bootstrap.php';
 require_once __DIR__ . '/modules/content/editor.php';
 require_once __DIR__ . '/modules/diagnostics.php';
 // Keep only the old Markdown preservation contract, never old reward/like handlers.

@@ -7,6 +7,8 @@ return [
     'seo_editor_js' => 'seo-editor-e95194bc535e.js',
     'seo_editor_css' => 'seo-editor-bd433d2d7b11.css',
     'discovery_admin_js' => 'discovery-admin-83b901380405.js',
+    'notifications_js' => 'notifications-db223da16c3f.js',
+    'notifications_css' => 'notifications-5a96e545829e.css',
     'reading_js' => 'reading-center-07ed42bb41b7.js',
     'reading_css' => 'reading-center-d909845cc1d7.css',
     'guide_admin_js' => 'guide-admin-7a92860986a9.js',

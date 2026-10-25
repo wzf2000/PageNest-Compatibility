@@ -6,6 +6,10 @@ function pagenest_companion_admin_pages(): array
     return [
         'pagenest-companion' => ['阅读互动', 'pagenest_companion_settings_page'],
         'pagenest-discovery' => ['搜索与分享', 'pagenest_discovery_settings_page'],
+        'pagenest-notifications' => [
+            __('Notifications', 'pagenest-companion'),
+            'pagenest_notifications_settings',
+        ],
         'pagenest-reading' => [__('My reading', 'pagenest-companion'), 'pagenest_reading_markup'],
         'pagenest-guide' => [__('Content guide', 'pagenest-companion'), 'pagenest_guide_page'],
         'pagenest-diagnostics' => [

@@ -160,6 +160,14 @@ def main():
     results["social_account_security"] = json.loads(
         wp("eval-file", str(installed / "tests/social-security-wordpress.php"))
     )
+    wp("config", "set", "PAGENEST_NOTIFICATIONS_TEST_LAB", "true", "--raw")
+    try:
+        results["notifications"] = {
+            "checks": ["native notification events, permissions and privacy"],
+            "output": wp("eval-file", str(installed / "tests/notifications-wordpress.php")).strip(),
+        }
+    finally:
+        wp("config", "delete", "PAGENEST_NOTIFICATIONS_TEST_LAB")
     subprocess.run(
         [
             "python3",

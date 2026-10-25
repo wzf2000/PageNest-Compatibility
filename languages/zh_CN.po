@@ -693,3 +693,78 @@ msgstr "本机阅读列表加载失败，请重试。"
 
 msgid "Retry"
 msgstr "重试"
+
+msgid "Disabled by default. Only new comment submissions are eligible; existing comments are not backfilled. Add [pagenest_notifications] to an existing page for other themes."
+msgstr "默认关闭。仅处理启用后新提交的评论，不补发历史通知。其他主题可在已有页面加入 [pagenest_notifications]。"
+
+msgid "Enable JavaScript to load notifications."
+msgstr "请启用 JavaScript 以加载通知。"
+
+msgid "Enable notifications"
+msgstr "启用站内通知"
+
+msgid "Load notifications"
+msgstr "加载通知"
+
+msgid "Loading notifications…"
+msgstr "正在加载通知…"
+
+msgid "Mark as read"
+msgstr "标为已读"
+
+msgid "Next"
+msgstr "下一页"
+
+msgid "No recent replies to show."
+msgstr "暂无可显示的近期回复。"
+
+msgid "Notification preference saved."
+msgstr "已保存通知偏好。"
+
+msgid "Notification preferences"
+msgstr "通知偏好"
+
+msgid "Notifications"
+msgstr "通知"
+
+msgid "Notifications are currently unavailable."
+msgstr "站内通知当前不可用。"
+
+msgid "Notifications could not be loaded. Try again."
+msgstr "未能加载通知，请重试。"
+
+msgid "Previous"
+msgstr "上一页"
+
+msgid "Read"
+msgstr "已读"
+
+msgid "Receive future comment reply notifications"
+msgstr "接收今后的评论回复通知"
+
+msgid "Recent replies to your comments."
+msgstr "查看最近的评论回复。"
+
+msgid "Replies to signed-in readers’ ordinary comments. Email settings are separate."
+msgstr "为登录读者的普通评论回复提供站内通知，邮件设置独立管理。"
+
+msgid "Sign in to view your notifications."
+msgstr "登录后查看站内通知。"
+
+msgid "This preference does not change comment email settings."
+msgstr "此偏好不影响评论邮件设置。"
+
+msgid "Unread"
+msgstr "未读"
+
+msgid "Unread in recent replies:"
+msgstr "最近回复中的未读："
+
+msgid "Your session expired. Sign in again."
+msgstr "登录已过期，请重新登录。"
+
+msgid "Refresh notifications"
+msgstr "刷新通知"
+
+msgid "Only the latest 100 eligible replies are checked."
+msgstr "仅检查最近 100 条符合接收条件的回复。"
