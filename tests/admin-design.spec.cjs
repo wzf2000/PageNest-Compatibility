@@ -200,6 +200,11 @@ for (const direction of ['ltr', 'rtl']) {
       `<html dir="${direction}"><style>body{margin:16px;background:#f0f0f1;font:16px system-ui}</style><main class="pn-admin"><h1>社交登录</h1><nav class="pn-admin-nav">${labels.map((label, i) => `<a href="#page-${i}"${i === 7 ? ' aria-current="page"' : ''}>${label}</a>`).join('')}</nav><p>选择登录方式并独立保存。</p></main></html>`,
     );
     await page.addStyleTag({ path: path.join(__dirname, '../assets/admin-design.css') });
+    await page.evaluate(() => {
+      Object.defineProperty(document.fonts, 'ready', {
+        value: new Promise((resolve) => (window.resolveFonts = resolve)),
+      });
+    });
     await page.addScriptTag({ path: script });
     const visible = () =>
       page.locator('.pn-admin-nav').evaluate((nav) => {
@@ -214,19 +219,23 @@ for (const direction of ['ltr', 'rtl']) {
     await page.evaluate(() => window.dispatchEvent(new Event('pageshow')));
     await expect.poll(visible).toBe(true);
     const first = page.locator('.pn-admin-nav a').first();
+    const firstVisible = () =>
+      first.evaluate((node) => {
+        const bounds = node.parentElement.getBoundingClientRect(),
+          item = node.getBoundingClientRect();
+        return item.left >= bounds.left && item.right <= bounds.right;
+      });
     await first.focus();
-    await expect
-      .poll(() =>
-        first.evaluate((node) => {
-          const bounds = node.parentElement.getBoundingClientRect(),
-            item = node.getBoundingClientRect();
-          return item.left >= bounds.left && item.right <= bounds.right;
-        }),
-      )
-      .toBe(true);
+    await expect.poll(firstVisible).toBe(true);
+    await page.evaluate(() => window.resolveFonts());
+    await page.evaluate(
+      () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+    );
+    await expect.poll(firstVisible).toBe(true);
+    await expect(first).toBeFocused();
     await page.locator('.pn-admin').evaluate((root) => (root.style.fontSize = '24px'));
     await page.setViewportSize({ width: 320, height: 844 });
-    await expect.poll(visible).toBe(true);
+    await expect.poll(firstVisible).toBe(true);
     expect(await page.evaluate(() => window.scrollY)).toBe(0);
     expect(await page.locator('.pn-admin-nav a').count()).toBe(8);
     expect(

@@ -293,7 +293,9 @@
     dialog
       .querySelector('[data-pn-close-notifications]')
       .addEventListener('click', () => dialog.close());
-    dialog.addEventListener('close', () => state?.purge(true));
+    dialog.addEventListener('close', () => {
+      if (!dialog.open) state?.purge(true);
+    });
   }
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
