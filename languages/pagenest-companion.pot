@@ -170,7 +170,7 @@ msgstr ""
 msgid "Configuration source"
 msgstr ""
 
-#: admin-design.php:14 modules/content/editor.php:136 modules/content/editor.php:71 modules/content/editor.php:72 modules/content/editor.php:86 modules/diagnostics.php:64
+#: admin-design.php:20 modules/content/editor.php:136 modules/content/editor.php:71 modules/content/editor.php:72 modules/content/editor.php:86 modules/diagnostics.php:64
 msgid "Content guide"
 msgstr ""
 
@@ -403,6 +403,10 @@ msgstr ""
 msgid "Mark as read"
 msgstr ""
 
+#: admin-design.php:26
+msgid "Media and folders"
+msgstr ""
+
 #: modules/media/settings.php:7
 msgid "Media compatibility"
 msgstr ""
@@ -439,7 +443,7 @@ msgstr ""
 msgid "Module"
 msgstr ""
 
-#: admin-design.php:16 modules/diagnostics.php:179 modules/diagnostics.php:267 modules/diagnostics.php:268
+#: admin-design.php:22 modules/diagnostics.php:179 modules/diagnostics.php:267 modules/diagnostics.php:268
 msgid "Module diagnostics"
 msgstr ""
 
@@ -459,7 +463,7 @@ msgstr ""
 msgid "My comments and private notes"
 msgstr ""
 
-#: admin-design.php:13 modules/diagnostics.php:44 modules/reading/bootstrap.php:190 modules/reading/bootstrap.php:20 modules/reading/bootstrap.php:21 modules/reading/bootstrap.php:29 modules/reading/bootstrap.php:74 modules/reading/bootstrap.php:83
+#: admin-design.php:19 modules/diagnostics.php:44 modules/reading/bootstrap.php:190 modules/reading/bootstrap.php:20 modules/reading/bootstrap.php:21 modules/reading/bootstrap.php:29 modules/reading/bootstrap.php:74 modules/reading/bootstrap.php:83
 msgid "My reading"
 msgstr ""
 
@@ -543,7 +547,7 @@ msgstr ""
 msgid "Notification preferences"
 msgstr ""
 
-#: admin-design.php:10 modules/diagnostics.php:54 modules/notifications/presentation.php:20 modules/notifications/presentation.php:44 modules/notifications/presentation.php:45 modules/notifications/presentation.php:57 modules/notifications/presentation.php:70 modules/notifications/presentation.php:81 modules/notifications/privacy.php:115 modules/notifications/privacy.php:135 modules/notifications/privacy.php:142 modules/notifications/privacy.php:75
+#: admin-design.php:16 modules/diagnostics.php:54 modules/notifications/presentation.php:20 modules/notifications/presentation.php:44 modules/notifications/presentation.php:45 modules/notifications/presentation.php:57 modules/notifications/presentation.php:70 modules/notifications/presentation.php:81 modules/notifications/privacy.php:115 modules/notifications/privacy.php:135 modules/notifications/privacy.php:142 modules/notifications/privacy.php:75
 msgid "Notifications"
 msgstr ""
 
@@ -613,6 +617,10 @@ msgstr ""
 
 #: modules/media/authoring.php:125
 msgid "PageNest gallery"
+msgstr ""
+
+#: admin-design.php:76 admin-design.php:82 modules/settings.php:46 modules/settings.php:47
+msgid "PageNest settings"
 msgstr ""
 
 #: modules/privacy.php:98
@@ -689,6 +697,10 @@ msgstr ""
 
 #: modules/diagnostics.php:95
 msgid "Read-only server configuration"
+msgstr ""
+
+#: admin-design.php:8
+msgid "Reading and interaction"
 msgstr ""
 
 #: modules/notifications/presentation.php:147 modules/notifications/privacy.php:119
@@ -796,6 +808,10 @@ msgstr ""
 msgid "Search"
 msgstr ""
 
+#: admin-design.php:12
+msgid "Search and sharing"
+msgstr ""
+
 #: modules/diagnostics.php:36
 msgid "Search and sharing metadata"
 msgstr ""
@@ -870,6 +886,10 @@ msgstr ""
 
 #: modules/media/authoring.php:131
 msgid "Slider"
+msgstr ""
+
+#: admin-design.php:30
+msgid "Social sign-in"
 msgstr ""
 
 #: modules/diagnostics.php:191 modules/diagnostics.php:223
@@ -962,7 +982,7 @@ msgstr ""
 msgid "Unread in recent replies:"
 msgstr ""
 
-#: admin-design.php:71
+#: admin-design.php:125
 msgid "Unsaved changes."
 msgstr ""
 

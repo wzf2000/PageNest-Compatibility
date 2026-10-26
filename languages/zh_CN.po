@@ -768,3 +768,18 @@ msgstr "刷新通知"
 
 msgid "Only the latest 100 eligible replies are checked."
 msgstr "仅检查最近 100 条符合接收条件的回复。"
+
+msgid "Reading and interaction"
+msgstr "阅读互动"
+
+msgid "Search and sharing"
+msgstr "搜索与分享"
+
+msgid "Media and folders"
+msgstr "媒体与文件夹"
+
+msgid "Social sign-in"
+msgstr "社交登录"
+
+msgid "PageNest settings"
+msgstr "PageNest 设置"
