@@ -66,9 +66,11 @@ function pagenest_notifications_markup(): string
 add_shortcode('pagenest_notifications', 'pagenest_notifications_markup');
 add_action('pagenest_header_actions', static function () {
     if (pagenest_notifications_enabled() && is_user_logged_in()) {
-        echo '<button type="button" data-pn-open-notifications hidden>' .
+        echo '<button type="button" class="pn-header-notifications" data-pn-open-notifications hidden aria-label="' .
+            esc_attr__('Notifications', 'pagenest-companion') .
+            '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span class="pn-notifications-label">' .
             esc_html__('Notifications', 'pagenest-companion') .
-            '</button>';
+            '</span><span data-pn-notifications-badge hidden aria-hidden="true"></span></button>';
     }
 });
 add_action('wp_footer', static function () {
@@ -122,6 +124,7 @@ add_action('wp_enqueue_scripts', static function () {
     );
     wp_localize_script('pagenest-notifications', 'PageNestNotifications', [
         'api' => rest_url('pagenest/v1/notifications'),
+        'countApi' => rest_url('pagenest/v1/notifications/count'),
         'readApi' => rest_url('pagenest/v1/notifications/read'),
         'preferenceApi' => rest_url('pagenest/v1/notifications/preference'),
         'nonce' => is_user_logged_in() ? wp_create_nonce('wp_rest') : '',

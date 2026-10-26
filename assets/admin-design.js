@@ -10,8 +10,41 @@
     if (current.left < bounds.left + 4) nav.scrollLeft += current.left - bounds.left - 4;
     else if (current.right > bounds.right - 4) nav.scrollLeft += current.right - bounds.right + 4;
   };
-  reveal(nav?.querySelector('[aria-current="page"]'));
-  nav?.addEventListener('focusin', (event) => reveal(event.target.closest('a')));
+  if (nav) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'pn-admin-nav-wrap';
+    nav.before(wrapper);
+    wrapper.append(nav);
+    const overflow = () => {
+      const bounds = nav.getBoundingClientRect();
+      const links = Array.from(nav.querySelectorAll('a'), (link) => link.getBoundingClientRect());
+      wrapper.toggleAttribute(
+        'data-overflow-left',
+        links.some((link) => link.left < bounds.left - 1),
+      );
+      wrapper.toggleAttribute(
+        'data-overflow-right',
+        links.some((link) => link.right > bounds.right + 1),
+      );
+    };
+    let pending;
+    const revealCurrent = () => {
+      cancelAnimationFrame(pending);
+      pending = requestAnimationFrame(() => {
+        reveal(nav.querySelector('[aria-current="page"]'));
+        overflow();
+      });
+    };
+    nav.addEventListener('focusin', (event) => {
+      reveal(event.target.closest('a'));
+      overflow();
+    });
+    nav.addEventListener('scroll', overflow, { passive: true });
+    window.addEventListener('pageshow', revealCurrent);
+    if (typeof ResizeObserver === 'function') new ResizeObserver(revealCurrent).observe(nav);
+    document.fonts?.ready.then(revealCurrent);
+    revealCurrent();
+  }
   root.querySelectorAll('form').forEach((form) => {
     if (form.method.toLowerCase() !== 'post' || form.matches('[data-pn-guide-form]')) return;
     const submit =

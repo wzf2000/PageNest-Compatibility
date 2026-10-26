@@ -3,6 +3,71 @@
   const config = window.PageNestNotifications;
   if (!config) return;
   const t = config.text;
+  const openButtons = Array.from(document.querySelectorAll('[data-pn-open-notifications]'));
+  const labels = new Map(
+    openButtons.map((button) => [
+      button,
+      button.getAttribute('aria-label') || button.textContent.trim(),
+    ]),
+  );
+  let countGeneration = 0,
+    countController,
+    countRequested = false;
+  const cancelCount = () => {
+    countGeneration++;
+    countController?.abort();
+    countController = null;
+  };
+  const clearCount = () => {
+    cancelCount();
+    openButtons.forEach((button) => {
+      const badge = button.querySelector('[data-pn-notifications-badge]');
+      if (badge) {
+        badge.hidden = true;
+        badge.textContent = '';
+      }
+      button.setAttribute('aria-label', labels.get(button));
+    });
+  };
+  const displayCount = (count) => {
+    clearCount();
+    if (!config.countApi) return;
+    if (!Number.isInteger(count) || count <= 0 || count > 100 || document.hidden) return;
+    openButtons.forEach((button) => {
+      const badge = button.querySelector('[data-pn-notifications-badge]');
+      if (badge) {
+        badge.textContent = String(count);
+        badge.hidden = false;
+      }
+      button.setAttribute('aria-label', `${labels.get(button)} — ${t.recent} ${count}`);
+    });
+  };
+  const loadCount = async () => {
+    if (
+      countRequested ||
+      !config.countApi ||
+      !config.nonce ||
+      !openButtons.length ||
+      document.hidden
+    )
+      return;
+    countRequested = true;
+    const generation = ++countGeneration;
+    countController = new AbortController();
+    try {
+      const response = await fetch(config.countApi, {
+        credentials: 'same-origin',
+        cache: 'no-store',
+        headers: { 'X-WP-Nonce': config.nonce },
+        signal: countController.signal,
+      });
+      if (!response.ok) throw new Error('count');
+      const data = await response.json();
+      if (generation === countGeneration && !document.hidden) displayCount(data.recentUnread);
+    } catch {
+      if (generation === countGeneration) clearCount();
+    }
+  };
   const states = [];
   const invalidateOthers = (root) =>
     states.forEach((state) => {
@@ -34,13 +99,19 @@
     const status = root.querySelector('[data-pn-notifications-status]');
     const result = root.querySelector('[data-pn-notifications-result]');
     const load = root.querySelector('[data-pn-notifications-load]');
+    const actions = make('div');
+    actions.className = 'pn-notifications-actions';
+    load.before(actions);
+    actions.append(load, status);
     let generation = 0;
     let controller;
     const loginPrompt = () => {
       const login = make('a', t.login, status);
       login.href = config.login;
     };
-    const purge = () => {
+    const purge = (preserveCount = false) => {
+      if (preserveCount) cancelCount();
+      else clearCount();
       generation++;
       controller?.abort();
       controller = null;
@@ -82,6 +153,7 @@
       loginPrompt();
     };
     const fail = (error) => {
+      clearCount();
       if (error.status === 401 || error.code === 'rest_cookie_invalid_nonce') {
         states.forEach((state) => state.sessionExpired());
         return;
@@ -91,6 +163,7 @@
       status.textContent = error.status === 403 ? t.off : t.error;
     };
     const run = async (operation) => {
+      clearCount();
       const token = ++generation;
       root.setAttribute('aria-busy', 'true');
       load.disabled = true;
@@ -113,6 +186,7 @@
       result.replaceChildren();
       load.textContent = t.refresh;
       status.textContent = `${t.recent} ${data.recentUnread}`;
+      displayCount(data.recentUnread);
       const settings = make('details', '', result);
       make('summary', t.settings, settings);
       make('p', t.window, settings);
@@ -219,10 +293,30 @@
     dialog
       .querySelector('[data-pn-close-notifications]')
       .addEventListener('click', () => dialog.close());
-    dialog.addEventListener('close', () => state?.purge());
+    dialog.addEventListener('close', () => state?.purge(true));
   }
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) states.forEach((state) => state.purge());
+    if (document.hidden) {
+      countRequested = false;
+      clearCount();
+      states.forEach((state) => state.purge());
+    } else loadCount();
   });
-  window.addEventListener('pagehide', () => states.forEach((state) => state.purge()));
+  window.addEventListener('pagehide', () => {
+    countRequested = false;
+    clearCount();
+    states.forEach((state) => state.purge());
+  });
+  loadCount();
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+      countRequested = false;
+      clearCount();
+      loadCount();
+    }
+  });
+  document.addEventListener('pagenest-pc-auth-change', () => {
+    clearCount();
+    states.forEach((state) => state.sessionExpired());
+  });
 })();

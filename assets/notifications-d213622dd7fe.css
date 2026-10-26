@@ -1,0 +1,179 @@
+.pn-notifications,
+.pn-notifications-dialog {
+  color: var(--pagenest-text, #26372f);
+  background: var(--pagenest-surface, #fff);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.pn-notifications-dialog {
+  box-sizing: border-box;
+  width: min(760px, calc(100vw - 32px));
+  max-height: 85dvh;
+  overflow: auto;
+  --pn-notifications-padding: 24px;
+  padding: var(--pn-notifications-padding);
+  scroll-padding-block-start: 120px;
+  border: 1px solid var(--pagenest-border, #dce2dc);
+  border-radius: 12px;
+}
+.pn-notifications-dialog::backdrop {
+  background: rgb(0 0 0 / 45%);
+}
+.pn-notifications h2 {
+  margin-block: 0.5em;
+}
+.pn-notifications p {
+  margin-block: 0.5em;
+}
+.pn-notifications button,
+[data-pn-open-notifications],
+[data-pn-close-notifications] {
+  color: inherit;
+  background: var(--pagenest-surface, #fff);
+  border: 1px solid var(--pagenest-border, #b9c6bc);
+  border-radius: 5px;
+  font: inherit;
+  padding: 8px 12px;
+  min-height: 44px;
+  max-width: 100%;
+  cursor: pointer;
+}
+.pn-notifications button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.pn-notifications input {
+  accent-color: var(--pagenest-accent, #426354);
+  margin-inline-end: 8px;
+}
+.pn-notifications a {
+  color: var(--pagenest-accent, #426354);
+}
+.pn-notifications :focus-visible,
+[data-pn-open-notifications]:focus-visible,
+[data-pn-close-notifications]:focus-visible {
+  outline: 3px solid var(--pagenest-accent, #426354);
+  outline-offset: 3px;
+}
+.pn-notifications ul {
+  list-style: none;
+  padding: 0;
+}
+.pn-notifications li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 16px;
+  border-block-start: 1px solid var(--pagenest-border, #dce2dc);
+  border-inline-start: 3px solid transparent;
+  padding-inline-start: 12px;
+  padding-block: 16px;
+}
+.pn-notifications li[data-read='false'] {
+  border-inline-start-color: var(--pagenest-accent, #426354);
+}
+.pn-notifications nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.pn-notifications [aria-busy='true'] {
+  cursor: progress;
+}
+@media (max-width: 540px) {
+  .pn-notifications-dialog {
+    --pn-notifications-padding: 16px;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  .pn-notifications,
+  .pn-notifications-dialog {
+    color: var(--pagenest-text, #e2e8e3);
+    background: var(--pagenest-surface, #202b25);
+  }
+  .pn-notifications button,
+  [data-pn-open-notifications],
+  [data-pn-close-notifications] {
+    color: var(--pagenest-text, #e2e8e3);
+    background: var(--pagenest-surface, #202b25);
+  }
+  .pn-notifications a {
+    color: var(--pagenest-accent, #b4d2bc);
+  }
+}
+
+.pn-notifications-toolbar {
+  position: sticky;
+  inset-block-start: calc(-1 * var(--pn-notifications-padding));
+  z-index: 1;
+  margin-block-start: calc(-1 * var(--pn-notifications-padding));
+  margin-inline: calc(-1 * var(--pn-notifications-padding));
+  padding: 12px var(--pn-notifications-padding);
+  border-block-end: 1px solid var(--pagenest-border, #dce2dc);
+  background: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.pn-notifications-toolbar h2 {
+  margin: 0;
+  min-width: 0;
+  font-size: 1.125em;
+  line-height: 1.3;
+}
+.pn-notifications-dialog .pn-notifications > h2 {
+  display: none;
+}
+.pn-notifications details {
+  margin-block: 16px;
+}
+.pn-notifications summary {
+  cursor: pointer;
+}
+
+.pn-notifications li > div {
+  min-width: 0;
+}
+.pn-notifications li a {
+  display: block;
+  min-width: 0;
+  font-weight: 600;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.pn-notifications li p {
+  margin-block: 6px 0;
+  font-size: 0.9em;
+  color: var(--pagenest-muted, #657169);
+}
+.pn-notifications li > button {
+  font-size: 0.875em;
+  padding-inline: 10px;
+}
+.pn-notifications-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-block: 16px;
+}
+.pn-notifications-actions [role='status'] {
+  flex: 1 1 12em;
+  font-size: 0.875em;
+  color: var(--pagenest-muted, #657169);
+}
+@media (max-width: 420px) {
+  .pn-notifications li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+  .pn-notifications li > button {
+    justify-self: start;
+  }
+}
+
+.pn-notifications-toolbar button {
+  flex-shrink: 0;
+}
