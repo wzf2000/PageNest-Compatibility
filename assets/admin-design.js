@@ -31,7 +31,8 @@
     const revealCurrent = () => {
       cancelAnimationFrame(pending);
       pending = requestAnimationFrame(() => {
-        reveal(nav.querySelector('[aria-current="page"]'));
+        const focused = document.activeElement?.closest('a');
+        reveal(nav.contains(focused) ? focused : nav.querySelector('[aria-current="page"]'));
         overflow();
       });
     };

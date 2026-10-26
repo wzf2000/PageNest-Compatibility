@@ -1,13 +1,13 @@
 <?php
 return [
     'admin_design_css' => 'admin-design-6737239df002.css',
-    'admin_design_js' => 'admin-design-8f08ec0ff567.js',
+    'admin_design_js' => 'admin-design-0bc9d309cf65.js',
     'performance_admin_css' => 'performance-admin-0e369a5354bc.css',
     'performance_admin_js' => 'performance-admin-0c53c5bb08e7.js',
     'seo_editor_js' => 'seo-editor-e95194bc535e.js',
     'seo_editor_css' => 'seo-editor-bd433d2d7b11.css',
     'discovery_admin_js' => 'discovery-admin-83b901380405.js',
-    'notifications_js' => 'notifications-7f2edadf2832.js',
+    'notifications_js' => 'notifications-d831a8a66537.js',
     'notifications_css' => 'notifications-279fedffa04d.css',
     'reading_js' => 'reading-center-3b055ea5eb20.js',
     'reading_css' => 'reading-center-00bb2fdb808b.css',

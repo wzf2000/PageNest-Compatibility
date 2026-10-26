@@ -473,6 +473,10 @@ for (const viewport of [
     await expect(page.locator('dialog')).not.toBeVisible();
     await expect(page.getByRole('button', { name: 'Notifications', exact: true })).toBeFocused();
     await page.keyboard.press('Enter');
+    await page.locator('dialog').evaluate((dialog) => {
+      if (!dialog.open) throw new Error('Expected the reopened panel');
+      dialog.dispatchEvent(new Event('close'));
+    });
     await expect(page.locator('.pn-notifications li')).toHaveCount(12);
     await page.keyboard.press('Escape');
     await expect(page.getByRole('button', { name: 'Notifications', exact: true })).toBeFocused();
