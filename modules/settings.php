@@ -43,8 +43,8 @@ add_action('admin_init', static function () {
 });
 add_action('admin_menu', static function () {
     add_options_page(
-        'PageNest Companion',
-        'PageNest Companion',
+        __('PageNest settings', 'pagenest-companion'),
+        __('PageNest settings', 'pagenest-companion'),
         'manage_options',
         'pagenest-companion',
         'pagenest_companion_settings_page',

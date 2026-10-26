@@ -78,3 +78,18 @@ msgstr "重新整理通知"
 
 msgid "Only the latest 100 eligible replies are checked."
 msgstr "僅檢查最近 100 則符合接收條件的回覆。"
+
+msgid "Reading and interaction"
+msgstr "閱讀互動"
+
+msgid "Search and sharing"
+msgstr "搜尋與分享"
+
+msgid "Media and folders"
+msgstr "媒體與資料夾"
+
+msgid "Social sign-in"
+msgstr "社群登入"
+
+msgid "PageNest settings"
+msgstr "PageNest 設定"

@@ -6,7 +6,7 @@
 
 1. 在 仓库页面的 **Releases** 下载发行附件中的 `pagenest-compatibility-版本号.zip`，选择安装包，而非自动生成的 Source code ZIP。
 2. 在后台打开 “插件 → 安装插件 → 上传插件”，上传 ZIP，安装并启用。
-3. 打开 “设置 → PageNest Companion”，选择所需功能。段落评论还需要逐篇文章明确启用；新文章默认关闭。
+3. 打开 “设置 → PageNest 设置 → 阅读互动”，选择所需功能。段落评论还需要逐篇文章明确启用；新文章默认关闭。
 4. 用不同账号验证公开评论、作者操作、点赞，以及站点现有邮件服务。无需复制数据库。
 
 推荐配合 PageNest · 栖页 使用。评论通知不依赖 PageNest；MathJax、Prism 前端适配和 Materialis Companion 防冲突处理则仅在主题支持 `pagenest-independent-layout` 特性时启用。插件没有 SMTP 配置页面。
@@ -21,7 +21,7 @@
 
 ## 站内回复通知
 
-在 “设置 → 通知” 启用独立的站内通知模块，默认关闭。PageNest 页眉提供 “通知” 按钮；其他主题可在已有页面加入 `[pagenest_notifications]`，不会自动创建页面或菜单。读者主动打开或点击 “加载通知” 后才请求数据，无后台轮询。
+在 “设置 → PageNest 设置 → 通知” 启用独立的站内通知模块，默认关闭。PageNest 页眉提供 “通知” 按钮；其他主题可在已有页面加入 `[pagenest_notifications]`，不会自动创建页面或菜单。读者主动打开或点击 “加载通知” 后才请求数据，无后台轮询。
 
 模块只处理启用期间新提交的普通 WordPress 评论回复，接收者必须是原评论关联的登录账号。待审核回复通过审核后才可显示；启用前提交的评论不补发。访客邮箱匹配、给文章作者的邮件、订阅和段落私人记录不进入站内通知，也不改变现有邮件行为。读者在 “通知偏好” 中可独立关闭未来站内通知，原有通知仍可查看。
 
@@ -63,7 +63,7 @@
 
 ## 后台阅读设置
 
-“设置 → PageNest Companion” 仅站点管理员可修改。各设置页通过顶部导航切换，手机可横向滑动导航。修改提示与保存按钮放在一起；筛选和只读诊断不显示未保存提示。段落评论、章节导航与链接、点赞可以分别停用；关闭只暂停展示/API，不删除记录，也不会停止普通 WordPress 评论通知。
+“设置 → PageNest 设置 → 阅读互动” 仅站点管理员可修改。WordPress 设置侧栏统一保留 “PageNest 设置” 入口；阅读互动、搜索与分享、通知、我的阅读、内容导览、模块诊断、媒体与文件夹、社交登录通过页内顶部导航切换，手机可横向滑动导航。修改提示与保存按钮放在一起；筛选和只读诊断不显示未保存提示。段落评论、章节导航与链接、点赞可以分别停用；关闭只暂停展示/API，不删除记录，也不会停止普通 WordPress 评论通知。
 
 在本页 “系列目录” 填写文章现有的系列名称和公开目录页 ID，再保存阅读设置。名称精确匹配，包括大小写和空格；已保存名称只读，清空目录页 ID 可解除关联，新增系列使用末尾空行。目录及上级页面须公开、无密码且层级有效；失效表单或任一无效关联都会拒绝整份目录保存，刷新后检查并重试。服务器配置的关联只读并优先；旧文档可以由服务器显式绑定系列，不写回文章。
 
@@ -77,11 +77,11 @@
 
 ## 浏览计数
 
-“设置 → PageNest Companion” 可明确启用默认关闭的浏览计数，选择统计人群、机器人排除及纯文本显示模板。`%VIEW_COUNT%` 替换为格式化的次数；HTML 不会作为标记输出。重复页面加载会再次计数，读取计数不会计数。预览、后台、私人文章和密码锁定文章不计数；解锁后的公开文章可计数。
+“设置 → PageNest 设置 → 阅读互动” 可明确启用默认关闭的浏览计数，选择统计人群、机器人排除及纯文本显示模板。`%VIEW_COUNT%` 替换为格式化的次数；HTML 不会作为标记输出。重复页面加载会再次计数，读取计数不会计数。预览、后台、私人文章和密码锁定文章不计数；解锁后的公开文章可计数。
 
 仅支持 `WP_CACHE=false` 的 PHP 页面渲染，缓存启用时停计并在后台提示，不提供 AJAX 或 REST 替代路径。停用保留数据，启用不会扫描历史文章、发布内容或发放经验。
 
-Optional view counting is disabled by default. Enable it explicitly in Companion settings, select everyone, guests or signed-in users, and optionally exclude known bots. The plain-text template replaces `%VIEW_COUNT%` with the formatted count. Reads never increment, and counters do not award experience. Only publicly viewable posts and pages are counted; previews, admin requests and password-locked content are excluded. Page caches are unsupported: `WP_CACHE=true` stops counting and shows an administrator notice. Existing data is retained.
+Optional view counting is disabled by default. Enable it explicitly under **Settings → PageNest settings → Reading and interaction**, select everyone, guests or signed-in users, and optionally exclude known bots. The plain-text template replaces `%VIEW_COUNT%` with the formatted count. Reads never increment, and counters do not award experience. Only publicly viewable posts and pages are counted; previews, admin requests and password-locked content are excluded. Page caches are unsupported: `WP_CACHE=true` stops counting and shows an administrator notice. Existing data is retained.
 
 ## 社交账号与恢复邮箱
 
@@ -95,7 +95,7 @@ Optional view counting is disabled by default. Enable it explicitly in Companion
 
 ## 管理第三方登录配置
 
-管理员可从 “设置 → PageNest 社交登录” 逐家配置 QQ、百度、微博、GitHub、Google 与微信网站应用。先填写应用 ID、密钥和 HTTPS 同源回调地址，再明确启用该提供者；社交登录总开关和允许新用户注册分别控制。关闭注册不影响已绑定账号登录。开启某个提供者不会迁移或合并历史账号。
+管理员可从 “设置 → PageNest 设置 → 社交登录” 逐家配置 QQ、百度、微博、GitHub、Google 与微信网站应用。先填写应用 ID、密钥和 HTTPS 同源回调地址，再明确启用该提供者；社交登录总开关和允许新用户注册分别控制。关闭注册不影响已绑定账号登录。开启某个提供者不会迁移或合并历史账号。
 
 服务器配置作为默认来源，首次打开页面不会将凭据复制进数据库。每家单独保存，只覆盖所选提供者；“恢复服务器配置” 移除该项后台覆盖。页面标示当前配置来源。邮件、验证码、分享与历史映射仍由既有服务器配置管理。
 
@@ -123,11 +123,11 @@ GitHub、Google 和微信网站应用均需管理员自行创建并控制对应�
 
 ## 可选媒体展示
 
-插件提供默认关闭的媒体兼容模块。在迁移管理员验证画廊映射后，通过 “设置 → Companion Media” 启用。它接管没有其他负责人注册的 `[wpmfgallery]`、`[wpmfpdf]` 及对应旧区块；保留正文中的原始标记，不自动改写文章。
+插件提供默认关闭的媒体兼容模块。在迁移管理员验证画廊映射后，通过 “设置 → PageNest 设置 → 媒体与文件夹” 启用。它接管没有其他负责人注册的 `[wpmfgallery]`、`[wpmfpdf]` 及对应旧区块；保留正文中的原始标记，不自动改写文章。
 
 画廊保留配置的图片集合、排序方式、列数、间距、自动轮播和灯箱。轮播使用缓动滑动与首尾循环，箭头叠放在两侧；窄屏显示一列并支持手势；悬停、键盘焦点、暂停按钮和减少动态效果偏好可以暂停自动切换。没有 JavaScript 时显示图片链接。PDF 查看器支持翻页、缩放、搜索和打印，下方保留原文件链接。查看器来自随包提供的 PDF.js，资源不依赖旧媒体插件或 CDN。自有查看器的工具栏随窄框换行，保留翻页、缩放、更多菜单和下载；查看器配色跟随页面，PDF 内容保持原样。
 
-可选的 `library_taxonomy` 配置为媒体组织插件的附件分类法后，媒体库网格上方会显示文件夹卡片、路径导航和返回上一级按钮。点击文件夹沿用当前搜索、媒体类型和排序；新建／改名后可点击 “刷新文件夹”。默认仅提供浏览入口，目录管理仍由原插件负责。管理员可在 “设置 → Companion Media” 启用自有媒体文件夹；新安装使用独立分类法，原站接管必须由迁移管理员保留已有分类法配置，并先停用原管理插件。存在原负责人时不会覆盖。关闭配置即隐藏导航，数据保留。
+可选的 `library_taxonomy` 配置为媒体组织插件的附件分类法后，媒体库网格上方会显示文件夹卡片、路径导航和返回上一级按钮。点击文件夹沿用当前搜索、媒体类型和排序；新建／改名后可点击 “刷新文件夹”。默认仅提供浏览入口，目录管理仍由原插件负责。管理员可在 “设置 → PageNest 设置 → 媒体与文件夹” 启用自有媒体文件夹；新安装使用独立分类法，原站接管必须由迁移管理员保留已有分类法配置，并先停用原管理插件。存在原负责人时不会覆盖。关闭配置即隐藏导航，数据保留。
 
 自有模式下，在 “媒体 → 媒体文件夹” 创建、改名、调整父目录或删除目录；删除目录不会删除附件。在媒体网格选择附件后点击 “分配文件夹”，或在列表使用同名批量操作，也可从附件详情进入分配页。一次最多 200 个附件，只增加或移除勾选的归属，其他目录不变。保存后刷新已打开的媒体窗口。网格、列表和文章编辑器的媒体选择器均支持目录与未分类筛选。仅管理员管理目录；分配需要上传权限及每个附件的编辑权限。
 
@@ -139,7 +139,7 @@ GitHub、Google 和微信网站应用均需管理员自行创建并控制对应�
 
 ## 内容发现与基础 SEO
 
-在 “设置 → 内容发现与 SEO” 分别启用搜索建议和元信息。模块默认关闭；升级不自动开启，不创建搜索索引表、计划任务、第三方服务或内容副本。
+在 “设置 → PageNest 设置 → 搜索与分享” 分别启用搜索建议和元信息。模块默认关闭；升级不自动开启，不创建搜索索引表、计划任务、第三方服务或内容副本。
 
 配合 PageNest 1.1.0，顶栏与搜索页提供公开内容建议和文章／页面／工具筛选；至少两个字符，每次最多八条建议，提交后仍使用 WordPress 分页搜索。建议接口 `pagenest/v1/discovery` 无需登录且禁止共享缓存；只返回公开标题与链接，不返回正文。私人／草稿／密码文章即使调用者是管理员也不进入建议；工具还必须具有有效提供者、稳定页面绑定、公开访问和列表资格。启用时旧搜索链接也使用这些过滤；工具注册表故障时暂不列出页面，普通文章仍可搜索。
 
@@ -151,7 +151,7 @@ WordPress 仍负责标题、canonical、robots 和原生 XML 站点地图；本�
 
 ## 我的阅读与独立内容导览
 
-「设置 → 我的阅读」默认关闭。启用后，PageNest 顶栏提供入口；其他主题可在已有页面放置
+「设置 → PageNest 设置 → 我的阅读」默认关闭。启用后，PageNest 顶栏提供入口；其他主题可在已有页面放置
 `[pagenest_my_reading]`。不会创建页面、改菜单或上传到账户。读者仍须显式开启本机记忆；
 浏览器仅保存最多 100 个公开文章 ID、稳定标题锚点、时间与稍后读标记，展示前向站点复核 ID
 当前是否公开。未开启存储、存储不可用或文章失效时不会保留标题或正文；清除与关闭均有入口。
@@ -168,7 +168,7 @@ WordPress 仍负责标题、canonical、robots 和原生 XML 站点地图；本�
 正文修改、删除、引用替换沿用既有版本保护；冲突不覆盖，旧引用待审时不自动猜测。
 JSON 导入／导出沿用原有 UUID 幂等与私人默认值，导入不会发布记录。
 
-「设置 → 内容导览」是独立的展示设置，默认关闭，使用 `[pagenest_content_guide]`。
+「设置 → PageNest 设置 → 内容导览」是独立的展示设置，默认关闭，使用 `[pagenest_content_guide]`。
 可搜索已有公开文章／页面，组织最多 20 个分组和 200 条链接，使用键盘可操作的上移／下移排序，
 预览来源并识别失效链接。搜索与目标分组分别选择，未添加分组时会明确提示，空分组显示待添加链接的状态。来源转为非公开或工具权限收紧后，前台不再显示该入口。
 服务器 `content.json` 仍由其原负责人维护，本设置不会读取为编辑稿、迁移、覆盖或改写正文与章节顺序。
