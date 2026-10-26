@@ -68,11 +68,22 @@ function pagenest_reading_markup(): string
         '</noscript><div data-pn-device></div><hr><div data-pn-records></div></section>';
 }
 add_shortcode('pagenest_my_reading', 'pagenest_reading_markup');
-add_action('pagenest_header_actions', static function () {
+function pagenest_reading_header_entry(): void
+{
     if (pagenest_reading_enabled()) {
         echo '<button type="button" data-pn-open-reading hidden>' .
             esc_html__('My reading', 'pagenest-companion') .
             '</button>';
+    }
+}
+add_action('pagenest_account_actions', static function () {
+    if (current_theme_supports('pagenest-account-actions')) {
+        pagenest_reading_header_entry();
+    }
+});
+add_action('pagenest_header_actions', static function () {
+    if (!current_theme_supports('pagenest-account-actions')) {
+        pagenest_reading_header_entry();
     }
 });
 add_action('wp_footer', static function () {

@@ -2,6 +2,41 @@ const { test, expect } = require('@playwright/test');
 const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '..');
+const readingAssets = process.env.PAGENEST_TEST_READING_ASSETS || path.join(root, 'assets');
+test('no-script header controls stay hidden while original account and search remain available', async ({
+  browser,
+}) => {
+  test.skip(!process.env.PAGENEST_TEST_THEME_ROOT, 'requires theme header styles');
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const page = await context.newPage();
+  await page.route('**/*', (route) =>
+    route.fulfill({ contentType: 'text/html', body: '<!doctype html><html><body></body></html>' }),
+  );
+  await page.goto('http://controls.fixture.test/');
+  const styles = [
+    path.join(root, 'assets/notifications.css'),
+    path.join(root, 'assets/reading-center.css'),
+    path.join(process.env.PAGENEST_TEST_THEME_ROOT, 'assets/presentation.css'),
+  ]
+    .map((asset) => fs.readFileSync(asset, 'utf8'))
+    .join('\n');
+  await page.setContent(
+    `<style>${styles}</style><body class="pagenest-site"><header><div class="pagenest-header-actions"><button class="pn-header-notifications" data-pn-open-notifications hidden>Notifications</button><button class="pagenest-cycle-mode" data-pagenest-cycle-mode hidden>Appearance</button></div><details class="pagenest-account-menu" open><summary>My account</summary><a href="/login">Log in</a><button data-pn-open-reading hidden>My reading</button></details><details class="pagenest-header-search"><summary>Search</summary><form><input type="search"></form></details></header></body>`,
+  );
+  await expect(page.locator('[data-pn-open-notifications]')).toBeHidden();
+  await expect(page.locator('[data-pn-open-reading]')).toBeHidden();
+  await expect(page.locator('[data-pagenest-cycle-mode]')).toBeHidden();
+  await expect(page.getByRole('link', { name: 'Log in', exact: true })).toBeVisible();
+  await page.locator('.pagenest-header-search > summary').click();
+  await expect(page.getByRole('searchbox')).toBeVisible();
+  await context.close();
+});
+test.beforeEach(async ({ page }) => {
+  await page.route('**/*', (route) => {
+    const host = new URL(route.request().url()).hostname;
+    return ['127.0.0.1', 'localhost'].includes(host) ? route.continue() : route.abort();
+  });
+});
 const text = {
   reading: 'My reading',
   notes: 'Comments and notes',
@@ -60,9 +95,12 @@ const text = {
 };
 async function fixture(page, width, extra = '') {
   await page.setViewportSize({ width, height: 900 });
-  await page.goto('/standalone.html');
+  await page.route('**/reading-center-origin', (route) =>
+    route.fulfill({ contentType: 'text/html', body: '<!doctype html><html><body></body></html>' }),
+  );
+  await page.goto('/reading-center-origin');
   await page.setContent(
-    `<style>body{font:16px system-ui;margin:24px auto;padding:0 16px;max-width:800px}${fs.readFileSync(path.join(root, 'assets/reading-center.css'), 'utf8')}</style><article class="entry-content"><h1>Reading and learning</h1><h2 id="stable">A stable author heading</h2><button data-pn-save-later hidden>Read later on this device</button><span data-pn-later-status></span></article><section class="pn-reading" data-pn-reading><h2>My reading</h2><div data-pn-device></div><hr><div data-pn-records></div></section>${extra}`,
+    `<style>body{font:16px system-ui;margin:24px auto;padding:0 16px;max-width:800px}${fs.readFileSync(path.join(readingAssets, 'reading-center.css'), 'utf8')}</style><article class="entry-content"><h1>Reading and learning</h1><h2 id="stable">A stable author heading</h2><button data-pn-save-later hidden>Read later on this device</button><span data-pn-later-status></span></article><section class="pn-reading" data-pn-reading><h2>My reading</h2><div data-pn-device></div><hr><div data-pn-records></div></section>${extra}`,
   );
   await page.evaluate((text) => {
     window.PageNestReading = {
@@ -84,11 +122,11 @@ async function fixture(page, width, extra = '') {
     }),
   );
   await page.addScriptTag({
-    content: fs.readFileSync(path.join(root, 'assets/reading-center.js'), 'utf8'),
+    content: fs.readFileSync(path.join(readingAssets, 'reading-center.js'), 'utf8'),
   });
 }
 function locationUrl(value) {
-  return 'http://127.0.0.1:18780' + value;
+  return (process.env.PAGENEST_TEST_ORIGIN || 'http://127.0.0.1:18780') + value;
 }
 const record = {
   id: 11,
@@ -221,6 +259,116 @@ test('authorization loss clears sensitive search and every center', async ({ pag
   await expect(searches.nth(0)).toHaveValue('');
   await expect(searches.nth(1)).toHaveValue('');
 });
+test('short reading dialog keeps keyboard focus below its fixed heading', async ({
+  page,
+}, testInfo) => {
+  await page.route('**/records/my-records/validate', (route) =>
+    route.fulfill({ json: { valid: true } }),
+  );
+  await page.route('**/records/my-records?*', (route) =>
+    route.fulfill({
+      json: {
+        items: Array.from({ length: 12 }, (_, index) => ({
+          ...record,
+          id: index + 11,
+          text:
+            `Synthetic private record ${index + 1}. ` +
+            'Long reading notes for keyboard navigation. '.repeat(4),
+        })),
+        next_cursor: null,
+      },
+    }),
+  );
+  await fixture(
+    page,
+    390,
+    '<button data-pn-open-reading hidden>Open My reading</button><dialog class="pn-reading-dialog" aria-labelledby="pn-reading-dialog-title"><div class="pn-reading-dialog-toolbar"><h2 id="pn-reading-dialog-title">My reading</h2><button data-pn-close-reading>Close</button></div><section class="pn-reading"><div data-pn-device></div><div data-pn-records></div></section></dialog>',
+  );
+  await page.setViewportSize({ width: 390, height: 520 });
+  if (process.env.PAGENEST_TEST_THEME_ROOT) {
+    await page.addStyleTag({
+      path: path.join(process.env.PAGENEST_TEST_THEME_ROOT, 'assets/presentation.css'),
+    });
+    await page.evaluate(() => (document.documentElement.dataset.pagenestColorScheme = 'dark'));
+  }
+  await page.getByRole('button', { name: 'Open My reading', exact: true }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByRole('tab', { name: text.notes, exact: true }).click();
+  await dialog.getByRole('button', { name: text.load, exact: true }).click();
+  await expect(dialog.locator('.pn-reading-record')).toHaveCount(12);
+  const lastAction = dialog.locator('.pn-reading-record').last().locator('button:visible').last();
+  await lastAction.focus();
+  await expect(lastAction).toBeFocused();
+  await page.keyboard.press('Shift+Tab');
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(resolve)));
+  await expect(dialog.locator('.pn-reading-record')).toHaveCount(12);
+  expect(
+    await dialog
+      .locator('.pn-reading-record')
+      .last()
+      .evaluate((node) => node.contains(document.activeElement)),
+  ).toBe(true);
+  await page.screenshot({ path: testInfo.outputPath('reading-short-keyboard.png') });
+  for (let index = 0; index < 12; index++) {
+    await page.keyboard.press('Shift+Tab');
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(resolve)));
+    const position = await dialog.evaluate((node) => {
+      const focused = document.activeElement;
+      if (
+        focused === node ||
+        !node.contains(focused) ||
+        focused.closest('.pn-reading-dialog-toolbar')
+      )
+        return null;
+      const box = focused.getBoundingClientRect();
+      return {
+        top: box.top,
+        bottom: box.bottom,
+        header: node.querySelector('.pn-reading-dialog-toolbar').getBoundingClientRect().bottom,
+        limit: node.getBoundingClientRect().bottom,
+      };
+    });
+    if (position) {
+      expect(position.top, `focus at reverse step ${index}`).toBeGreaterThanOrEqual(
+        position.header - 1,
+      );
+      if (position.bottom - position.top <= position.limit - position.header) {
+        expect(position.bottom).toBeLessThanOrEqual(position.limit + 1);
+      }
+    }
+  }
+});
+
+for (const width of [1440, 390]) {
+  test(`account reading returns to a visible header entry after outside menu closure at ${width}px`, async ({
+    page,
+  }) => {
+    test.skip(!process.env.PAGENEST_TEST_THEME_ROOT, 'requires the companion theme navigation');
+    await fixture(
+      page,
+      width,
+      '<header><button class="pagenest-menu-toggle" aria-expanded="false">Menu</button><nav id="pagenest-nav"><details class="pagenest-account-menu pagenest-dropdown"><summary>My account</summary><div><button data-pn-open-reading hidden>Open My reading</button></div></details></nav></header><dialog class="pn-reading-dialog"><div class="pn-reading-dialog-toolbar"><h2>My reading</h2><button data-pn-close-reading>Close</button></div><section class="pn-reading"><div data-pn-device></div><div data-pn-records></div></section></dialog>',
+    );
+    await page.addStyleTag({
+      content:
+        '@media(max-width:1023px){#pagenest-nav{display:none}#pagenest-nav.pagenest-nav-open{display:block}}@media(min-width:1024px){.pagenest-menu-toggle{display:none}}',
+    });
+    await page.addScriptTag({
+      path: path.join(process.env.PAGENEST_TEST_THEME_ROOT, 'assets/navigation.js'),
+    });
+    const menu = page.locator('.pagenest-menu-toggle');
+    if (width < 1024) await menu.click();
+    const account = page.locator('.pagenest-account-menu');
+    await account.locator('summary').click();
+    await page.getByRole('button', { name: 'Open My reading', exact: true }).click();
+    await page.getByRole('dialog').getByRole('tab').first().click();
+    await page.keyboard.press('Escape');
+    const target = width < 1024 ? menu : account.locator('summary');
+    await expect(target).toBeVisible();
+    await expect(target).toBeFocused();
+  });
+}
+
 test('mobile dialog keeps close reachable and returns focus', async ({ page }) => {
   await fixture(
     page,

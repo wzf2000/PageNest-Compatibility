@@ -176,6 +176,11 @@ $comments[2] = (object) [
 $reply = $comments[2];
 pagenest_notifications_submitted(2, 1);
 check(count(pagenest_notifications_list(new Request())->data['items']) === 1, 'new reply');
+$count = pagenest_notifications_count(new Request())->data;
+check(
+    array_keys($count) === ['recentUnread'] && $count['recentUnread'] === 1,
+    'count exposes only the recent unread projection',
+);
 $page = pagenest_notifications_list(new Request(['page' => 2]))->data;
 check(
     $page['page'] === 1 && $page['pages'] === 1 && count($page['items']) === 1,

@@ -180,3 +180,63 @@ test('guide target follows the selected group through edits, moves, additions an
   await expect(target).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Add', exact: true })).toBeDisabled();
 });
+
+for (const direction of ['ltr', 'rtl']) {
+  test(`current settings tab stays visible after page restoration and resize in ${direction}`, async ({
+    page,
+  }, testInfo) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    const labels = [
+      '阅读互动',
+      '搜索与分享',
+      '通知',
+      '我的阅读',
+      '内容导览',
+      '模块诊断',
+      '媒体与文件夹',
+      '社交登录',
+    ];
+    await page.setContent(
+      `<html dir="${direction}"><style>body{margin:16px;background:#f0f0f1;font:16px system-ui}</style><main class="pn-admin"><h1>社交登录</h1><nav class="pn-admin-nav">${labels.map((label, i) => `<a href="#page-${i}"${i === 7 ? ' aria-current="page"' : ''}>${label}</a>`).join('')}</nav><p>选择登录方式并独立保存。</p></main></html>`,
+    );
+    await page.addStyleTag({ path: path.join(__dirname, '../assets/admin-design.css') });
+    await page.addScriptTag({ path: script });
+    const visible = () =>
+      page.locator('.pn-admin-nav').evaluate((nav) => {
+        const bounds = nav.getBoundingClientRect();
+        const selected = nav.querySelector('[aria-current]').getBoundingClientRect();
+        return selected.left >= bounds.left && selected.right <= bounds.right;
+      });
+    await expect.poll(visible).toBe(true);
+    await page.locator('.pn-admin-nav').evaluate((nav) => {
+      nav.scrollLeft = 0;
+    });
+    await page.evaluate(() => window.dispatchEvent(new Event('pageshow')));
+    await expect.poll(visible).toBe(true);
+    const first = page.locator('.pn-admin-nav a').first();
+    await first.focus();
+    await expect
+      .poll(() =>
+        first.evaluate((node) => {
+          const bounds = node.parentElement.getBoundingClientRect(),
+            item = node.getBoundingClientRect();
+          return item.left >= bounds.left && item.right <= bounds.right;
+        }),
+      )
+      .toBe(true);
+    await page.locator('.pn-admin').evaluate((root) => (root.style.fontSize = '24px'));
+    await page.setViewportSize({ width: 320, height: 844 });
+    await expect.poll(visible).toBe(true);
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
+    expect(await page.locator('.pn-admin-nav a').count()).toBe(8);
+    expect(
+      await page
+        .locator('.pn-admin-nav-wrap')
+        .evaluate(
+          (node) =>
+            node.hasAttribute('data-overflow-left') || node.hasAttribute('data-overflow-right'),
+        ),
+    ).toBe(true);
+    await page.screenshot({ path: testInfo.outputPath(`settings-navigation-${direction}.png`) });
+  });
+}

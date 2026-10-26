@@ -34,7 +34,7 @@ msgstr ""
 msgid "All images"
 msgstr ""
 
-#: modules/reading/bootstrap.php:244
+#: modules/reading/bootstrap.php:255
 msgid "All records"
 msgstr ""
 
@@ -62,15 +62,15 @@ msgstr ""
 msgid "Attachment text saved."
 msgstr ""
 
-#: modules/reading/bootstrap.php:206
+#: modules/reading/bootstrap.php:217
 msgid "Backup and import"
 msgstr ""
 
-#: modules/reading/bootstrap.php:222
+#: modules/reading/bootstrap.php:233
 msgid "Browser storage is unavailable. Device reading is paused."
 msgstr ""
 
-#: modules/reading/bootstrap.php:257
+#: modules/reading/bootstrap.php:268
 msgid "Cancel"
 msgstr ""
 
@@ -94,11 +94,11 @@ msgstr ""
 msgid "Checking public image availability…"
 msgstr ""
 
-#: modules/reading/bootstrap.php:271
+#: modules/reading/bootstrap.php:282
 msgid "Choose a paragraph"
 msgstr ""
 
-#: modules/reading/bootstrap.php:269
+#: modules/reading/bootstrap.php:280
 msgid "Choose a replacement paragraph"
 msgstr ""
 
@@ -110,7 +110,7 @@ msgstr ""
 msgid "Choose share image"
 msgstr ""
 
-#: modules/reading/bootstrap.php:134
+#: modules/reading/bootstrap.php:145
 msgid "Choose up to 100 articles."
 msgstr ""
 
@@ -118,11 +118,11 @@ msgstr ""
 msgid "Choose up to 200 records."
 msgstr ""
 
-#: modules/reading/bootstrap.php:226
+#: modules/reading/bootstrap.php:237
 msgid "Clear device records"
 msgstr ""
 
-#: modules/notifications/presentation.php:83 modules/reading/bootstrap.php:85
+#: modules/notifications/presentation.php:85 modules/reading/bootstrap.php:96
 msgid "Close"
 msgstr ""
 
@@ -130,7 +130,7 @@ msgstr ""
 msgid "Columns"
 msgstr ""
 
-#: modules/reading/bootstrap.php:191
+#: modules/reading/bootstrap.php:202
 msgid "Comments and notes"
 msgstr ""
 
@@ -174,7 +174,7 @@ msgstr ""
 msgid "Content guide"
 msgstr ""
 
-#: modules/reading/bootstrap.php:192
+#: modules/reading/bootstrap.php:203
 msgid "Continue reading"
 msgstr ""
 
@@ -182,11 +182,11 @@ msgstr ""
 msgid "Could not load content. Try again."
 msgstr ""
 
-#: modules/reading/bootstrap.php:251
+#: modules/reading/bootstrap.php:262
 msgid "Could not load records. Sign in again if your session expired."
 msgstr ""
 
-#: modules/reading/bootstrap.php:227
+#: modules/reading/bootstrap.php:238
 msgid "Could not load this device's reading list. Try again."
 msgstr ""
 
@@ -198,19 +198,19 @@ msgstr ""
 msgid "Default"
 msgstr ""
 
-#: modules/reading/bootstrap.php:258
+#: modules/reading/bootstrap.php:269
 msgid "Delete"
 msgstr ""
 
-#: modules/reading/bootstrap.php:259
+#: modules/reading/bootstrap.php:270
 msgid "Delete this record permanently?"
 msgstr ""
 
-#: modules/reading/bootstrap.php:200
+#: modules/reading/bootstrap.php:211
 msgid "Device memory disabled and records cleared."
 msgstr ""
 
-#: modules/reading/bootstrap.php:199
+#: modules/reading/bootstrap.php:210
 msgid "Device memory enabled."
 msgstr ""
 
@@ -218,7 +218,7 @@ msgstr ""
 msgid "Device memory needs reader consent. Private records require authentication."
 msgstr ""
 
-#: modules/reading/bootstrap.php:204
+#: modules/reading/bootstrap.php:215
 msgid "Device records cleared."
 msgstr ""
 
@@ -246,7 +246,7 @@ msgstr ""
 msgid "Document identity"
 msgstr ""
 
-#: modules/reading/bootstrap.php:255
+#: modules/reading/bootstrap.php:266
 msgid "Edit text"
 msgstr ""
 
@@ -262,7 +262,7 @@ msgstr ""
 msgid "Enable content guide"
 msgstr ""
 
-#: modules/reading/bootstrap.php:283
+#: modules/reading/bootstrap.php:294
 msgid "Enable device memory in My reading first."
 msgstr ""
 
@@ -274,7 +274,7 @@ msgstr ""
 msgid "Enable notifications"
 msgstr ""
 
-#: modules/reading/bootstrap.php:194
+#: modules/reading/bootstrap.php:205
 msgid "Enable the option above to keep reading here."
 msgstr ""
 
@@ -290,7 +290,7 @@ msgstr ""
 msgid "Existing shortcode and block owners take precedence. Attachment access is checked during rendering."
 msgstr ""
 
-#: modules/reading/bootstrap.php:272
+#: modules/reading/bootstrap.php:283
 msgid "Export my records as JSON"
 msgstr ""
 
@@ -302,7 +302,7 @@ msgstr ""
 msgid "Filter"
 msgstr ""
 
-#: modules/reading/bootstrap.php:205
+#: modules/reading/bootstrap.php:216
 msgid "Filter records"
 msgstr ""
 
@@ -330,7 +330,7 @@ msgstr ""
 msgid "Group title"
 msgstr ""
 
-#: modules/content/editor.php:144 modules/discovery/bootstrap.php:144 modules/media/settings.php:110 modules/reading/bootstrap.php:217 modules/settings.php:118
+#: modules/content/editor.php:144 modules/discovery/bootstrap.php:144 modules/media/settings.php:110 modules/reading/bootstrap.php:228 modules/settings.php:118
 msgid "How this works"
 msgstr ""
 
@@ -347,15 +347,15 @@ msgstr ""
 msgid "Image gap"
 msgstr ""
 
-#: modules/reading/bootstrap.php:273
+#: modules/reading/bootstrap.php:284
 msgid "Import a JSON backup"
 msgstr ""
 
-#: modules/reading/bootstrap.php:274
+#: modules/reading/bootstrap.php:285
 msgid "Import keeps records private and reuses existing UUIDs. Review per-record results; it never publishes a record."
 msgstr ""
 
-#: modules/reading/bootstrap.php:278
+#: modules/reading/bootstrap.php:289
 msgid "Import processed. Reload records to review the results."
 msgstr ""
 
@@ -371,7 +371,7 @@ msgstr ""
 msgid "Likes"
 msgstr ""
 
-#: modules/content/editor.php:210 modules/reading/bootstrap.php:243
+#: modules/content/editor.php:210 modules/reading/bootstrap.php:254
 msgid "Load more"
 msgstr ""
 
@@ -379,27 +379,27 @@ msgstr ""
 msgid "Load more comments"
 msgstr ""
 
-#: modules/reading/bootstrap.php:242
+#: modules/reading/bootstrap.php:253
 msgid "Load my records"
 msgstr ""
 
-#: modules/notifications/presentation.php:130 modules/notifications/presentation.php:61
+#: modules/notifications/presentation.php:133 modules/notifications/presentation.php:61
 msgid "Load notifications"
 msgstr ""
 
-#: modules/notifications/presentation.php:136
+#: modules/notifications/presentation.php:139
 msgid "Loading notifications…"
 msgstr ""
 
-#: modules/content/editor.php:293 modules/reading/bootstrap.php:250
+#: modules/content/editor.php:293 modules/reading/bootstrap.php:261
 msgid "Loading…"
 msgstr ""
 
-#: modules/reading/bootstrap.php:198
+#: modules/reading/bootstrap.php:209
 msgid "Manage device records"
 msgstr ""
 
-#: modules/notifications/presentation.php:144
+#: modules/notifications/presentation.php:147
 msgid "Mark as read"
 msgstr ""
 
@@ -459,11 +459,11 @@ msgstr ""
 msgid "Move up"
 msgstr ""
 
-#: modules/reading/bootstrap.php:236
+#: modules/reading/bootstrap.php:247
 msgid "My comments and private notes"
 msgstr ""
 
-#: admin-design.php:19 modules/diagnostics.php:44 modules/reading/bootstrap.php:190 modules/reading/bootstrap.php:20 modules/reading/bootstrap.php:21 modules/reading/bootstrap.php:29 modules/reading/bootstrap.php:74 modules/reading/bootstrap.php:83
+#: admin-design.php:19 modules/diagnostics.php:44 modules/reading/bootstrap.php:20 modules/reading/bootstrap.php:201 modules/reading/bootstrap.php:21 modules/reading/bootstrap.php:29 modules/reading/bootstrap.php:75 modules/reading/bootstrap.php:94
 msgid "My reading"
 msgstr ""
 
@@ -479,7 +479,7 @@ msgstr ""
 msgid "New blocks select existing attachments and do not migrate old blocks."
 msgstr ""
 
-#: modules/notifications/presentation.php:146
+#: modules/notifications/presentation.php:149
 msgid "Next"
 msgstr ""
 
@@ -515,11 +515,11 @@ msgstr ""
 msgid "No public share image. Choose a public image, featured image, site image or logo."
 msgstr ""
 
-#: modules/notifications/presentation.php:137
+#: modules/notifications/presentation.php:140
 msgid "No recent replies to show."
 msgstr ""
 
-#: modules/reading/bootstrap.php:235
+#: modules/reading/bootstrap.php:246
 msgid "No records to show."
 msgstr ""
 
@@ -539,23 +539,23 @@ msgstr ""
 msgid "Notes"
 msgstr ""
 
-#: modules/notifications/presentation.php:154
+#: modules/notifications/presentation.php:157
 msgid "Notification preference saved."
 msgstr ""
 
-#: modules/notifications/presentation.php:153
+#: modules/notifications/presentation.php:156
 msgid "Notification preferences"
 msgstr ""
 
-#: admin-design.php:16 modules/diagnostics.php:54 modules/notifications/presentation.php:20 modules/notifications/presentation.php:44 modules/notifications/presentation.php:45 modules/notifications/presentation.php:57 modules/notifications/presentation.php:70 modules/notifications/presentation.php:81 modules/notifications/privacy.php:115 modules/notifications/privacy.php:135 modules/notifications/privacy.php:142 modules/notifications/privacy.php:75
+#: admin-design.php:16 modules/diagnostics.php:54 modules/notifications/presentation.php:20 modules/notifications/presentation.php:44 modules/notifications/presentation.php:45 modules/notifications/presentation.php:57 modules/notifications/presentation.php:70 modules/notifications/presentation.php:72 modules/notifications/presentation.php:83 modules/notifications/privacy.php:115 modules/notifications/privacy.php:135 modules/notifications/privacy.php:142 modules/notifications/privacy.php:75
 msgid "Notifications"
 msgstr ""
 
-#: modules/notifications/presentation.php:140
+#: modules/notifications/presentation.php:143
 msgid "Notifications are currently unavailable."
 msgstr ""
 
-#: modules/notifications/bootstrap.php:115 modules/notifications/presentation.php:138
+#: modules/notifications/bootstrap.php:115 modules/notifications/presentation.php:141
 msgid "Notifications could not be loaded. Try again."
 msgstr ""
 
@@ -563,7 +563,7 @@ msgstr ""
 msgid "Offer device reading history and access to the signed-in reader’s own records."
 msgstr ""
 
-#: modules/reading/bootstrap.php:211
+#: modules/reading/bootstrap.php:222
 msgid "On this device"
 msgstr ""
 
@@ -571,7 +571,7 @@ msgstr ""
 msgid "Only public, unprotected and discoverable entries are returned."
 msgstr ""
 
-#: modules/notifications/presentation.php:132
+#: modules/notifications/presentation.php:135
 msgid "Only the latest 100 eligible replies are checked."
 msgstr ""
 
@@ -579,11 +579,11 @@ msgstr ""
 msgid "Only this scan page was checked: up to 1 MB, 500 blocks and 30 nested levels per readable post/page. Other content, templates and external uses remain unchecked. No matches does not mean unused."
 msgstr ""
 
-#: modules/reading/bootstrap.php:237
+#: modules/reading/bootstrap.php:248
 msgid "Only your own records are shown. Private text stays in page memory and is cleared when you leave or hide the page."
 msgstr ""
 
-#: modules/reading/bootstrap.php:264
+#: modules/reading/bootstrap.php:275
 msgid "Open article location"
 msgstr ""
 
@@ -591,7 +591,7 @@ msgstr ""
 msgid "Open images in a viewer"
 msgstr ""
 
-#: modules/reading/bootstrap.php:218
+#: modules/reading/bootstrap.php:229
 msgid "Optional browser storage. No account history or device sync. Article IDs are checked with the site before display. Reading position does not mark an article as read."
 msgstr ""
 
@@ -651,7 +651,7 @@ msgstr ""
 msgid "Preview uses saved article defaults and your current overrides. Save the article to apply. Draft images can be selected here; only publicly readable images appear in public sharing metadata."
 msgstr ""
 
-#: modules/notifications/presentation.php:145
+#: modules/notifications/presentation.php:148
 msgid "Previous"
 msgstr ""
 
@@ -667,7 +667,7 @@ msgstr ""
 msgid "Previous saved quotation"
 msgstr ""
 
-#: modules/reading/bootstrap.php:246
+#: modules/reading/bootstrap.php:257
 msgid "Private notes"
 msgstr ""
 
@@ -675,7 +675,7 @@ msgstr ""
 msgid "Provider"
 msgstr ""
 
-#: modules/reading/bootstrap.php:245
+#: modules/reading/bootstrap.php:256
 msgid "Public comments"
 msgstr ""
 
@@ -683,15 +683,15 @@ msgstr ""
 msgid "Public search suggestions"
 msgstr ""
 
-#: modules/notifications/presentation.php:142
+#: modules/notifications/presentation.php:145
 msgid "Read"
 msgstr ""
 
-#: modules/reading/bootstrap.php:233
+#: modules/reading/bootstrap.php:244
 msgid "Read later"
 msgstr ""
 
-#: modules/reading/bootstrap.php:119
+#: modules/reading/bootstrap.php:130
 msgid "Read later on this device"
 msgstr ""
 
@@ -703,11 +703,11 @@ msgstr ""
 msgid "Reading and interaction"
 msgstr ""
 
-#: modules/notifications/presentation.php:147 modules/notifications/privacy.php:119
+#: modules/notifications/presentation.php:150 modules/notifications/privacy.php:119
 msgid "Receive future comment reply notifications"
 msgstr ""
 
-#: modules/reading/bootstrap.php:232
+#: modules/reading/bootstrap.php:243
 msgid "Recent reading"
 msgstr ""
 
@@ -727,7 +727,7 @@ msgstr ""
 msgid "Record text"
 msgstr ""
 
-#: modules/reading/bootstrap.php:247
+#: modules/reading/bootstrap.php:258
 msgid "Reference needs review"
 msgstr ""
 
@@ -736,23 +736,23 @@ msgstr ""
 msgid "References to attachment #%d"
 msgstr ""
 
-#: modules/notifications/presentation.php:131
+#: modules/notifications/presentation.php:134
 msgid "Refresh notifications"
 msgstr ""
 
-#: modules/reading/bootstrap.php:193
+#: modules/reading/bootstrap.php:204
 msgid "Refresh records"
 msgstr ""
 
-#: modules/reading/bootstrap.php:212
+#: modules/reading/bootstrap.php:223
 msgid "Remember my reading on this device"
 msgstr ""
 
-#: modules/content/editor.php:290 modules/reading/bootstrap.php:234
+#: modules/content/editor.php:290 modules/reading/bootstrap.php:245
 msgid "Remove"
 msgstr ""
 
-#: modules/reading/bootstrap.php:270
+#: modules/reading/bootstrap.php:281
 msgid "Replace saved reference"
 msgstr ""
 
@@ -760,7 +760,7 @@ msgstr ""
 msgid "Replies to signed-in readers’ ordinary comments. Email settings are separate."
 msgstr ""
 
-#: modules/reading/bootstrap.php:231
+#: modules/reading/bootstrap.php:242
 msgid "Retry"
 msgstr ""
 
@@ -776,7 +776,7 @@ msgstr ""
 msgid "Review each image separately, then save one attachment or submit this page. File data, ownership and existing content stay in place."
 msgstr ""
 
-#: modules/reading/bootstrap.php:256
+#: modules/reading/bootstrap.php:267
 msgid "Save text"
 msgstr ""
 
@@ -788,7 +788,7 @@ msgstr ""
 msgid "Save this page, with a result for each attachment"
 msgstr ""
 
-#: modules/reading/bootstrap.php:282
+#: modules/reading/bootstrap.php:293
 msgid "Saved for later on this device."
 msgstr ""
 
@@ -824,7 +824,7 @@ msgstr ""
 msgid "Search modules"
 msgstr ""
 
-#: modules/reading/bootstrap.php:248
+#: modules/reading/bootstrap.php:259
 msgid "Search my text and references"
 msgstr ""
 
@@ -832,7 +832,7 @@ msgstr ""
 msgid "Search public articles and pages"
 msgstr ""
 
-#: modules/reading/bootstrap.php:249
+#: modules/reading/bootstrap.php:260
 msgid "Search records"
 msgstr ""
 
@@ -872,11 +872,11 @@ msgstr ""
 msgid "Show image captions"
 msgstr ""
 
-#: modules/notifications/presentation.php:141
+#: modules/notifications/presentation.php:144
 msgid "Sign in to view your notifications."
 msgstr ""
 
-#: modules/reading/bootstrap.php:241
+#: modules/reading/bootstrap.php:252
 msgid "Sign in to view your records"
 msgstr ""
 
@@ -896,7 +896,7 @@ msgstr ""
 msgid "Status"
 msgstr ""
 
-#: modules/reading/bootstrap.php:213
+#: modules/reading/bootstrap.php:224
 msgid "Stored on this device only. No device sync."
 msgstr ""
 
@@ -916,11 +916,11 @@ msgstr ""
 msgid "The guide is disabled. Saved groups are kept."
 msgstr ""
 
-#: modules/reading/bootstrap.php:265
+#: modules/reading/bootstrap.php:276
 msgid "The original paragraph changed or is ambiguous. The saved reference is preserved; review it before choosing a replacement."
 msgstr ""
 
-#: modules/reading/bootstrap.php:260
+#: modules/reading/bootstrap.php:271
 msgid "The record changed. Reload and compare before saving. Your input is retained in this open page."
 msgstr ""
 
@@ -949,7 +949,7 @@ msgstr ""
 msgid "This page checked %1$d saved posts/pages and skipped %2$d inaccessible or oversized entries."
 msgstr ""
 
-#: modules/notifications/presentation.php:148
+#: modules/notifications/presentation.php:151
 msgid "This preference does not change comment email settings."
 msgstr ""
 
@@ -974,11 +974,11 @@ msgstr ""
 msgid "Unavailable source #%d"
 msgstr ""
 
-#: modules/notifications/presentation.php:143
+#: modules/notifications/presentation.php:146
 msgid "Unread"
 msgstr ""
 
-#: modules/notifications/presentation.php:152
+#: modules/notifications/presentation.php:155
 msgid "Unread in recent replies:"
 msgstr ""
 
@@ -1042,10 +1042,10 @@ msgstr ""
 msgid "You have unsaved guide changes."
 msgstr ""
 
-#: modules/reading/bootstrap.php:207
+#: modules/reading/bootstrap.php:218
 msgid "Your records load only when you choose to view them."
 msgstr ""
 
-#: modules/notifications/presentation.php:139
+#: modules/notifications/presentation.php:142
 msgid "Your session expired. Sign in again."
 msgstr ""

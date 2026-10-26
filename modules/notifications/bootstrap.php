@@ -126,7 +126,7 @@ function pagenest_notifications_permission($request)
         : pagenest_notifications_error('notifications_disabled', 403);
 }
 /** A fixed recent window bounds both storage queries and access rechecks. */
-function pagenest_notifications_list($request)
+function pagenest_notifications_projection(bool $count_only = false)
 {
     global $wpdb;
     $user = get_current_user_id();
@@ -143,9 +143,17 @@ function pagenest_notifications_list($request)
         return pagenest_notifications_error('notifications_storage', 503);
     }
     $items = [];
+    $unread = 0;
     foreach ($comments as $reply) {
         $event = get_comment_meta($reply->comment_ID, '_pagenest_notification_event', true);
         if (!pagenest_notifications_visible($reply, $event, $user)) {
+            continue;
+        }
+        $read = get_comment_meta($reply->comment_ID, '_pagenest_notification_read', true) === '1';
+        if (!$read) {
+            $unread++;
+        }
+        if ($count_only) {
             continue;
         }
         $items[] = [
@@ -154,17 +162,33 @@ function pagenest_notifications_list($request)
             'author' => wp_strip_all_tags($reply->comment_author),
             'url' => get_comment_link($reply),
             'created' => $event['created'],
-            'read' =>
-                get_comment_meta($reply->comment_ID, '_pagenest_notification_read', true) === '1',
+            'read' => $read,
         ];
     }
+    return ['items' => $items, 'recentUnread' => $unread];
+}
+function pagenest_notifications_count($request)
+{
+    $projection = pagenest_notifications_projection(true);
+    return $projection instanceof WP_Error
+        ? $projection
+        : new WP_REST_Response(['recentUnread' => $projection['recentUnread']]);
+}
+function pagenest_notifications_list($request)
+{
+    $projection = pagenest_notifications_projection();
+    if ($projection instanceof WP_Error) {
+        return $projection;
+    }
+    $items = $projection['items'];
+    $user = get_current_user_id();
     $pages = max(1, (int) ceil(count($items) / 10));
     $page = max(1, min($pages, (int) $request->get_param('page')));
     return new WP_REST_Response([
         'items' => array_slice($items, ($page - 1) * 10, 10),
         'page' => $page,
         'pages' => $pages,
-        'recentUnread' => count(array_filter($items, static fn($item) => !$item['read'])),
+        'recentUnread' => $projection['recentUnread'],
         'enabled' => get_user_meta($user, '_pagenest_notifications_off', true) !== '1',
     ]);
 }
@@ -214,6 +238,7 @@ add_action('rest_api_init', static function () {
     foreach (
         [
             '' => ['GET', 'pagenest_notifications_list'],
+            '/count' => ['GET', 'pagenest_notifications_count'],
             '/read' => ['POST', 'pagenest_notifications_read'],
             '/preference' => ['POST', 'pagenest_notifications_preference'],
         ]

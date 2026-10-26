@@ -683,12 +683,42 @@
   });
   renderDevice();
   const dialog = document.querySelector('.pn-reading-dialog');
+  const readingToolbar = dialog?.querySelector('.pn-reading-dialog-toolbar');
+  const updateReadingScrollPadding = () => {
+    if (readingToolbar) {
+      dialog.style.scrollPaddingBlockStart = `${readingToolbar.getBoundingClientRect().height + 12}px`;
+    }
+  };
+  if (readingToolbar && typeof ResizeObserver === 'function') {
+    new ResizeObserver(updateReadingScrollPadding).observe(readingToolbar);
+  }
+  window.addEventListener('resize', updateReadingScrollPadding);
+  dialog?.addEventListener('focusin', () => {
+    requestAnimationFrame(() => {
+      const focused = document.activeElement;
+      if (
+        !dialog.open ||
+        focused === dialog ||
+        !dialog.contains(focused) ||
+        readingToolbar?.contains(focused)
+      )
+        return;
+      const bounds = dialog.getBoundingClientRect();
+      const target = focused.getBoundingClientRect();
+      const top = (readingToolbar?.getBoundingClientRect().bottom || bounds.top) + 12;
+      const bottom = bounds.bottom - 12;
+      if (target.top < top) dialog.scrollTop += target.top - top;
+      else if (target.height <= bottom - top && target.bottom > bottom)
+        dialog.scrollTop += target.bottom - bottom;
+    });
+  });
   let dialogOpener;
   document.querySelectorAll('[data-pn-open-reading]').forEach((opener) => {
     if (dialog) opener.hidden = false;
     opener.addEventListener('click', () => {
       dialogOpener = opener;
       dialog?.showModal();
+      updateReadingScrollPadding();
       renderDevice();
     });
   });
@@ -697,7 +727,28 @@
     ?.addEventListener('click', () => dialog.close());
   dialog?.addEventListener('close', () => {
     centers.forEach((center) => center.clear());
-    if (dialogOpener?.isConnected) dialogOpener.focus({ preventScroll: true });
+    const candidates = [
+      dialogOpener,
+      dialogOpener?.closest('details')?.querySelector('summary'),
+      document.querySelector('.pagenest-menu-toggle'),
+    ];
+    const target = candidates.find((element) => {
+      if (
+        !element?.isConnected ||
+        !element.getClientRects().length ||
+        getComputedStyle(element).visibility === 'hidden'
+      )
+        return false;
+      for (let parent = element.parentElement; parent; parent = parent.parentElement) {
+        if (
+          parent.matches('details:not([open])') &&
+          !parent.querySelector(':scope > summary')?.contains(element)
+        )
+          return false;
+      }
+      return true;
+    });
+    target?.focus({ preventScroll: true });
   });
   const clear = () => {
     centers.forEach((center) => center.clear());

@@ -36,6 +36,10 @@ async function fixture(
     panels = 0,
     listResponse = null,
     itemCount = 1,
+    withCount = false,
+    count = 2,
+    delayedCount = false,
+    initiallyHidden = false,
   } = {},
 ) {
   const calls = [];
@@ -56,6 +60,7 @@ async function fixture(
     nonce: signedIn ? 'synthetic' : '',
     login: origin + '/login',
     text,
+    ...(withCount ? { countApi: endpoint('/count') } : {}),
   };
   await page.route('**/*', async (route) => {
     const url = new URL(route.request().url());
@@ -69,6 +74,10 @@ async function fixture(
     if (delayed || (delayedRead && url.pathname.endsWith('/read'))) await waiting;
     if (status !== 200) return route.fulfill({ status, json: { code } });
     const action = plain ? url.searchParams.get('rest_route') : url.pathname;
+    if (action.endsWith('/count')) {
+      if (delayedCount) await waiting;
+      return route.fulfill({ json: { recentUnread: count } });
+    }
     if (action.endsWith('/read')) read = true;
     if (action.endsWith('/preference')) enabled = route.request().postDataJSON().enabled;
     const pageNumber = Number(url.searchParams.get('page') || 1);
@@ -98,11 +107,15 @@ async function fixture(
   const panel =
     '<section class="pn-notifications" data-pn-notifications><h2>Notifications</h2><button data-pn-notifications-load hidden>Load notifications</button><div data-pn-notifications-status role="status"></div><div data-pn-notifications-result></div></section>';
   await page.setContent(
-    `<style>body{font:16px system-ui;margin:16px}${fs.readFileSync(path.join(root, 'assets/notifications.css'), 'utf8')}</style>${panel.repeat(panels)}<button data-pn-open-notifications hidden>Notifications</button><dialog class="pn-notifications-dialog" aria-labelledby="notification-title"><div class="pn-notifications-toolbar"><h2 id="notification-title">Notifications</h2><button data-pn-close-notifications>Close</button></div><section class="pn-notifications" data-pn-notifications><h2>Notifications</h2><p>Load to check the latest 100 eligible replies.</p><button data-pn-notifications-load hidden>Load notifications</button><div data-pn-notifications-status role="status"></div><div data-pn-notifications-result></div></section></dialog>`,
+    `<style>body{font:16px system-ui;margin:16px}${fs.readFileSync(path.join(root, 'assets/notifications.css'), 'utf8')}</style>${panel.repeat(panels)}<button data-pn-open-notifications hidden>Notifications${withCount ? '<span data-pn-notifications-badge hidden aria-hidden="true"></span>' : ''}</button><dialog class="pn-notifications-dialog" aria-labelledby="notification-title"><div class="pn-notifications-toolbar"><h2 id="notification-title">Notifications</h2><button data-pn-close-notifications>Close</button></div><section class="pn-notifications" data-pn-notifications><h2>Notifications</h2><p>Load to check the latest 100 eligible replies.</p><button data-pn-notifications-load hidden>Load notifications</button><div data-pn-notifications-status role="status"></div><div data-pn-notifications-result></div></section></dialog>`,
   );
   await page.evaluate((value) => {
     window.PageNestNotifications = value;
   }, config);
+  if (initiallyHidden)
+    await page.evaluate(() =>
+      Object.defineProperty(document, 'hidden', { configurable: true, value: true }),
+    );
   await page.addScriptTag({
     content: fs.readFileSync(path.join(root, 'assets/notifications.js'), 'utf8'),
   });
@@ -114,6 +127,128 @@ async function fixture(
       code = nextCode;
     },
   };
+}
+test('recent unread badge loads count only, survives closing and follows visible periods and marking read', async ({
+  page,
+}) => {
+  const { calls } = await fixture(page, { withCount: true });
+  const badge = page.locator('[data-pn-notifications-badge]');
+  await expect(badge).toHaveText('2');
+  expect(calls).toHaveLength(1);
+  expect(calls[0].url).toContain('/count');
+  await expect(page.locator('[data-notification-id]')).toHaveCount(0);
+  await page.locator('[data-pn-open-notifications]').click();
+  await expect(page.locator('[data-notification-id]')).toHaveCount(1);
+  await page.getByRole('button', { name: 'Close', exact: true }).click();
+  await expect(badge).toBeVisible();
+  await expect(page.locator('[data-notification-id]')).toHaveCount(0);
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, value: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await expect(badge).toBeHidden();
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, value: false });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await expect(badge).toHaveText('2');
+  expect(calls.filter((call) => call.url.includes('/count'))).toHaveLength(2);
+  await page.locator('[data-pn-open-notifications]').click();
+  await page.getByRole('button', { name: text.mark, exact: true }).click();
+  await expect(page.locator('[data-pn-notifications-status]')).toHaveText(`${text.recent} 0`);
+  await expect(badge).toBeHidden();
+});
+for (const options of [{ count: 0 }, { status: 401 }, { signedIn: false }]) {
+  test(`recent unread badge hides zero, expired and anonymous states: ${JSON.stringify(options)}`, async ({
+    page,
+  }) => {
+    const { calls } = await fixture(page, { withCount: true, ...options });
+    if (options.signedIn !== false) await expect.poll(() => calls.length).toBe(1);
+    await expect(page.locator('[data-pn-notifications-badge]')).toBeHidden();
+    await expect(page.locator('[data-notification-id]')).toHaveCount(0);
+    if (options.signedIn === false) expect(calls).toHaveLength(0);
+  });
+}
+test('recent unread badge waits for visibility and rejects a late count after a fresh read', async ({
+  page,
+}) => {
+  const { calls, release } = await fixture(page, {
+    withCount: true,
+    initiallyHidden: true,
+    delayedCount: true,
+    count: 99,
+  });
+  expect(calls).toHaveLength(0);
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, value: false });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await expect.poll(() => calls.length).toBe(1);
+  await page.locator('[data-pn-open-notifications]').click();
+  await page.getByRole('button', { name: text.mark, exact: true }).click();
+  await expect(page.locator('[data-pn-notifications-status]')).toHaveText(`${text.recent} 0`);
+  release();
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(resolve)));
+  await expect(page.locator('[data-pn-notifications-badge]')).toBeHidden();
+});
+test('recent unread badge and private rows clear when another reader feature reports authentication loss', async ({
+  page,
+}) => {
+  await fixture(page, { withCount: true });
+  await expect(page.locator('[data-pn-notifications-badge]')).toBeVisible();
+  await page.locator('[data-pn-open-notifications]').click();
+  await expect(page.locator('[data-notification-id]')).toHaveCount(1);
+  await page.evaluate(() => document.dispatchEvent(new Event('pagenest-pc-auth-change')));
+  await expect(page.locator('[data-pn-notifications-badge]')).toBeHidden();
+  await expect(page.locator('[data-notification-id]')).toHaveCount(0);
+});
+test('recent unread badge cannot be restored by a count that outlives authentication loss', async ({
+  page,
+}) => {
+  const { calls, release } = await fixture(page, { withCount: true, delayedCount: true });
+  await expect.poll(() => calls.length).toBe(1);
+  await page.evaluate(() => document.dispatchEvent(new Event('pagenest-pc-auth-change')));
+  release();
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(resolve)));
+  await expect(page.locator('[data-pn-notifications-badge]')).toBeHidden();
+});
+for (const width of [1440, 390]) {
+  test(`marking a reply read preserves the title column at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await fixture(page, {
+      listResponse: ({ read, enabled }) => ({
+        items: [
+          {
+            id: 11,
+            title: 'A complete long notification title that should remain readable',
+            author: 'Writer',
+            url: origin + '/article',
+            created: '2026-10-24T12:00:00Z',
+            read,
+          },
+          {
+            id: 12,
+            title: 'An already read notification',
+            author: 'Writer',
+            url: origin + '/article',
+            created: '2026-10-24T12:00:00Z',
+            read: true,
+          },
+        ],
+        page: 1,
+        pages: 1,
+        recentUnread: read ? 0 : 1,
+        enabled,
+      }),
+    });
+    await page.getByRole('button', { name: 'Notifications', exact: true }).click();
+    const links = page.locator('[data-notification-id] a');
+    const before = await links.first().boundingBox();
+    expect(Math.abs(before.x - (await links.nth(1).boundingBox()).x)).toBeLessThan(1);
+    await page.getByRole('button', { name: 'Mark as read' }).click();
+    await expect(page.locator('[data-notification-id="11"]')).toHaveAttribute('data-read', 'true');
+    expect(Math.abs((await links.first().boundingBox()).x - before.x)).toBeLessThan(1);
+  });
 }
 for (const plain of [false, true]) {
   test(`explicit open, pagination, read and opt-out with ${plain ? 'plain' : 'pretty'} permalinks`, async ({
@@ -268,16 +403,23 @@ test('anonymous shortcode keeps its sign-in prompt after pagehide and visibility
 for (const viewport of [
   { width: 320, height: 640 },
   { width: 390, height: 844 },
+  { width: 390, height: 520 },
   { width: 740, height: 320 },
 ]) {
   test(`close remains reachable after a long list scroll at ${viewport.width}x${viewport.height} and 200% text`, async ({
     page,
-  }) => {
+  }, testInfo) => {
     await page.setViewportSize(viewport);
-    await fixture(page, { itemCount: 10 });
+    await fixture(page, { itemCount: 12 });
     await page.addStyleTag({ content: 'body { font-size: 200%; }' });
+    if (process.env.PAGENEST_TEST_THEME_ROOT) {
+      await page.addStyleTag({
+        path: path.join(process.env.PAGENEST_TEST_THEME_ROOT, 'assets/presentation.css'),
+      });
+      await page.evaluate(() => (document.documentElement.dataset.pagenestColorScheme = 'dark'));
+    }
     await page.getByRole('button', { name: 'Notifications', exact: true }).click();
-    await expect(page.locator('.pn-notifications li')).toHaveCount(10);
+    await expect(page.locator('.pn-notifications li')).toHaveCount(12);
     const dateWidth = await page
       .locator('.pn-notifications li p')
       .first()
@@ -319,10 +461,21 @@ for (const viewport of [
         .locator('dialog')
         .evaluate((element) => element.scrollWidth <= element.clientWidth),
     ).toBeTruthy();
+    await expect(page.locator('.pn-notifications li')).toHaveCount(12);
+    await page.screenshot({ path: testInfo.outputPath('notifications-short-list.png') });
     await close.focus();
     await expect(close).toBeFocused();
+    await page.keyboard.press('Tab');
+    await close.focus();
+    expect(await close.evaluate((node) => getComputedStyle(node).outlineStyle)).not.toBe('none');
+    await page.screenshot({ path: testInfo.outputPath('notifications-short-close.png') });
     await page.keyboard.press('Enter');
     await expect(page.locator('dialog')).not.toBeVisible();
+    await expect(page.getByRole('button', { name: 'Notifications', exact: true })).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('.pn-notifications li')).toHaveCount(12);
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('button', { name: 'Notifications', exact: true })).toBeFocused();
   });
 }
 
