@@ -10,7 +10,7 @@
 
 <p align="center"><a href="#开始使用">开始使用</a> · <a href="docs/SHOWCASE.md">实际效果</a> · <a href="docs/index.md">文档</a> · <a href="docs/USAGE.md">安装指南</a> · <a href="CHANGELOG.md">更新记录</a></p>
 
-> 本文档对应 **1.10.2**。安装包与发行状态以仓库 **Releases** 为准，请使用对应版本附带的文档。
+> 文档随源码维护，当前已发行版本为 **1.10.2**；未发行改动见 [更新记录](CHANGELOG.md)。安装包与发行状态以仓库 **Releases** 为准。
 
 系列目录可在阅读设置中明确关联，章节返回、主题侧栏与 SEO 共用公开目录路径。旧文档可由服务器显式绑定系列，保留原内容与章节顺序。配置细节见 [扩展接口](docs/EXTENDING.md#系列目录关系)。
 

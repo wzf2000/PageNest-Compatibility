@@ -1,7 +1,7 @@
 <?php
 return [
-    'admin_design_css' => 'admin-design-6737239df002.css',
-    'admin_design_js' => 'admin-design-0bc9d309cf65.js',
+    'admin_design_css' => 'admin-design-0077e7a9cef5.css',
+    'admin_design_js' => 'admin-design-5c4a1f66b46d.js',
     'performance_admin_css' => 'performance-admin-0e369a5354bc.css',
     'performance_admin_js' => 'performance-admin-0c53c5bb08e7.js',
     'seo_editor_js' => 'seo-editor-e95194bc535e.js',

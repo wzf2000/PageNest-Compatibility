@@ -154,6 +154,9 @@ def main():
         wp("eval-file", str(installed / "tests/media-folders-wordpress.php"))
     )
     results["settings"] = json.loads(wp("eval-file", str(installed / "tests/wp-settings.php")))
+    results["series_maintenance"] = json.loads(
+        wp("eval-file", str(installed / "tests/wp-series-maintenance.php"))
+    )
     results["social_settings"] = json.loads(
         wp("eval-file", str(installed / "tests/social-settings-wordpress.php"))
     )

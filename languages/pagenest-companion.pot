@@ -2,6 +2,11 @@
 msgid ""
 msgstr "Project-Id-Version: PageNest Companion\nPO-Revision-Date: 2026-10-13 00:00+0000\nLast-Translator: PageNest Companion Contributors\nLanguage-Team: PageNest Companion Contributors\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\nX-Domain: pagenest-companion\n"
 
+#: modules/series-settings.php:235
+#, php-format
+msgid "%d existing documents have server-managed series bindings for directory links only. These bindings do not add chapters to a series."
+msgstr ""
+
 #: modules/privacy.php:205
 msgid "Account subject SHA-256"
 msgstr ""
@@ -54,6 +59,14 @@ msgstr ""
 msgid "Article"
 msgstr ""
 
+#: modules/series-maintenance.php:401
+msgid "Article series"
+msgstr ""
+
+#: modules/series-maintenance.php:185
+msgid "Atomic chapter saving requires InnoDB tables. No orders were saved."
+msgstr ""
+
 #: modules/media/quality.php:378
 msgid "Attachment text could not be saved."
 msgstr ""
@@ -82,6 +95,18 @@ msgstr ""
 msgid "Chapter navigation"
 msgstr ""
 
+#: modules/series-maintenance.php:527
+msgid "Chapter order"
+msgstr ""
+
+#: modules/series-maintenance.php:429
+msgid "Chapter orders saved."
+msgstr ""
+
+#: modules/series-maintenance.php:170
+msgid "Chapter orders were not saved. Refresh the series and try again."
+msgstr ""
+
 #: modules/media/quality.php:462
 msgid "Check next page"
 msgstr ""
@@ -94,12 +119,28 @@ msgstr ""
 msgid "Checking public image availability…"
 msgstr ""
 
+#: modules/series-settings.php:187
+msgid "Choose a page…"
+msgstr ""
+
 #: modules/reading/bootstrap.php:282
 msgid "Choose a paragraph"
 msgstr ""
 
 #: modules/reading/bootstrap.php:280
 msgid "Choose a replacement paragraph"
+msgstr ""
+
+#: modules/series-maintenance.php:403
+msgid "Choose a series…"
+msgstr ""
+
+#: modules/series-maintenance.php:366
+msgid "Choose an article series to inspect its navigation order. Directory-only document bindings do not define chapter membership. Saving here changes chapter order only."
+msgstr ""
+
+#: modules/series-settings.php:183
+msgid "Choose directory by title"
 msgstr ""
 
 #: modules/media/authoring.php:146
@@ -194,6 +235,10 @@ msgstr ""
 msgid "Created at"
 msgstr ""
 
+#: modules/series-settings.php:125
+msgid "Current directory:"
+msgstr ""
+
 #: modules/diagnostics.php:7
 msgid "Default"
 msgstr ""
@@ -226,6 +271,10 @@ msgstr ""
 msgid "Diagnostics are read-only and administrator-only. The export includes all modules, fixed boundary notes and versions. It excludes paths, URLs, accounts, credentials and user content. Configuration validity is not a live service test."
 msgstr ""
 
+#: modules/series-settings.php:201
+msgid "Directory page ID"
+msgstr ""
+
 #: modules/media/settings.php:102
 msgid "Disabled by default. New blocks select attachments directly; existing compatible blocks and imported mappings are preserved."
 msgstr ""
@@ -244,6 +293,10 @@ msgstr ""
 
 #: modules/privacy.php:97
 msgid "Document identity"
+msgstr ""
+
+#: modules/series-maintenance.php:509
+msgid "Duplicate order"
 msgstr ""
 
 #: modules/reading/bootstrap.php:266
@@ -280,6 +333,14 @@ msgstr ""
 
 #: modules/diagnostics.php:196 modules/diagnostics.php:244
 msgid "Enabled or available"
+msgstr ""
+
+#: modules/series-maintenance.php:138
+msgid "Enter a whole chapter order from 0 to 1000000 for every chapter."
+msgstr ""
+
+#: modules/series-maintenance.php:547
+msgid "Enter numeric orders, or move chapters with the buttons (keyboard accessible). Moving chapters numbers the entire displayed series from 1. Preview uses the same rules as reader navigation; duplicate orders fall back to document ID and article ID."
 msgstr ""
 
 #: modules/diagnostics.php:22
@@ -330,7 +391,7 @@ msgstr ""
 msgid "Group title"
 msgstr ""
 
-#: modules/content/editor.php:144 modules/discovery/bootstrap.php:144 modules/media/settings.php:110 modules/reading/bootstrap.php:228 modules/settings.php:118
+#: modules/content/editor.php:144 modules/discovery/bootstrap.php:144 modules/media/settings.php:110 modules/reading/bootstrap.php:228 modules/settings.php:120
 msgid "How this works"
 msgstr ""
 
@@ -369,6 +430,10 @@ msgstr ""
 
 #: modules/diagnostics.php:14
 msgid "Likes"
+msgstr ""
+
+#: modules/series-settings.php:150
+msgid "Link an exact article series name to a public directory page. Clear its ID to unlink."
 msgstr ""
 
 #: modules/content/editor.php:210 modules/reading/bootstrap.php:254
@@ -435,6 +500,10 @@ msgstr ""
 msgid "Missing caption"
 msgstr ""
 
+#: modules/series-maintenance.php:507
+msgid "Missing order"
+msgstr ""
+
 #: modules/media/quality.php:390
 msgid "Missing text"
 msgstr ""
@@ -451,11 +520,11 @@ msgstr ""
 msgid "Move a selected image to the front of this block. Attachment data stays in place."
 msgstr ""
 
-#: modules/content/editor.php:289
+#: modules/content/editor.php:289 modules/series-maintenance.php:539
 msgid "Move down"
 msgstr ""
 
-#: modules/content/editor.php:288
+#: modules/content/editor.php:288 modules/series-maintenance.php:537
 msgid "Move up"
 msgstr ""
 
@@ -485,6 +554,18 @@ msgstr ""
 
 #: modules/media/quality.php:578
 msgid "Next page"
+msgstr ""
+
+#: modules/series-settings.php:137
+msgid "No directory linked."
+msgstr ""
+
+#: admin-design.php:134
+msgid "No directory selected. Save reading settings to unlink."
+msgstr ""
+
+#: modules/series-maintenance.php:460
+msgid "No editable chapters found for this exact article series."
 msgstr ""
 
 #: modules/media/quality.php:570
@@ -599,6 +680,10 @@ msgstr ""
 msgid "Optional service configuration"
 msgstr ""
 
+#: admin-design.php:138
+msgid "Order changed. Preview again before saving."
+msgstr ""
+
 #: modules/content/editor.php:137
 msgid "Organize links to existing public articles and pages. Source content and chapter order stay with their existing owners."
 msgstr ""
@@ -639,12 +724,24 @@ msgstr ""
 msgid "Play slideshow automatically"
 msgstr ""
 
+#: modules/series-maintenance.php:552
+msgid "Preview chapter order"
+msgstr ""
+
+#: modules/series-maintenance.php:430
+msgid "Preview ready. Review the resulting order, then save."
+msgstr ""
+
 #: modules/content/editor.php:212
 msgid "Preview saved guide"
 msgstr ""
 
 #: modules/content/editor.php:192 modules/content/editor.php:292
 msgid "Preview source"
+msgstr ""
+
+#: modules/series-maintenance.php:338
+msgid "Preview these chapter orders before saving."
 msgstr ""
 
 #: modules/discovery/editor.php:259
@@ -776,6 +873,10 @@ msgstr ""
 msgid "Review each image separately, then save one attachment or submit this page. File data, ownership and existing content stay in place."
 msgstr ""
 
+#: modules/series-maintenance.php:556
+msgid "Save chapter orders"
+msgstr ""
+
 #: modules/reading/bootstrap.php:267
 msgid "Save text"
 msgstr ""
@@ -790,6 +891,10 @@ msgstr ""
 
 #: modules/reading/bootstrap.php:293
 msgid "Saved for later on this device."
+msgstr ""
+
+#: modules/series-maintenance.php:521
+msgid "Saved order:"
 msgstr ""
 
 #: modules/privacy.php:99
@@ -844,6 +949,26 @@ msgstr ""
 msgid "Select or reorder images"
 msgstr ""
 
+#: admin-design.php:126
+msgid "Selected directory (save reading settings to apply):"
+msgstr ""
+
+#: modules/series-maintenance.php:364
+msgid "Series chapters"
+msgstr ""
+
+#: modules/series-settings.php:148
+msgid "Series directories"
+msgstr ""
+
+#: modules/series-settings.php:174
+msgid "Series name"
+msgstr ""
+
+#: modules/series-maintenance.php:310
+msgid "Series request rejected. Refresh the page and try again."
+msgstr ""
+
 #: modules/diagnostics.php:103
 msgid "Server configuration"
 msgstr ""
@@ -854,6 +979,18 @@ msgstr ""
 
 #: modules/diagnostics.php:89
 msgid "Server content provider"
+msgstr ""
+
+#: modules/series-maintenance.php:452
+msgid "Server document order takes priority for this series. This view is read-only."
+msgstr ""
+
+#: modules/series-settings.php:217
+msgid "Server-managed directories"
+msgstr ""
+
+#: modules/series-settings.php:224
+msgid "Server-managed links take priority and cannot be edited here."
 msgstr ""
 
 #: modules/discovery/editor.php:194
@@ -908,6 +1045,14 @@ msgstr ""
 msgid "Text is invalid or too long."
 msgstr ""
 
+#: modules/series-maintenance.php:268
+msgid "The atomic save exceeded its locking budget. No chapter orders were saved."
+msgstr ""
+
+#: modules/series-maintenance.php:444
+msgid "The complete editable series is unavailable within this view. Only accessible chapters are shown; their positions are relative to this subset. No orders can be saved."
+msgstr ""
+
 #: modules/content/editor.php:296
 msgid "The guide has reached its group or link limit."
 msgstr ""
@@ -924,8 +1069,20 @@ msgstr ""
 msgid "The record changed. Reload and compare before saving. Your input is retained in this open page."
 msgstr ""
 
+#: modules/series-maintenance.php:373
+msgid "The related chapter metadata exceeds this view’s 2500-row budget. Chapter lookup is unavailable and no orders can be saved."
+msgstr ""
+
 #: modules/media/settings.php:29
 msgid "The stored gallery configuration is invalid. Ask your migration administrator to repair it before changing the toggle."
+msgstr ""
+
+#: modules/series-settings.php:211
+msgid "The title picker lists up to 200 public pages. You can also enter an ID, including pages outside this list. Without JavaScript, enter the page ID directly. Add one series per save, up to 200."
+msgstr ""
+
+#: admin-design.php:130
+msgid "This ID will be checked when reading settings are saved."
 msgstr ""
 
 #: modules/media/quality.php:373
@@ -953,6 +1110,18 @@ msgstr ""
 msgid "This preference does not change comment email settings."
 msgstr ""
 
+#: modules/series-maintenance.php:125
+msgid "This series cannot be reordered here."
+msgstr ""
+
+#: modules/series-maintenance.php:277 modules/series-maintenance.php:317
+msgid "This series changed after it was loaded. Refresh it before saving again."
+msgstr ""
+
+#: modules/series-maintenance.php:418
+msgid "This view scans up to 500 candidate articles, lists up to 100 chapters, and allows up to 2500 rows for the related chapter metadata keys. A partial or restricted series is read-only."
+msgstr ""
+
 #: modules/discovery/search.php:192
 msgid "Tool"
 msgstr ""
@@ -967,6 +1136,10 @@ msgstr ""
 
 #: modules/diagnostics.php:104
 msgid "Tools keep their own access controls; this page does not run or repair them."
+msgstr ""
+
+#: modules/series-settings.php:132
+msgid "Unavailable directory. The saved ID is retained; choose a public page or clear it to unlink."
 msgstr ""
 
 #: modules/content/editor.php:185
@@ -1010,6 +1183,10 @@ msgstr ""
 msgid "Verification failed. Please retry the security check."
 msgstr ""
 
+#: modules/series-maintenance.php:415
+msgid "View chapters"
+msgstr ""
+
 #: modules/media/authoring.php:145
 msgid "Viewer height"
 msgstr ""
@@ -1032,6 +1209,10 @@ msgstr ""
 
 #: modules/media/quality.php:143 modules/media/quality.php:379
 msgid "You cannot edit this attachment."
+msgstr ""
+
+#: modules/series-maintenance.php:165
+msgid "You cannot maintain this series."
 msgstr ""
 
 #: modules/paragraph-comments.php:784 modules/paragraph-comments.php:900

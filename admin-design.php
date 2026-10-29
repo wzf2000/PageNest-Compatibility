@@ -123,5 +123,18 @@ add_action('admin_enqueue_scripts', static function ($hook): void {
     );
     wp_localize_script('pagenest-companion-admin', 'PageNestAdmin', [
         'unsaved' => __('Unsaved changes.', 'pagenest-companion'),
+        'directoryPending' => __(
+            'Selected directory (save reading settings to apply):',
+            'pagenest-companion',
+        ),
+        'directoryCheck' => __(
+            'This ID will be checked when reading settings are saved.',
+            'pagenest-companion',
+        ),
+        'directoryUnlinked' => __(
+            'No directory selected. Save reading settings to unlink.',
+            'pagenest-companion',
+        ),
+        'seriesChanged' => __('Order changed. Preview again before saving.', 'pagenest-companion'),
     ]);
 });

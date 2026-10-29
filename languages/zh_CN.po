@@ -783,3 +783,138 @@ msgstr "社交登录"
 
 msgid "PageNest settings"
 msgstr "PageNest 设置"
+
+msgid "%d existing documents have server-managed series bindings for directory links only. These bindings do not add chapters to a series."
+msgstr "服务器为 %d 个已有文档指定了系列，仅用于目录关联，不会把这些文档加入章节系列。"
+
+msgid "Article series"
+msgstr "文章系列"
+
+msgid "Atomic chapter saving requires InnoDB tables. No orders were saved."
+msgstr "批量保存章节顺序需要 InnoDB 数据表，本次未保存任何顺序。"
+
+msgid "Chapter order"
+msgstr "章节顺序"
+
+msgid "Chapter orders saved."
+msgstr "章节顺序已保存。"
+
+msgid "Chapter orders were not saved. Refresh the series and try again."
+msgstr "章节顺序未保存，请刷新系列后重试。"
+
+msgid "Choose a page…"
+msgstr "选择页面…"
+
+msgid "Choose a series…"
+msgstr "选择系列…"
+
+msgid "Choose an article series to inspect its navigation order. Directory-only document bindings do not define chapter membership. Saving here changes chapter order only."
+msgstr "选择文章系列，查看章节导航的实际顺序。仅用于目录的文档关联不会决定章节归属；此处保存只修改章节顺序。"
+
+msgid "Choose directory by title"
+msgstr "按标题选择目录"
+
+msgid "Current directory:"
+msgstr "当前目录："
+
+msgid "Directory page ID"
+msgstr "目录页 ID"
+
+msgid "Duplicate order"
+msgstr "顺序重复"
+
+msgid "Enter a whole chapter order from 0 to 1000000 for every chapter."
+msgstr "请为每篇章节填写 0 到 1000000 的整数顺序。"
+
+msgid "Enter numeric orders, or move chapters with the buttons (keyboard accessible). Moving chapters numbers the entire displayed series from 1. Preview uses the same rules as reader navigation; duplicate orders fall back to document ID and article ID."
+msgstr "可直接填写顺序，也可用支持键盘操作的按钮移动章节。移动会将当前完整系列从 1 依次编号。预览沿用读者导航的排序规则；顺序重复时，按文档 ID 和文章 ID 排列。"
+
+msgid "Link an exact article series name to a public directory page. Clear its ID to unlink."
+msgstr "使用与文章设置完全一致的系列名称，关联公开目录页面。清空目录页 ID 可解除关联。"
+
+msgid "Missing order"
+msgstr "未填写顺序"
+
+msgid "No directory linked."
+msgstr "尚未关联目录。"
+
+msgid "No directory selected. Save reading settings to unlink."
+msgstr "未选择目录，保存阅读设置后解除关联。"
+
+msgid "No editable chapters found for this exact article series."
+msgstr "未找到属于此精确系列名称的可编辑章节。"
+
+msgid "Order changed. Preview again before saving."
+msgstr "顺序已调整，请重新预览后保存。"
+
+msgid "Preview chapter order"
+msgstr "预览章节顺序"
+
+msgid "Preview ready. Review the resulting order, then save."
+msgstr "预览已生成，核对排列结果后再保存。"
+
+msgid "Preview these chapter orders before saving."
+msgstr "请先预览本次章节顺序，再保存。"
+
+msgid "Save chapter orders"
+msgstr "保存章节顺序"
+
+msgid "Saved order:"
+msgstr "已保存顺序："
+
+msgid "Selected directory (save reading settings to apply):"
+msgstr "已选目录（保存阅读设置后生效）："
+
+msgid "Series chapters"
+msgstr "系列章节"
+
+msgid "Series directories"
+msgstr "系列目录"
+
+msgid "Series name"
+msgstr "系列名称"
+
+msgid "Series request rejected. Refresh the page and try again."
+msgstr "系列操作未通过校验，请刷新页面后重试。"
+
+msgid "Server document order takes priority for this series. This view is read-only."
+msgstr "此系列受服务器文档顺序优先规则控制，此处仅供查看。"
+
+msgid "Server-managed directories"
+msgstr "服务器管理的目录"
+
+msgid "Server-managed links take priority and cannot be edited here."
+msgstr "这些关联由服务器管理，优先于后台设置，不能在此修改。"
+
+msgid "The atomic save exceeded its locking budget. No chapter orders were saved."
+msgstr "本次保存超出事务锁定范围，未保存任何章节顺序。"
+
+msgid "The complete editable series is unavailable within this view. Only accessible chapters are shown; their positions are relative to this subset. No orders can be saved."
+msgstr "此处无法完整列出可编辑系列，仅显示当前可访问的章节，序号只代表这些章节之间的顺序，不能保存排序。"
+
+msgid "The title picker lists up to 200 public pages. You can also enter an ID, including pages outside this list. Without JavaScript, enter the page ID directly. Add one series per save, up to 200."
+msgstr "标题列表最多显示 200 个公开页面，也可直接填写列表之外的页面 ID。未启用 JavaScript 时可直接填写 ID。每次保存可增加一个系列，最多 200 个。"
+
+msgid "This ID will be checked when reading settings are saved."
+msgstr "保存阅读设置时会校验此页面 ID。"
+
+msgid "This series cannot be reordered here."
+msgstr "此系列不能在这里调整顺序。"
+
+msgid "This series changed after it was loaded. Refresh it before saving again."
+msgstr "此系列在加载后已发生变化，请刷新后重新预览和保存。"
+
+msgid "This view scans up to 500 candidate articles, lists up to 100 chapters, and allows up to 2500 rows for the related chapter metadata keys. A partial or restricted series is read-only."
+msgstr "此处最多检查 500 篇候选文章、显示 100 篇章节，相关章节元数据键合计不得超过 2500 条。未完整列出或受权限限制的系列仅供查看。"
+
+msgid "Unavailable directory. The saved ID is retained; choose a public page or clear it to unlink."
+msgstr "原目录当前不可用，已保留其 ID。可重新选择公开页面，或清空 ID 解除关联。"
+
+msgid "View chapters"
+msgstr "查看章节"
+
+msgid "You cannot maintain this series."
+msgstr "你没有维护此系列的权限。"
+
+msgid "The related chapter metadata exceeds this view’s 2500-row budget. Chapter lookup is unavailable and no orders can be saved."
+msgstr "相关章节元数据已超出此处 2500 条的检查范围，暂不能查询章节或保存顺序。"

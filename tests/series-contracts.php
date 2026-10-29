@@ -183,6 +183,27 @@ check(
     pagenest_companion_series_directory_sanitize($bad) === $old,
     'Invalid page rejects complete save',
 );
+$picked = $form;
+$picked['rows'][0]['page'] = '';
+$picked['rows'][0]['pick'] = '2';
+$picked['rows'][0]['original'] = '';
+check(
+    pagenest_companion_series_directory_sanitize($picked) === [
+        'New series' => 2,
+        ' Exact 系列 ' => 2,
+    ],
+    'Native title picker works without JavaScript ID synchronization',
+);
+$manual = $form;
+$manual['rows'][0]['pick'] = '';
+$manual['rows'][0]['original'] = '99';
+check(
+    pagenest_companion_series_directory_sanitize($manual) === [
+        'New series' => 2,
+        ' Exact 系列 ' => 2,
+    ],
+    'Manual ID remains authoritative when no title is selected',
+);
 $good = pagenest_companion_series_directory_sanitize($form);
 check(
     $good === ['New series' => 2, ' Exact 系列 ' => 2],

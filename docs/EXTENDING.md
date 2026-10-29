@@ -171,7 +171,7 @@ GitHub 和 Google 使用每次授权独立的 S256 PKCE；Google 同时绑定 no
 
 `library_provider` 默认为 `external`，保持原组织插件负责目录。显式设为 `native` 时由 Companion 注册附件层级分类法；未指定名称时使用 `pagenest_media_folder`，接管既有目录则保留原 `library_taxonomy`。不复制或改号，不覆盖已注册的分类法，不自动停用原插件。自有分类法不公开查询、不暴露 REST；管理员管理目录，上传者仅能分配自己有编辑权限的附件。分配页使用 WordPress nonce，先完整校验所选附件与目录，再追加／移除关系；中途失败保留已完成部分并明确提示。筛选与原查询条件取交集，原有媒体权限保持有效。目录归属仍是 WordPress 标准 term relationship，关闭或移除本功能不删除数据。
 
-媒体模块使用 WordPress option `pagenest_companion_media`。迁移工具在 WP-CLI 中先调用 `pagenest_companion_media_validate($input)`，再以 `update_option()` 保存验证后的配置。后台设置只修改启用开关并保留映射；没有配置或配置非法时关闭模块。不要在前台请求中执行迁移。
+媒体模块使用 WordPress option `pagenest_companion_media`。迁移工具在 WP-CLI 中先调用 `pagenest_companion_media_validate($input)`，再以 `update_option()` 保存验证后的配置。后台设置修改媒体展示开关和自有文件夹负责人选择，并保留画廊映射与已有分类法；首次选择自有模式且分类法为空时使用中性名称 `pagenest_media_folder`。原生媒体创作由独立开关控制。没有配置或配置非法时关闭媒体兼容模块。不要在前台请求中执行迁移。
 
 ```json
 {
@@ -235,3 +235,9 @@ Simplified Chinese and deterministic `npm run i18n` / `npm run i18n:check` catal
 阅读设置页保存整份后台映射，校验 manage_options、专用 nonce 和表单原值摘要。失效表单、遗漏原有关联或任一无效目录都拒绝整份保存，保留旧值。选择器只列出最多 200 个公开页面，可填写其他公开页面 ID；既有关联全部保留在表单中。运行时仍重新验证目录和祖先状态，后续变为私人或草稿的目录不会进入公开导航或 SEO。
 
 旧文章没有系列元数据时，可由服务器显式配置 `chapters.document_series: {"document-a":"manual-series"}` 和 `chapters.series_directories: {"manual-series":123}`。`pagenest_companion_directory_series($post_id)` 优先使用文章现有非空系列字符串，仅在其为空时读取所配置 `document_meta` 的显式绑定。此绑定只服务于目录关系，不改变同系列推荐的旧文档分组或章节排序，不写入文章元数据；未列出的文档不会推断归属。后台显示服务器托管的目录关系及文档绑定数。
+
+### 章节维护的保存边界
+
+阅读互动页签的章节维护只使用文章当前有效的 `series` 值确定成员，不把 `document_series` 目录绑定转为章节归属。前台与维护预览共用 `pagenest_companion_sort_series()`，保留显式文档顺序、数值顺序及原有回退比较规则；服务器 `series_order` 涉及的系列只读，`series_directories` 单独存在不限制章节编辑。
+
+保存需要 `manage_options`、每篇文章的读取／编辑权限、nonce、完整成员输入、旧值摘要及对应预览签名。请求在 InnoDB 事务内锁定有限的系列候选与相关元数据，重新校验当前状态，再通过 WordPress 元数据 API 仅写 `_pagenest_chapter_order`；冲突或任一更新失败时回滚。不能保证完整读取或事务能力时不保存，不降级成逐篇部分写入。该入口不修改内容、来源绑定、旧存储键或私人记录。详细操作与规模限制见 [使用指南](USAGE.md#维护整组章节顺序)。
