@@ -460,12 +460,19 @@
       ...(body ? { body: JSON.stringify(body) } : {}),
     });
     if (generation !== state.generation) throw Object.assign(Error('过期响应'), { stale: true });
-    if (response.status === 401 || response.status === 403) {
+    const data = await response.json().catch((error) => {
+      if (response.ok) throw error;
+      return {};
+    });
+    if (generation !== state.generation) throw Object.assign(Error('过期响应'), { stale: true });
+    if (response.status === 401 || data?.code === 'rest_cookie_invalid_nonce') {
+      document.dispatchEvent(new Event('pagenest-pc-auth-change'));
+      throw Object.assign(Error('登录状态已变化'), { stale: true });
+    }
+    if (response.status === 403) {
       clearSession('登录或阅读权限已变化，请重新加载。');
       throw Object.assign(Error('权限已变化'), { stale: true });
     }
-    const data = await response.json();
-    if (generation !== state.generation) throw Object.assign(Error('过期响应'), { stale: true });
     if (!response.ok)
       throw Error(
         response.status === 409

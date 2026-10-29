@@ -207,3 +207,33 @@
 [data-pn-notifications-badge][hidden] {
   display: none;
 }
+
+.pn-notifications-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block: 16px;
+}
+.pn-notifications-filters [aria-pressed='true'] {
+  border-color: var(--pagenest-accent, #426354);
+  box-shadow: inset 0 0 0 1px var(--pagenest-accent, #426354);
+  font-weight: 600;
+}
+
+/* Shortcode controls retain their component spacing inside article typography. */
+.pagenest-article-body .pn-notifications[data-pn-notifications] ul {
+  padding: 0;
+  margin: 1em 0;
+}
+.pagenest-article-body .pn-notifications[data-pn-notifications] li {
+  margin: 0;
+  line-height: inherit;
+}
+.pagenest-article-body .pn-notifications[data-pn-notifications] p {
+  margin: 0.5em 0;
+}
+.pagenest-article-body .pn-notifications[data-pn-notifications] li p {
+  margin: 6px 0 0;
+  font-size: 0.9em;
+  color: var(--pagenest-muted, #657169);
+}

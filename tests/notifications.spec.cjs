@@ -4,6 +4,12 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '..');
 const origin = 'http://notifications.fixture.test';
 const text = {
+  all: 'All',
+  filter: 'Show notifications',
+  batch: 'Mark this page as read',
+  partial: 'Some notifications could not be marked as read. The list has been refreshed.',
+  paragraph: 'Public paragraph comment',
+  reply: 'Comment reply',
   load: 'Load notifications',
   refresh: 'Refresh notifications',
   window: 'Only the latest 100 eligible replies are checked.',
@@ -55,6 +61,7 @@ async function fixture(
       : `${origin}/wp-json/pagenest/v1/notifications${suffix}`;
   const config = {
     api: endpoint(),
+    batchApi: endpoint('/read-page'),
     readApi: endpoint('/read'),
     preferenceApi: endpoint('/preference'),
     nonce: signedIn ? 'synthetic' : '',
@@ -78,10 +85,15 @@ async function fixture(
       if (delayedCount) await waiting;
       return route.fulfill({ json: { recentUnread: count } });
     }
-    if (action.endsWith('/read')) read = true;
+    if (action.endsWith('/read') || action.endsWith('/read-page')) read = true;
     if (action.endsWith('/preference')) enabled = route.request().postDataJSON().enabled;
     const pageNumber = Number(url.searchParams.get('page') || 1);
-    const list = listResponse?.({ read, pageNumber, enabled }) ?? {
+    const list = listResponse?.({
+      read,
+      pageNumber,
+      enabled,
+      filter: url.searchParams.get('filter') || 'all',
+    }) ?? {
       items: Array.from({ length: itemCount }, (_, index) => ({
         id: pageNumber * 10 + index,
         title: 'Synthetic public article',
@@ -96,11 +108,12 @@ async function fixture(
       enabled,
     };
     await route.fulfill({
-      json: action.endsWith('/read')
-        ? { read: true }
-        : action.endsWith('/preference')
-          ? { enabled }
-          : list,
+      json:
+        action.endsWith('/read') || action.endsWith('/read-page')
+          ? { read: true }
+          : action.endsWith('/preference')
+            ? { enabled }
+            : list,
     });
   });
   await page.goto(origin);
@@ -516,4 +529,158 @@ test('a canceled mutation response cannot clear another panel loaded afterward',
   await expect(panels.nth(1).locator('li')).toHaveCount(1);
   await expect(panels.nth(0).locator('[data-pn-notifications-result]')).toBeEmpty();
   expect(calls).toHaveLength(3);
+});
+
+test('filters paginate within the current window and page read sends typed identities', async ({
+  page,
+}) => {
+  const { calls } = await fixture(page, {
+    withCount: true,
+    listResponse: ({ read, filter, pageNumber }) => ({
+      items:
+        filter === 'unread' && read
+          ? []
+          : [
+              {
+                id: 42,
+                kind: 'paragraph_comment',
+                title: 'Paragraph article',
+                author: 'Writer',
+                url: origin + '/#block-42',
+                created: '2026-10-24T12:00:00Z',
+                read,
+              },
+              ...(filter === 'all'
+                ? [
+                    {
+                      id: 42,
+                      kind: 'comment_reply',
+                      title: 'Ordinary article',
+                      author: 'Writer',
+                      url: origin + '/#comment-42',
+                      created: '2026-10-24T11:00:00Z',
+                      read: true,
+                    },
+                  ]
+                : []),
+            ],
+      page: pageNumber,
+      pages: 2,
+      recentUnread: read ? 0 : 1,
+      enabled: true,
+    }),
+  });
+  await page.locator('[data-pn-open-notifications]').click();
+  await expect(page.locator('[data-notification-key="paragraph_comment:42"]')).toBeVisible();
+  await expect(page.locator('[data-notification-key="comment_reply:42"]')).toBeVisible();
+  await page.getByRole('button', { name: 'Unread', exact: true }).click();
+  await expect(page.locator('li')).toHaveCount(1);
+  await expect(page.getByRole('button', { name: 'Unread', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await expect
+    .poll(() =>
+      calls.some((call) => call.url.includes('page=2') && call.url.includes('filter=unread')),
+    )
+    .toBeTruthy();
+  await page.getByRole('button', { name: text.batch, exact: true }).click();
+  await expect(page.locator('li')).toHaveCount(0);
+  expect(calls.find((call) => call.url.endsWith('/read-page')).body).toEqual({
+    items: [{ kind: 'paragraph_comment', id: 42 }],
+  });
+  await expect(page.getByRole('button', { name: text.batch, exact: true })).toBeDisabled();
+});
+
+test('partial page write failure refreshes actual state and remains explicit', async ({ page }) => {
+  const { calls } = await fixture(page, { itemCount: 2 });
+  let attempted = false;
+  await page.route('**/wp-json/pagenest/v1/notifications/read-page', (route) => {
+    attempted = true;
+    return route.fulfill({
+      status: 503,
+      json: {
+        code: 'notifications_partial',
+        data: { written: [{ kind: 'comment_reply', id: 10 }] },
+      },
+    });
+  });
+  await page.getByRole('button', { name: 'Notifications', exact: true }).click();
+  await page.getByRole('button', { name: text.batch, exact: true }).click();
+  await expect(page.locator('[data-pn-notifications-status]')).toHaveText(text.partial);
+  expect(attempted).toBeTruthy();
+  expect(calls.filter((call) => call.url.includes('page=1'))).toHaveLength(2);
+  await expect(page.locator('li')).toHaveCount(2);
+});
+
+test('keyboard preference and filter changes retain expanded settings and focus', async ({
+  page,
+}) => {
+  await fixture(page);
+  await page.getByRole('button', { name: 'Notifications', exact: true }).click();
+  await page.getByText(text.settings, { exact: true }).click();
+  const choice = page.getByRole('checkbox');
+  await choice.focus();
+  await page.keyboard.press('Space');
+  await expect(page.locator('[data-pn-notifications-status]')).toHaveText(text.saved);
+  await expect(choice).toBeFocused();
+  await expect(choice).not.toBeChecked();
+  await expect(page.locator('details')).toHaveAttribute('open', '');
+  await page.getByRole('button', { name: 'Unread', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('button', { name: 'Unread', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  await expect(page.getByRole('button', { name: 'Unread', exact: true })).toBeFocused();
+  await expect(page.locator('details')).toHaveAttribute('open', '');
+  await page.getByRole('button', { name: 'All', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('button', { name: 'All', exact: true })).toBeFocused();
+  await expect(page.getByRole('button', { name: 'All', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+});
+test('notification shortcode keeps dialog list and metadata spacing under real article CSS', async ({
+  page,
+}) => {
+  test.skip(!process.env.PAGENEST_TEST_THEME_ROOT, 'requires the actual theme content stylesheet');
+  await fixture(page, { panels: 1 });
+  await page.evaluate(() => {
+    const root = document.querySelector('body > [data-pn-notifications]');
+    const article = document.createElement('article');
+    article.className = 'pagenest-article-body';
+    article.style.cssText = '--pagenest-reading-size:16px;--pagenest-reading-line-height:1.6';
+    root.before(article);
+    article.append(root);
+  });
+  // Load theme CSS last: component specificity must survive either enqueue order.
+  await page.addStyleTag({
+    path: path.join(process.env.PAGENEST_TEST_THEME_ROOT, 'assets/content.css'),
+  });
+  const shortcode = page.locator('article [data-pn-notifications]');
+  await shortcode.locator('[data-pn-notifications-load]').click();
+  await page.locator('[data-pn-open-notifications]').click();
+  const measure = (scope) =>
+    scope.evaluate((root) => {
+      const ul = getComputedStyle(root.querySelector('ul'));
+      const li = getComputedStyle(root.querySelector('li'));
+      const meta = getComputedStyle(root.querySelector('li p'));
+      return {
+        indent: ul.paddingInlineStart,
+        listMargin: ul.marginBottom,
+        rowMargin: li.marginTop,
+        rowHeight: li.lineHeight,
+        metaSize: meta.fontSize,
+        metaSpace: meta.marginBottom,
+        metaTop: meta.marginTop,
+        metaColor: meta.color,
+      };
+    });
+  const actual = await measure(shortcode);
+  expect(actual.indent).toBe('0px');
+  expect(actual.metaSpace).toBe('0px');
+  expect(actual).toEqual(await measure(page.locator('dialog [data-pn-notifications]')));
 });

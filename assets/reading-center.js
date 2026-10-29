@@ -29,7 +29,8 @@
   const key = 'pagenest.reading.v1';
   let device = { enabled: false, items: [] },
     storageOK = true,
-    resolving = 0;
+    resolving = 0,
+    deviceGeneration = 0;
   function readDevice() {
     try {
       const saved = JSON.parse(localStorage.getItem(key) || 'null');
@@ -69,6 +70,7 @@
   readDevice();
   function remember(later = false) {
     if (!device.enabled || !cfg.current || !storageOK) return false;
+    deviceGeneration++;
     const old = device.items.find((item) => item.id === cfg.current.id);
     const body = document.querySelector('.pagenest-article-body, .entry-content');
     let anchor = '';
@@ -116,6 +118,7 @@
       toggle.disabled = !storageOK;
       label.append(toggle, document.createTextNode(' ' + t.consent));
       toggle.addEventListener('change', () => {
+        deviceGeneration++;
         device = { enabled: toggle.checked, items: toggle.checked ? device.items : [] };
         if (persist()) {
           remember();
@@ -141,6 +144,7 @@
         const management = node('details', undefined, 'pn-reading-management');
         management.open = Boolean(managementOpen);
         const clearButton = button(t.clear, () => {
+          deviceGeneration++;
           device.items = [];
           persist();
           deviceMessage = storageOK ? t.deviceCleared : t.unavailable;
@@ -215,6 +219,7 @@
           date.dateTime = new Date(item.time).toISOString();
           body.append(link, date);
           const remove = button(t.remove, () => {
+            deviceGeneration++;
             device.items = device.items.filter((saved) => saved.id !== item.id);
             persist();
             renderDevice();
@@ -245,7 +250,8 @@
     }
   }
   addEventListener('storage', (event) => {
-    if (event.key !== key) return;
+    if (event.key !== key && event.key !== null) return;
+    deviceGeneration++;
     readDevice();
     renderDevice();
   });
@@ -328,7 +334,13 @@
         });
         const data = await response.json();
         if (turn !== generation) throw Object.assign(Error(), { stale: true });
-        if ([401, 403].includes(response.status) || data?.code === 'comments_disabled') {
+        if (response.status === 401 || data?.code === 'rest_cookie_invalid_nonce') {
+          document.dispatchEvent(new Event('pagenest-pc-auth-change'));
+          centers.forEach((center) => center.clear(t.error));
+          accountCenters.forEach((center) => center.clear(cfg.accountText.loginRequired));
+          throw Object.assign(Error(), { stale: true });
+        }
+        if (response.status === 403 || data?.code === 'comments_disabled') {
           centers.forEach((center) => center.clear(t.error));
           throw Object.assign(Error(), { stale: true });
         }
@@ -622,6 +634,328 @@
       validate,
     });
   });
+  // Account state stays inside each panel; the device store remains independently opt-in.
+  const accountCenters = [];
+  function accountPanel(view) {
+    const a = cfg.accountText;
+    let state = null,
+      generation = 0,
+      pending = false;
+    const controllers = new Set();
+    const content = node('div');
+    const status = node('p', '', 'pn-reading-hint');
+    status.setAttribute('role', 'status');
+    const loadButton = button(a.load, () => load());
+    loadButton.dataset.pnAccountLoad = '';
+    const intro = node('p', a.intro, 'pn-reading-hint');
+    view.append(node('h3', a.title), intro);
+    if (!cfg.nonce) {
+      const login = node('a', t.login);
+      login.href = safeUrl(cfg.login);
+      view.append(login);
+      return { view, clear() {} };
+    }
+    view.append(loadButton, status, content);
+    function clear(message = '') {
+      generation++;
+      controllers.forEach((controller) => controller.abort());
+      controllers.clear();
+      state = null;
+      pending = false;
+      content.replaceChildren();
+      status.textContent = message;
+      loadButton.disabled = false;
+      loadButton.textContent = a.load;
+      intro.hidden = false;
+    }
+    async function api(action = '', body) {
+      const turn = generation,
+        controller = new AbortController();
+      controllers.add(controller);
+      const timeout = setTimeout(() => controller.abort(), 15000);
+      try {
+        let url = new URL(cfg.accountApi, location.href);
+        if (action) {
+          if (url.searchParams.has('rest_route'))
+            url.searchParams.set('rest_route', url.searchParams.get('rest_route') + '/' + action);
+          else url.pathname = url.pathname.replace(/\/$/, '') + '/' + action;
+        }
+        const response = await fetch(safeUrl(url.href), {
+          method: body === undefined ? 'GET' : 'POST',
+          credentials: 'same-origin',
+          cache: 'no-store',
+          signal: controller.signal,
+          headers: { 'X-WP-Nonce': cfg.nonce, 'Content-Type': 'application/json' },
+          ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+        });
+        const data = await response.json();
+        if (turn !== generation) throw Object.assign(Error(), { stale: true });
+        if (response.status === 401 || data?.code === 'rest_cookie_invalid_nonce') {
+          document.dispatchEvent(new Event('pagenest-pc-auth-change'));
+          accountCenters.forEach((center) => center.clear(a.loginRequired));
+          throw Object.assign(Error(), { stale: true });
+        }
+        if (response.status === 403) {
+          accountCenters.forEach((center) =>
+            center.clear(
+              data?.code === 'account_reading_consent' ? a.needConsent : a.featureUnavailable,
+            ),
+          );
+          throw Object.assign(Error(), { stale: true });
+        }
+        if (!response.ok)
+          throw Object.assign(
+            Error(
+              response.status === 409
+                ? a.conflict
+                : data?.code === 'account_reading_readback'
+                  ? a.savedReadback
+                  : a.error,
+            ),
+            { conflict: response.status === 409 },
+          );
+        return data;
+      } catch (error) {
+        if (turn !== generation) error.stale = true;
+        throw error;
+      } finally {
+        clearTimeout(timeout);
+        controllers.delete(controller);
+      }
+    }
+    function render() {
+      const managementOpen = content.querySelector('[data-pn-account-manage]')?.open;
+      const helpOpen = content.querySelector('.pn-reading-help')?.open;
+      content.replaceChildren();
+      if (!state) return;
+      intro.hidden = true;
+      if (state.available === false) {
+        content.append(node('p', a.paused, 'pn-reading-hint'));
+        if (state.enabled) {
+          const withdraw = button(a.withdraw, () => {
+            if (confirm(a.confirmWithdraw)) mutate('withdraw');
+          });
+          withdraw.dataset.pnAccountWithdraw = '';
+          content.append(withdraw);
+        }
+        return;
+      }
+      if (!state.enabled) {
+        const label = node('label', undefined, 'pn-reading-consent');
+        const consent = node('input');
+        consent.type = 'checkbox';
+        consent.dataset.pnAccountConsent = '';
+        label.append(consent, document.createTextNode(' ' + a.consent));
+        const enable = button(a.enable, () => {
+          if (consent.checked) mutate('consent', { enabled: true });
+        });
+        enable.dataset.pnAccountEnable = '';
+        enable.disabled = true;
+        consent.addEventListener('change', () => {
+          enable.disabled = !consent.checked;
+        });
+        content.append(node('p', a.off), label, enable);
+        return;
+      }
+      const merge = button(a.merge, () => {
+        readDevice();
+        if (!storageOK || !device.enabled || !persist()) {
+          status.textContent = a.localRequired;
+          return;
+        }
+        const snapshot = { state: JSON.stringify(device), generation: deviceGeneration };
+        mutate(
+          'merge',
+          { items: device.items.map((item) => ({ ...item, time: Math.trunc(item.time) })) },
+          snapshot,
+        );
+      });
+      merge.dataset.pnAccountMerge = '';
+      const mergeHelp = help(a.mergeHelp);
+      mergeHelp.open = Boolean(helpOpen);
+      content.append(merge, node('p', a.mergeSummary, 'pn-reading-hint'), mergeHelp);
+      const list = node('ul', undefined, 'pn-reading-device-items');
+      const management = node('details', undefined, 'pn-reading-management');
+      management.dataset.pnAccountManage = '';
+      management.open = Boolean(managementOpen);
+      management.append(node('summary', a.manage), node('p', a.deleteHelp));
+      state.items.forEach((item) => {
+        const li = node('li'),
+          body = node('div', undefined, 'pn-reading-item-body'),
+          link = node('a', item.title);
+        link.href = safeUrl(item.url + (item.anchor ? '#' + encodeURIComponent(item.anchor) : ''));
+        const date = node(
+          'time',
+          new Intl.DateTimeFormat(document.documentElement.lang || undefined, {
+            month: 'short',
+            day: 'numeric',
+          }).format(item.time),
+        );
+        date.dateTime = new Date(item.time).toISOString();
+        body.append(link, date);
+        if (item.later) body.append(node('span', t.later, 'pn-reading-kicker'));
+        li.append(body);
+        list.append(li);
+        const remove = button(a.remove + ': ' + item.title, () => {
+          if (confirm(a.confirmRemove)) mutate('remove', { id: item.id });
+        });
+        remove.dataset.pnAccountRemove = String(item.id);
+        management.append(remove);
+      });
+      const clearButton = button(a.clear, () => {
+        if (confirm(a.confirmClear)) mutate('clear');
+      });
+      clearButton.dataset.pnAccountClear = '';
+      const withdraw = button(a.withdraw, () => {
+        if (confirm(a.confirmWithdraw)) mutate('withdraw');
+      });
+      withdraw.dataset.pnAccountWithdraw = '';
+      management.append(clearButton, withdraw);
+      content.append(
+        state.items.length ? list : node('p', t.empty, 'pn-reading-empty'),
+        management,
+      );
+    }
+    async function load() {
+      if (pending) return;
+      clear();
+      const turn = generation;
+      pending = true;
+      loadButton.disabled = true;
+      status.textContent = t.loading;
+      try {
+        const data = await api();
+        if (turn !== generation) return;
+        state = data;
+        render();
+        loadButton.textContent = a.refresh;
+        status.textContent = '';
+      } catch (error) {
+        if (!error.stale) clear(a.error);
+      } finally {
+        if (turn === generation) {
+          pending = false;
+          loadButton.disabled = false;
+        }
+      }
+    }
+    async function mutate(action, input = {}, deviceSnapshot = null) {
+      if (pending || !state) return;
+      const turn = generation;
+      const manageAction = action === 'remove' || action === 'clear';
+      const removedIndex =
+        action === 'remove' ? state.items.findIndex((item) => item.id === input.id) : -1;
+      const neighborIds =
+        removedIndex < 0
+          ? []
+          : [
+              ...state.items.slice(removedIndex + 1).map((item) => item.id),
+              ...state.items
+                .slice(0, removedIndex)
+                .reverse()
+                .map((item) => item.id),
+            ];
+      const focusOrigin = document.activeElement;
+      const focusWasInside = view.contains(focusOrigin);
+      let focusMoved = false;
+      const moved = (event) => {
+        if (manageAction) {
+          if (
+            (event.type === 'pointerdown' || event.target !== document.body) &&
+            event.target !== focusOrigin
+          )
+            focusMoved = true;
+        } else if (!view.contains(event.target)) focusMoved = true;
+      };
+      document.addEventListener('focusin', moved);
+      document.addEventListener('pointerdown', moved);
+      pending = true;
+      view.querySelectorAll('button, input').forEach((control) => {
+        control.disabled = true;
+      });
+      status.textContent = t.loading;
+      try {
+        const data = await api(action, { ...input, revision: state.revision });
+        if (turn !== generation) return;
+        accountCenters
+          .filter((center) => center.view !== view)
+          .forEach((center) => center.clear(a.changed));
+        state = data;
+        let message = action === 'merge' ? a.merged : action === 'consent' ? a.enabled : a.saved;
+        if (action === 'merge') {
+          if (data.available === false) message = a.serverPaused;
+          else {
+            readDevice();
+            if (
+              !storageOK ||
+              !device.enabled ||
+              JSON.stringify(device) !== deviceSnapshot.state ||
+              deviceGeneration !== deviceSnapshot.generation
+            )
+              message = a.serverOnly;
+            else {
+              device.items = data.items.map(({ id, time, later, anchor }) => ({
+                id,
+                time,
+                later,
+                anchor,
+              }));
+              message = persist() ? a.merged : a.serverOnly;
+              renderDevice();
+            }
+          }
+        }
+        const redrawFocus =
+          manageAction && content.contains(document.activeElement) ? document.activeElement : null;
+        const redrawHref = redrawFocus?.matches('a[href]') ? redrawFocus.href : null;
+        const redrawSummary = redrawFocus?.matches('summary')
+          ? redrawFocus.closest('[data-pn-account-manage]')
+            ? '[data-pn-account-manage] > summary'
+            : redrawFocus.closest('.pn-reading-help')
+              ? '.pn-reading-help > summary'
+              : null
+          : null;
+        render();
+        if (redrawFocus && !redrawFocus.isConnected && document.activeElement === document.body) {
+          const replacement = redrawHref
+            ? [...content.querySelectorAll('a[href]')].find((link) => link.href === redrawHref)
+            : redrawSummary
+              ? content.querySelector(redrawSummary)
+              : null;
+          replacement?.focus({ preventScroll: true });
+        }
+        status.textContent = message;
+        loadButton.textContent = a.refresh;
+        loadButton.disabled = false;
+        if (focusWasInside && !focusMoved) {
+          let focusTarget = loadButton;
+          const management = content.querySelector('[data-pn-account-manage]');
+          if (manageAction && management?.open) {
+            focusTarget =
+              action === 'clear'
+                ? management.querySelector('[data-pn-account-withdraw]')
+                : neighborIds
+                    .map((id) => management.querySelector(`[data-pn-account-remove="${id}"]`))
+                    .find(Boolean) || management.querySelector('[data-pn-account-clear]');
+          }
+          (focusTarget || loadButton).focus({ preventScroll: true });
+        }
+      } catch (error) {
+        if (!error.stale) {
+          clear(error.message || a.error);
+          if (focusWasInside && !focusMoved) loadButton.focus({ preventScroll: true });
+        }
+      } finally {
+        document.removeEventListener('focusin', moved);
+        document.removeEventListener('pointerdown', moved);
+        if (turn === generation) {
+          pending = false;
+          loadButton.disabled = false;
+        }
+      }
+    }
+    return { view, clear };
+  }
   document.querySelectorAll('.pn-reading').forEach((root, index) => {
     const deviceView = root.querySelector('[data-pn-device]'),
       records = root.querySelector('[data-pn-records]');
@@ -630,37 +964,54 @@
     const tabs = node('div', undefined, 'pn-reading-tabs');
     tabs.setAttribute('role', 'tablist');
     tabs.setAttribute('aria-label', t.reading);
+    const account = cfg.accountApi ? node('div') : null;
+    if (account) {
+      account.dataset.pnAccount = '';
+      root.append(account);
+      accountCenters.push(accountPanel(account));
+    }
     const entries = [
       ['recent', t.recent],
       ['later', t.later],
       ['records', t.notes],
+      ...(account ? [['account', cfg.accountText.title]] : []),
     ];
     const select = (selected, focus = false, initial = false) => {
       if (!initial && root.dataset.pnView === selected) return;
       if (root.dataset.pnView === 'records' && selected !== 'records') {
         centers.filter((center) => root.contains(center.view)).forEach((center) => center.clear());
       }
+      if (root.dataset.pnView === 'account' && selected !== 'account')
+        accountCenters
+          .filter((center) => root.contains(center.view))
+          .forEach((center) => center.clear());
       root.dataset.pnView = selected;
-      deviceView.hidden = selected === 'records';
+      deviceView.hidden = ['records', 'account'].includes(selected);
+      if (account) account.hidden = selected !== 'account';
       records.hidden = selected !== 'records';
       [...tabs.children].forEach((tab) => {
         const active = tab.dataset.pnTab === selected;
         tab.setAttribute('aria-selected', String(active));
         tab.tabIndex = active ? 0 : -1;
         if (active) {
-          (selected === 'records' ? records : deviceView).setAttribute('aria-labelledby', tab.id);
+          (selected === 'account'
+            ? account
+            : selected === 'records'
+              ? records
+              : deviceView
+          ).setAttribute('aria-labelledby', tab.id);
           if (focus) tab.focus();
         }
       });
-      if (selected !== 'records' && !initial) renderDevice();
+      if (['recent', 'later'].includes(selected) && !initial) renderDevice();
     };
     for (const [value, label] of entries) {
       const tab = button(label, () => select(value));
       tab.id = `pn-reading-${index}-tab-${value}`;
       tab.dataset.pnTab = value;
       tab.setAttribute('role', 'tab');
-      const panel = value === 'records' ? records : deviceView;
-      panel.id ||= `pn-reading-${index}-${value === 'records' ? 'records' : 'device'}`;
+      const panel = value === 'account' ? account : value === 'records' ? records : deviceView;
+      panel.id ||= `pn-reading-${index}-${value === 'account' ? 'account' : value === 'records' ? 'records' : 'device'}`;
       panel.setAttribute('role', 'tabpanel');
       panel.tabIndex = 0;
       tab.setAttribute('aria-controls', panel.id);
@@ -726,6 +1077,8 @@
     .querySelector('[data-pn-close-reading]')
     ?.addEventListener('click', () => dialog.close());
   dialog?.addEventListener('close', () => {
+    if (dialog.open) return;
+    accountCenters.forEach((center) => center.clear());
     centers.forEach((center) => center.clear());
     const candidates = [
       dialogOpener,
@@ -751,6 +1104,7 @@
     target?.focus({ preventScroll: true });
   });
   const clear = () => {
+    accountCenters.forEach((center) => center.clear());
     centers.forEach((center) => center.clear());
     resolving++;
     deviceViews.forEach((view) => view.replaceChildren());

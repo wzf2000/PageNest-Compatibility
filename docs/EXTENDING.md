@@ -171,7 +171,7 @@ GitHub 和 Google 使用每次授权独立的 S256 PKCE；Google 同时绑定 no
 
 `library_provider` 默认为 `external`，保持原组织插件负责目录。显式设为 `native` 时由 Companion 注册附件层级分类法；未指定名称时使用 `pagenest_media_folder`，接管既有目录则保留原 `library_taxonomy`。不复制或改号，不覆盖已注册的分类法，不自动停用原插件。自有分类法不公开查询、不暴露 REST；管理员管理目录，上传者仅能分配自己有编辑权限的附件。分配页使用 WordPress nonce，先完整校验所选附件与目录，再追加／移除关系；中途失败保留已完成部分并明确提示。筛选与原查询条件取交集，原有媒体权限保持有效。目录归属仍是 WordPress 标准 term relationship，关闭或移除本功能不删除数据。
 
-媒体模块使用 WordPress option `pagenest_companion_media`。迁移工具在 WP-CLI 中先调用 `pagenest_companion_media_validate($input)`，再以 `update_option()` 保存验证后的配置。后台设置只修改启用开关并保留映射；没有配置或配置非法时关闭模块。不要在前台请求中执行迁移。
+媒体模块使用 WordPress option `pagenest_companion_media`。迁移工具在 WP-CLI 中先调用 `pagenest_companion_media_validate($input)`，再以 `update_option()` 保存验证后的配置。后台设置修改媒体展示开关和自有文件夹负责人选择，并保留画廊映射与已有分类法；首次选择自有模式且分类法为空时使用中性名称 `pagenest_media_folder`。原生媒体创作由独立开关控制。没有配置或配置非法时关闭媒体兼容模块。不要在前台请求中执行迁移。
 
 ```json
 {
@@ -235,3 +235,29 @@ Simplified Chinese and deterministic `npm run i18n` / `npm run i18n:check` catal
 阅读设置页保存整份后台映射，校验 manage_options、专用 nonce 和表单原值摘要。失效表单、遗漏原有关联或任一无效目录都拒绝整份保存，保留旧值。选择器只列出最多 200 个公开页面，可填写其他公开页面 ID；既有关联全部保留在表单中。运行时仍重新验证目录和祖先状态，后续变为私人或草稿的目录不会进入公开导航或 SEO。
 
 旧文章没有系列元数据时，可由服务器显式配置 `chapters.document_series: {"document-a":"manual-series"}` 和 `chapters.series_directories: {"manual-series":123}`。`pagenest_companion_directory_series($post_id)` 优先使用文章现有非空系列字符串，仅在其为空时读取所配置 `document_meta` 的显式绑定。此绑定只服务于目录关系，不改变同系列推荐的旧文档分组或章节排序，不写入文章元数据；未列出的文档不会推断归属。后台显示服务器托管的目录关系及文档绑定数。
+
+### 章节维护的保存边界
+
+阅读互动页签的章节维护只使用文章当前有效的 `series` 值确定成员，不把 `document_series` 目录绑定转为章节归属。前台与维护预览共用 `pagenest_companion_sort_series()`，保留显式文档顺序、数值顺序及原有回退比较规则；服务器 `series_order` 涉及的系列只读，`series_directories` 单独存在不限制章节编辑。
+
+保存需要 `manage_options`、每篇文章的读取／编辑权限、nonce、完整成员输入、旧值摘要及对应预览签名。请求在 InnoDB 事务内锁定有限的系列候选与相关元数据，重新校验当前状态，再通过 WordPress 元数据 API 仅写 `_pagenest_chapter_order`；冲突或任一更新失败时回滚。不能保证完整读取或事务能力时不保存，不降级成逐篇部分写入。该入口不修改内容、来源绑定、旧存储键或私人记录。详细操作与规模限制见 [使用指南](USAGE.md#维护整组章节顺序)。
+
+## 站内通知接口
+
+`pagenest_companion_notifications` 为总开关；`pagenest_companion_paragraph_notifications` 独立控制新公开段落评论通知，两者默认 `0`。`pagenest_pc_public_comment_created` 只在新的公开评论保存成功后触发，参数为记录 ID；它不是历史记录补发入口。普通回复使用 commentmeta，段落评论使用对应记录的 postmeta，均先写接收者索引，再写最小事件与接收标记；不保存正文、引用、邮箱或私人记录内容。
+
+`GET /pagenest/v1/notifications` 接受 `page` 与 `filter=all|unread`。各存储最多查询最近 100 个候选，逐项检查当前来源与接收权限，再按事件时间合并为最多 100 条；未读筛选在合并窗口内进行。单条包含 `kind=comment_reply|paragraph_comment` 与 `id`，两者共同标识记录。`GET .../count` 只返回 `recentUnread`。
+
+`POST .../read` 接受 `kind`、`id`；省略 `kind` 时按普通回复处理，保留旧调用兼容。`POST .../read-page` 接受 `items: [{kind, id}]`，要求 1–10 个不重复的明确条目。服务端先验证整批身份与访问权，再逐项保存已读；写入失败返回 503 和已写入的 typed 条目，客户端重新加载实际状态，不将部分成功冒称整批成功。所有接口要求本人登录及 REST nonce，响应 `no-store`；短码、页眉与弹窗共用权限边界，不接受其他用户 ID。
+
+隐私导出、擦除及账号删除同时覆盖两种元数据存储，各自有界分页；段落记录包含回收站中的通知元数据。擦除失败保留 owner 索引便于重试，只删除通知字段，保留原评论／笔记及非身份的去重决定标记。修改通知模块时应同时运行内存契约、通知浏览器测试与 `notifications-wordpress.php`／`notifications-followups-wordpress.php`；真实 WordPress 测试仅允许显式标记的可丢弃实验环境。
+
+## 账号阅读同步
+
+`pagenest_companion_account_reading=1` 与 `pagenest_companion_reading=1` 同时成立才开放普通账号同步；两者默认关闭，且仅限单站点 WordPress。多站点网络不提供该入口，也拒绝读取、同意与合并；原生隐私工具和只删不读的撤回仍可处理此前单站点留下的状态。数据保存在当前用户的 `_pagenest_account_reading` 元数据，包含 `enabled`、随机 `revision` 与最多 100 个 `items`。条目严格为 `{id,time,later,anchor}`；`time` 使用 Unix 毫秒，`anchor` 必须属于当前有效标题，否则置空。标题、URL 和正文不进入持久状态。本机原有 `pagenest.reading.v1` 与同意保持独立，服务端不推送或自动迁移。
+
+`GET /pagenest/v1/reading/account` 返回当前用户的状态与可公开展示的条目，不创建元数据。暂停同步时仅提供撤回所需的状态，不返回历史条目。以下 POST 均携带读取时取得的 `revision`：`/consent` 另含 `enabled:true`，只记录同意；`/merge` 另含 `items`，按较新位置与稍后读并集合并后取最近 100 条；`/remove` 另含 `id`；`/clear` 清空列表但保留同意；`/withdraw` 清空并撤回。接口拒绝客户端指定用户、未知字段、重复 ID、无效类型、超过 100 个输入和超预算请求。
+
+所有操作要求当前登录用户与 REST nonce，响应 `private, no-store` 并按 Cookie 区分。每次写入和隐私擦除在 InnoDB 事务内锁当前 users 行，取锁后清元数据缓存、检查最新 revision，经 WordPress 元数据 API 保存并回读；不支持事务时拒绝写入。旧 revision 返回 409，不覆盖、不自动合并重试；撤回保留随机 revision 的关闭状态以拒绝旧设备请求。双向合并在服务器确认后才更新本机，期间本机同意／数据变化或存储失败会明确区分账号成功与本机未更新。
+
+WordPress 原生导出与擦除在可选开关关闭后仍登记；只处理本人账号阅读元数据，账号真正删除后再定向清理本键，覆盖核心删除元数据之后才完成的同步写入；仅移除多站点成员资格时保留全局账号记录。来源后来隐藏时只读投影不暴露标题／链接，下一次手动合并清理不可公开条目；原始本人记录仍可被隐私导出或擦除。真实 WordPress 回归 `tests/account-reading-wordpress.php` 仅在 `PAGENEST_ACCOUNT_READING_TEST_LAB=true` 的可丢弃环境运行，包括权限、版本冲突、首次并发写、撤回和回滚；普通内存契约不替代并发数据库验证。

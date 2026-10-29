@@ -64,9 +64,6 @@ msgstr "删除"
 msgid "Delete this record permanently?"
 msgstr "永久删除这条记录？"
 
-msgid "Disabled by default. Readers separately choose whether to remember public articles on this device. Reading history is not saved to your account or synced between devices. Article IDs are sent only to check current public access."
-msgstr "默认关闭。读者需自行开启本机公开文章记录；阅读历史不保存到账户，也不跨设备同步。文章 ID 仅发送给站点以复核当前公开权限。"
-
 msgid "Edit text"
 msgstr "编辑正文"
 
@@ -144,9 +141,6 @@ msgstr "这里只显示本人的记录。私人正文仅保存在当前页面内
 
 msgid "Open article location"
 msgstr "打开文章位置"
-
-msgid "Optional browser storage. No account history or device sync. Article IDs are checked with the site before display. Reading position does not mark an article as read."
-msgstr "可选的浏览器存储，不保存到账户或跨设备同步。显示前会向站点复核文章 ID 的公开权限。阅读位置不会把文章标为已读。"
 
 msgid "Organize links to existing public articles and pages. Source content and chapter order stay with their existing owners."
 msgstr "组织已有公开文章与页面的链接，来源正文与章节顺序仍由原有模块管理。"
@@ -436,9 +430,6 @@ msgstr "WordPress 设置或默认值"
 msgid "Preview uses saved article defaults and your current overrides. Save the article to apply. Draft images can be selected here; only publicly readable images appear in public sharing metadata."
 msgstr "预览使用已保存的文章默认值与当前覆盖值，保存文章后生效。可选择草稿附件；公开分享信息仅使用当前公开可读的图片。"
 
-msgid "Stored on this device only. No device sync."
-msgstr "仅存本机，不跨设备同步。"
-
 msgid "How this works"
 msgstr "使用说明"
 
@@ -715,9 +706,6 @@ msgstr "标为已读"
 msgid "Next"
 msgstr "下一页"
 
-msgid "No recent replies to show."
-msgstr "暂无可显示的近期回复。"
-
 msgid "Notification preference saved."
 msgstr "已保存通知偏好。"
 
@@ -739,12 +727,6 @@ msgstr "上一页"
 msgid "Read"
 msgstr "已读"
 
-msgid "Receive future comment reply notifications"
-msgstr "接收今后的评论回复通知"
-
-msgid "Recent replies to your comments."
-msgstr "查看最近的评论回复。"
-
 msgid "Replies to signed-in readers’ ordinary comments. Email settings are separate."
 msgstr "为登录读者的普通评论回复提供站内通知，邮件设置独立管理。"
 
@@ -757,17 +739,11 @@ msgstr "此偏好不影响评论邮件设置。"
 msgid "Unread"
 msgstr "未读"
 
-msgid "Unread in recent replies:"
-msgstr "最近回复中的未读："
-
 msgid "Your session expired. Sign in again."
 msgstr "登录已过期，请重新登录。"
 
 msgid "Refresh notifications"
 msgstr "刷新通知"
-
-msgid "Only the latest 100 eligible replies are checked."
-msgstr "仅检查最近 100 条符合接收条件的回复。"
 
 msgid "Reading and interaction"
 msgstr "阅读互动"
@@ -783,3 +759,332 @@ msgstr "社交登录"
 
 msgid "PageNest settings"
 msgstr "PageNest 设置"
+
+msgid "%d existing documents have server-managed series bindings for directory links only. These bindings do not add chapters to a series."
+msgstr "服务器为 %d 个已有文档指定了系列，仅用于目录关联，不会把这些文档加入章节系列。"
+
+msgid "Article series"
+msgstr "文章系列"
+
+msgid "Atomic chapter saving requires InnoDB tables. No orders were saved."
+msgstr "批量保存章节顺序需要 InnoDB 数据表，本次未保存任何顺序。"
+
+msgid "Chapter order"
+msgstr "章节顺序"
+
+msgid "Chapter orders saved."
+msgstr "章节顺序已保存。"
+
+msgid "Chapter orders were not saved. Refresh the series and try again."
+msgstr "章节顺序未保存，请刷新系列后重试。"
+
+msgid "Choose a page…"
+msgstr "选择页面…"
+
+msgid "Choose a series…"
+msgstr "选择系列…"
+
+msgid "Choose an article series to inspect its navigation order. Directory-only document bindings do not define chapter membership. Saving here changes chapter order only."
+msgstr "选择文章系列，查看章节导航的实际顺序。仅用于目录的文档关联不会决定章节归属；此处保存只修改章节顺序。"
+
+msgid "Choose directory by title"
+msgstr "按标题选择目录"
+
+msgid "Current directory:"
+msgstr "当前目录："
+
+msgid "Directory page ID"
+msgstr "目录页 ID"
+
+msgid "Duplicate order"
+msgstr "顺序重复"
+
+msgid "Enter a whole chapter order from 0 to 1000000 for every chapter."
+msgstr "请为每篇章节填写 0 到 1000000 的整数顺序。"
+
+msgid "Enter numeric orders, or move chapters with the buttons (keyboard accessible). Moving chapters numbers the entire displayed series from 1. Preview uses the same rules as reader navigation; duplicate orders fall back to document ID and article ID."
+msgstr "可直接填写顺序，也可用支持键盘操作的按钮移动章节。移动会将当前完整系列从 1 依次编号。预览沿用读者导航的排序规则；顺序重复时，按文档 ID 和文章 ID 排列。"
+
+msgid "Link an exact article series name to a public directory page. Clear its ID to unlink."
+msgstr "使用与文章设置完全一致的系列名称，关联公开目录页面。清空目录页 ID 可解除关联。"
+
+msgid "Missing order"
+msgstr "未填写顺序"
+
+msgid "No directory linked."
+msgstr "尚未关联目录。"
+
+msgid "No directory selected. Save reading settings to unlink."
+msgstr "未选择目录，保存阅读设置后解除关联。"
+
+msgid "No editable chapters found for this exact article series."
+msgstr "未找到属于此精确系列名称的可编辑章节。"
+
+msgid "Order changed. Preview again before saving."
+msgstr "顺序已调整，请重新预览后保存。"
+
+msgid "Preview chapter order"
+msgstr "预览章节顺序"
+
+msgid "Preview ready. Review the resulting order, then save."
+msgstr "预览已生成，核对排列结果后再保存。"
+
+msgid "Preview these chapter orders before saving."
+msgstr "请先预览本次章节顺序，再保存。"
+
+msgid "Save chapter orders"
+msgstr "保存章节顺序"
+
+msgid "Saved order:"
+msgstr "已保存顺序："
+
+msgid "Selected directory (save reading settings to apply):"
+msgstr "已选目录（保存阅读设置后生效）："
+
+msgid "Series chapters"
+msgstr "系列章节"
+
+msgid "Series directories"
+msgstr "系列目录"
+
+msgid "Series name"
+msgstr "系列名称"
+
+msgid "Series request rejected. Refresh the page and try again."
+msgstr "系列操作未通过校验，请刷新页面后重试。"
+
+msgid "Server document order takes priority for this series. This view is read-only."
+msgstr "此系列受服务器文档顺序优先规则控制，此处仅供查看。"
+
+msgid "Server-managed directories"
+msgstr "服务器管理的目录"
+
+msgid "Server-managed links take priority and cannot be edited here."
+msgstr "这些关联由服务器管理，优先于后台设置，不能在此修改。"
+
+msgid "The atomic save exceeded its locking budget. No chapter orders were saved."
+msgstr "本次保存超出事务锁定范围，未保存任何章节顺序。"
+
+msgid "The complete editable series is unavailable within this view. Only accessible chapters are shown; their positions are relative to this subset. No orders can be saved."
+msgstr "此处无法完整列出可编辑系列，仅显示当前可访问的章节，序号只代表这些章节之间的顺序，不能保存排序。"
+
+msgid "The title picker lists up to 200 public pages. You can also enter an ID, including pages outside this list. Without JavaScript, enter the page ID directly. Add one series per save, up to 200."
+msgstr "标题列表最多显示 200 个公开页面，也可直接填写列表之外的页面 ID。未启用 JavaScript 时可直接填写 ID。每次保存可增加一个系列，最多 200 个。"
+
+msgid "This ID will be checked when reading settings are saved."
+msgstr "保存阅读设置时会校验此页面 ID。"
+
+msgid "This series cannot be reordered here."
+msgstr "此系列不能在这里调整顺序。"
+
+msgid "This series changed after it was loaded. Refresh it before saving again."
+msgstr "此系列在加载后已发生变化，请刷新后重新预览和保存。"
+
+msgid "This view scans up to 500 candidate articles, lists up to 100 chapters, and allows up to 2500 rows for the related chapter metadata keys. A partial or restricted series is read-only."
+msgstr "此处最多检查 500 篇候选文章、显示 100 篇章节，相关章节元数据键合计不得超过 2500 条。未完整列出或受权限限制的系列仅供查看。"
+
+msgid "Unavailable directory. The saved ID is retained; choose a public page or clear it to unlink."
+msgstr "原目录当前不可用，已保留其 ID。可重新选择公开页面，或清空 ID 解除关联。"
+
+msgid "View chapters"
+msgstr "查看章节"
+
+msgid "You cannot maintain this series."
+msgstr "你没有维护此系列的权限。"
+
+msgid "The related chapter metadata exceeds this view’s 2500-row budget. Chapter lookup is unavailable and no orders can be saved."
+msgstr "相关章节元数据已超出此处 2500 条的检查范围，暂不能查询章节或保存顺序。"
+
+msgid "All"
+msgstr "全部"
+
+msgid "Comment reply"
+msgstr "评论回复"
+
+msgid "Mark this page as read"
+msgstr "本页标为已读"
+
+msgid "No recent notifications to show."
+msgstr "最近没有符合条件的通知。"
+
+msgid "Notify article authors about new public paragraph comments"
+msgstr "有新的公开段落评论时通知文章作者"
+
+msgid "Public paragraph comment"
+msgstr "公开段落评论"
+
+msgid "Receive future comment notifications"
+msgstr "接收后续评论通知"
+
+msgid "Recent comment replies and public paragraph comments on your articles."
+msgstr "最近的评论回复，以及你文章下的公开段落评论。"
+
+msgid "Requires notifications and paragraph comments to be enabled. Existing records are not backfilled."
+msgstr "需要同时启用通知和段落评论，不为已有记录补发通知。"
+
+msgid "Show notifications"
+msgstr "筛选通知"
+
+msgid "Some notifications could not be marked as read. The list has been refreshed."
+msgstr "部分通知未能标为已读，列表已重新加载。"
+
+msgid "The latest 100 eligible notifications are shown. Filters apply within this recent window."
+msgstr "仅显示最近 100 条符合条件的通知，筛选也在此范围内进行。"
+
+msgid "Unread in recent notifications:"
+msgstr "最近通知中未读："
+
+msgid "Comment replies and public paragraph comments. Email settings are separate."
+msgstr "评论回复和公开段落评论的站内通知，邮件设置独立管理。"
+
+#: modules/reading/bootstrap.php:230
+msgid "Account and device records merged. The 100 most recent public articles are kept."
+msgstr "账号与本机记录已合并，保留最近 100 篇公开文章。"
+
+#: modules/reading/account.php:161 modules/reading/account.php:170 modules/reading/account.php:172 modules/reading/account.php:178 modules/reading/bootstrap.php:208
+msgid "Account reading"
+msgstr "账号阅读"
+
+#: modules/reading/bootstrap.php:236
+msgid "Account reading consent has changed. Load again and review your choice."
+msgstr "账号阅读同意状态已变化，请重新加载并确认你的选择。"
+
+#: modules/reading/account.php:187
+msgid "Account reading could not be erased. Retry after storage is available."
+msgstr "账号阅读未能擦除，请在存储恢复后重试。"
+
+#: modules/reading/account.php:10 modules/reading/bootstrap.php:228
+msgid "Account reading could not be saved or loaded. Refresh and try again."
+msgstr "账号阅读未能保存或加载，请刷新后重试。"
+
+#: modules/reading/bootstrap.php:235
+msgid "Account reading is currently unavailable. Load again after it is enabled."
+msgstr "账号阅读目前不可用，请在功能开启后重新加载。"
+
+#: modules/reading/bootstrap.php:215
+msgid "Account reading is enabled. Use the merge button whenever you want to sync."
+msgstr "账号阅读已启用，需要同步时请手动合并。"
+
+#: modules/reading/bootstrap.php:214
+msgid "Account reading is off. Enabling it records your consent only; it does not upload device records."
+msgstr "账号阅读尚未启用。启用只记录你的同意，不会上传本机记录。"
+
+#: modules/reading/bootstrap.php:232
+msgid "Account reading updated. Device records were kept."
+msgstr "账号阅读已更新，本机记录已保留。"
+
+#: modules/reading/bootstrap.php:229
+msgid "Account records changed in another panel. Load them again before continuing."
+msgstr "账号记录已在另一面板变化，请重新加载后继续。"
+
+#: modules/reading/bootstrap.php:227
+msgid "Account records changed. Refresh, review the latest list and confirm the action again."
+msgstr "账号记录已变化。请刷新，查看最新列表后重新确认操作。"
+
+#: modules/reading/bootstrap.php:221
+msgid "Clear account records"
+msgstr "清空账号记录"
+
+#: modules/reading/bootstrap.php:224
+msgid "Clear all account reading records? Device records will remain."
+msgstr "清空全部账号阅读记录？本机记录会保留。"
+
+#: modules/reading/bootstrap.php:48
+msgid "Disabled by default. Readers separately choose whether to remember public articles on this device. Account reading is a separate optional feature requiring the reader’s consent and an explicit manual merge. Device reading sends article IDs only to check current public access."
+msgstr "默认关闭。读者可单独选择是否在本机记录公开文章。账号阅读是独立可选功能，需读者同意并明确手动合并。本机阅读发送的文章 ID 仅用于检查当前公开访问权限。"
+
+#: modules/reading/bootstrap.php:58
+msgid "Disabled by default. Signed-in readers separately consent, then manually merge up to 100 public reading positions. Private comments and notes are never included."
+msgstr "默认关闭。登录读者单独同意后，可手动合并最多 100 条公开文章阅读位置，不包含私人评论和笔记。"
+
+#: modules/reading/bootstrap.php:213
+msgid "Enable account reading"
+msgstr "启用账号阅读"
+
+#: modules/reading/bootstrap.php:226
+msgid "Enable device memory with available browser storage before merging. You can still follow account links without downloading records to this device."
+msgstr "合并前请启用本机记录，并确保浏览器存储可用。你仍可直接点击账号条目继续阅读，无需下载到本机。"
+
+#: modules/reading/bootstrap.php:212
+msgid "I agree to save public reading positions to my account"
+msgstr "我同意将公开文章的阅读位置保存到账号"
+
+#: modules/reading/bootstrap.php:210
+msgid "Load account reading"
+msgstr "加载账号阅读"
+
+#: modules/reading/bootstrap.php:209
+msgid "Load account records only when you choose. Nothing uploads automatically."
+msgstr "点击加载后才读取账号记录，不会自动上传。"
+
+#: modules/reading/bootstrap.php:218
+msgid "Manage account records"
+msgstr "管理账号记录"
+
+#: modules/reading/bootstrap.php:233
+msgid "Manual sync only. Keeps the 100 most recent public articles."
+msgstr "仅手动同步，保留最近 100 篇公开文章。"
+
+#: modules/reading/bootstrap.php:216
+msgid "Merge device and account records"
+msgstr "合并本机与账号记录"
+
+#: modules/reading/bootstrap.php:58
+msgid "Offer manual account reading sync"
+msgstr "提供手动账号阅读同步"
+
+#: modules/reading/bootstrap.php:267
+msgid "Optional browser storage. Device records stay independent unless you explicitly merge them with account reading. Article IDs are checked with the site before display. Reading position does not mark an article as read."
+msgstr "可选的浏览器存储。本机记录默认独立，只有你明确与账号阅读合并时才会同步。显示前会向本站检查文章 ID，阅读位置不代表文章已读。"
+
+#: modules/reading/bootstrap.php:211
+msgid "Refresh account reading"
+msgstr "刷新账号阅读"
+
+#: modules/reading/bootstrap.php:220
+msgid "Remove from account"
+msgstr "从账号移除"
+
+#: modules/reading/bootstrap.php:223
+msgid "Remove this account record? Device records will remain."
+msgstr "从账号移除此条记录？本机记录会保留。"
+
+#: modules/reading/bootstrap.php:219
+msgid "Removing account records does not delete device records. A later manual merge can add them again."
+msgstr "删除账号记录不会删除本机记录，之后手动合并可能再次加入。"
+
+#: modules/reading/bootstrap.php:217
+msgid "Requires device memory. Combines both lists, uses the newer reading position and keeps Read later from either list. Only the 100 most recent public articles are kept. Comments and private notes are excluded."
+msgstr "需先启用本机记录。合并两端列表，同篇文章保留较新的阅读位置，任一端的稍后读都会保留，最多保留最近 100 篇公开文章。不包含评论和私人笔记。"
+
+#: modules/reading/bootstrap.php:234
+msgid "Sign in again before loading account reading."
+msgstr "请重新登录后加载账号阅读。"
+
+#: modules/reading/bootstrap.php:225
+msgid "Stop account reading and clear its records? Device records will remain."
+msgstr "停止账号阅读并清空账号记录？本机记录会保留。"
+
+#: modules/reading/bootstrap.php:262
+msgid "Stored on this device. Account sync requires a separate explicit manual merge."
+msgstr "保存在本机，与账号同步需另行明确手动合并。"
+
+#: modules/reading/bootstrap.php:231
+msgid "The account merge succeeded, but device records could not be updated because consent, records or browser storage changed. Review the account list before merging again."
+msgstr "账号合并已完成，但本机同意、记录或浏览器存储已变化，未能更新本机记录。请查看账号列表后再决定是否重新合并。"
+
+#: modules/reading/bootstrap.php:222
+msgid "Withdraw consent and clear account records"
+msgstr "撤回同意并清空账号记录"
+
+msgid "Account reading is paused on this site. Records are not loaded; you can still withdraw consent and clear account records."
+msgstr "本站已暂停账号阅读。记录暂不加载，你仍可撤回同意并清空账号记录。"
+
+msgid "Account reading was saved, but its current list could not be loaded. Refresh before making another change."
+msgstr "账号阅读已保存，但未能加载当前列表。请先刷新，再进行其他操作。"
+
+msgid "Account records were saved, but this site paused syncing. Device records were kept."
+msgstr "账号记录已保存，但本站已暂停同步，本机记录已保留。"
+
+msgid "Account reading sync currently supports single-site WordPress only."
+msgstr "账号阅读同步目前仅支持单站点 WordPress。"

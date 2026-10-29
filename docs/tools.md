@@ -1,6 +1,6 @@
 # Optional tools host
 
-The experimental tools host in Companion 1.2.0 is disabled by default. It provides bound
+The optional tools host is disabled by default. It provides bound
 page rendering, the public index contract, shortcode/block aliases, safe editor previews,
 access checks and provider asset loading. It ships no browser tools, games, Node verifier,
 private storage, installers or implementation discovery service.
@@ -25,7 +25,7 @@ XP provider, MarkBridge and tool packs remain independent.
 
 ## Independent implementation packs
 
-The companion integration source maintains three optional trusted plugins:
+Examples of independently maintained trusted plugins include:
 
 - `pagenest-basic-tools`: text counter and random number generator, PHP 8.0; browser only.
 - `pagenest-game-tools`: four games, replay verifier, personal game records, rankings and
@@ -34,8 +34,8 @@ The companion integration source maintains three optional trusted plugins:
   Loading this plugin never creates tables or enables writes. Private services still require
   their explicit profile flag and existing schema; isolated installers keep their safeguards.
 
-These experimental 0.1.0-rc.1 packages are built separately from one integration source tree
-with `python3 tools/package-packs.py`. None is part of the Companion ZIP. External catalog
+These packages are versioned and built independently. Use each implementation repository’s
+README and release manifest for its build command and current version; none is part of the Companion ZIP. External catalog
 entries work without any implementation pack. Basic tools need no `games`, `services`,
 `maintenance` configuration or Node runtime. Existing production-used implementations remain
 maintained source, including their original deterministic engines and replay fingerprints.

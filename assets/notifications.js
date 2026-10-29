@@ -3,6 +3,8 @@
   const config = window.PageNestNotifications;
   if (!config) return;
   const t = config.text;
+  const authFailure = (status, code) => status === 401 || code === 'rest_cookie_invalid_nonce';
+  const broadcastAuthChange = () => document.dispatchEvent(new Event('pagenest-pc-auth-change'));
   const openButtons = Array.from(document.querySelectorAll('[data-pn-open-notifications]'));
   const labels = new Map(
     openButtons.map((button) => [
@@ -61,11 +63,19 @@
         headers: { 'X-WP-Nonce': config.nonce },
         signal: countController.signal,
       });
-      if (!response.ok) throw new Error('count');
-      const data = await response.json();
-      if (generation === countGeneration && !document.hidden) displayCount(data.recentUnread);
-    } catch {
-      if (generation === countGeneration) clearCount();
+      const data = await response.json().catch((error) => {
+        if (response.ok) throw error;
+        return {};
+      });
+      if (generation !== countGeneration || document.hidden) return;
+      if (!response.ok)
+        throw Object.assign(new Error('count'), { status: response.status, code: data.code });
+      displayCount(data.recentUnread);
+    } catch (error) {
+      if (generation === countGeneration && !document.hidden) {
+        if (authFailure(error.status, error.code)) broadcastAuthChange();
+        else clearCount();
+      }
     }
   };
   const states = [];
@@ -105,6 +115,12 @@
     actions.append(load, status);
     let generation = 0;
     let controller;
+    let filter = 'all';
+    let settingsOpen = false;
+    const rememberSettings = () => {
+      const current = result.querySelector('details');
+      if (current) settingsOpen = current.open;
+    };
     const loginPrompt = () => {
       const login = make('a', t.login, status);
       login.href = config.login;
@@ -116,6 +132,7 @@
       controller?.abort();
       controller = null;
       result.replaceChildren();
+      settingsOpen = false;
       status.replaceChildren();
       root.removeAttribute('aria-busy');
       load.disabled = false;
@@ -126,13 +143,18 @@
       controller?.abort();
       controller = new AbortController();
       let endpoint =
-        suffix === '/read'
-          ? config.readApi
-          : suffix === '/preference'
-            ? config.preferenceApi
-            : config.api;
+        suffix === '/read-page'
+          ? config.batchApi
+          : suffix === '/read'
+            ? config.readApi
+            : suffix === '/preference'
+              ? config.preferenceApi
+              : config.api;
       const url = new URL(endpoint, location.href);
-      if (suffix.startsWith('?page=')) url.searchParams.set('page', suffix.slice(6));
+      if (suffix.startsWith('?page=')) {
+        url.searchParams.set('page', suffix.slice(6));
+        url.searchParams.set('filter', filter);
+      }
       const response = await fetch(url.href, {
         method: body ? 'POST' : 'GET',
         credentials: 'same-origin',
@@ -154,8 +176,8 @@
     };
     const fail = (error) => {
       clearCount();
-      if (error.status === 401 || error.code === 'rest_cookie_invalid_nonce') {
-        states.forEach((state) => state.sessionExpired());
+      if (authFailure(error.status, error.code)) {
+        broadcastAuthChange();
         return;
       }
       if (error.status === 403) invalidateOthers(root);
@@ -183,13 +205,18 @@
       }
     };
     const render = (data) => {
+      rememberSettings();
       result.replaceChildren();
       load.textContent = t.refresh;
       status.textContent = `${t.recent} ${data.recentUnread}`;
       displayCount(data.recentUnread);
       const settings = make('details', '', result);
+      settings.open = settingsOpen;
+      settings.addEventListener('toggle', () => {
+        if (settings.isConnected) settingsOpen = settings.open;
+      });
       make('summary', t.settings, settings);
-      make('p', t.window, settings);
+      make('p', t.window, result);
       const label = make('label', '', settings);
       const choice = make('input', '', label);
       choice.type = 'checkbox';
@@ -205,25 +232,86 @@
           if (!active()) return;
           invalidateOthers(root);
           data.enabled = enabled;
-          result.querySelectorAll('button, input').forEach((element) => {
-            element.disabled = false;
-          });
-          const navigation = result.querySelectorAll('nav button');
-          if (navigation[0]) navigation[0].disabled = data.page <= 1;
-          if (navigation[1]) navigation[1].disabled = data.page >= data.pages;
+          render(data);
+          result.querySelector('details input')?.focus();
           status.textContent = t.saved;
         });
       });
+      const controls = make('div', '', result);
+      controls.className = 'pn-notifications-filters';
+      controls.setAttribute('role', 'group');
+      controls.setAttribute('aria-label', t.filter || 'Show notifications');
+      [
+        ['all', t.all || 'All'],
+        ['unread', t.unread],
+      ].forEach(([value, label]) => {
+        const option = button(label, controls, () => {
+          filter = value;
+          fetchPage(1, value);
+        });
+        option.dataset.pnFilter = value;
+        option.setAttribute('aria-pressed', String(filter === value));
+      });
+      const unread = data.items.filter((item) => !item.read);
+      const markItems = (items, focusKey) => {
+        invalidateOthers(root);
+        run(async (active) => {
+          let failure;
+          try {
+            await request(
+              items.length === 1 && focusKey ? '/read' : '/read-page',
+              items.length === 1 && focusKey ? items[0] : { items },
+            );
+          } catch (error) {
+            if (
+              error.status === 401 ||
+              error.status === 403 ||
+              error.code === 'rest_cookie_invalid_nonce' ||
+              error.name === 'AbortError'
+            )
+              throw error;
+            failure = error;
+          }
+          if (!active()) return;
+          invalidateOthers(root);
+          rememberSettings();
+          result.replaceChildren();
+          const latest = await request(`?page=${data.page}`);
+          if (!active()) return;
+          render(latest);
+          if (failure) status.textContent = t.partial || t.error;
+          const focusTarget = focusKey
+            ? result.querySelector(`[data-notification-key="${focusKey}"] a`) || load
+            : result.querySelector('[data-pn-mark-page]:not(:disabled)') ||
+              result.querySelector('[aria-pressed="true"]') ||
+              load;
+          if (focusTarget === load) load.disabled = false;
+          focusTarget.focus();
+        });
+      };
+      const batch = button(t.batch || 'Mark this page as read', controls, () =>
+        markItems(unread.map((item) => ({ kind: item.kind || 'comment_reply', id: item.id }))),
+      );
+      batch.dataset.pnMarkPage = '';
+      batch.disabled = !unread.length;
       if (!data.items.length) make('p', t.empty, result);
       const list = make('ul', '', result);
       data.items.forEach((item) => {
         const row = make('li', '', list);
         row.dataset.read = String(item.read);
         row.dataset.notificationId = String(item.id);
+        const kind = item.kind || 'comment_reply';
+        const key = `${kind}:${item.id}`;
+        row.dataset.notificationKey = key;
         const content = make('div', '', row);
         const link = make('a', `${item.author} — ${item.title}`, content);
         link.href = safeURL(item.url) || '#';
-        const meta = make('p', item.read ? t.read : t.unread, content);
+        const typeLabel = kind === 'paragraph_comment' ? t.paragraph : t.reply;
+        const meta = make(
+          'p',
+          `${typeLabel ? typeLabel + ' · ' : ''}${item.read ? t.read : t.unread}`,
+          content,
+        );
         const time = make('time', '', meta);
         time.dateTime = item.created;
         const date = new Date(item.created);
@@ -233,22 +321,7 @@
         if (!item.read) {
           const mark = button(t.mark, row, () => {
             mark.disabled = true;
-            invalidateOthers(root);
-            run(async (active) => {
-              await request('/read', { id: item.id });
-              if (!active()) return;
-              invalidateOthers(root);
-              // The current page and count can both change in another window or
-              // after source moderation; only a fresh server projection is usable.
-              result.replaceChildren();
-              const latest = await request(`?page=${data.page}`);
-              if (!active()) return;
-              render(latest);
-              const focusTarget =
-                result.querySelector(`[data-notification-id="${item.id}"] a`) || load;
-              if (focusTarget === load) load.disabled = false;
-              focusTarget.focus();
-            });
+            markItems([{ kind, id: item.id }], key);
           });
         }
       });
@@ -260,11 +333,15 @@
       const next = button(t.next, nav, () => fetchPage(data.page + 1));
       next.disabled = data.page >= data.pages;
     };
-    const fetchPage = (page = 1) =>
+    const fetchPage = (page = 1, focusFilter = '') =>
       run(async (active) => {
+        rememberSettings();
         result.replaceChildren();
         const data = await request(`?page=${page}`);
-        if (active()) render(data);
+        if (active()) {
+          render(data);
+          if (focusFilter) result.querySelector(`[data-pn-filter="${focusFilter}"]`)?.focus();
+        }
       });
     load.hidden = false;
     if (!config.nonce) {

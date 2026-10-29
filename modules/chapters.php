@@ -141,8 +141,14 @@ function pagenest_companion_series($id)
                 ($series === '' || pagenest_companion_post_setting($p->ID, 'series') === $series),
         ),
     );
+    return pagenest_companion_sort_series($all);
+}
+/** The public navigation and maintenance preview share exactly the same ordering rules. */
+function pagenest_companion_sort_series(array $all, array $orders = []): array
+{
+    $config = pagenest_companion_config('chapters');
     $rank = array_flip($config['series_order']);
-    usort($all, static function ($a, $b) use ($config, $rank) {
+    usort($all, static function ($a, $b) use ($config, $rank, $orders) {
         $ad = (string) get_post_meta($a->ID, $config['document_meta'], true);
         $bd = (string) get_post_meta($b->ID, $config['document_meta'], true);
         $ar = $rank[$ad] ?? PHP_INT_MAX;
@@ -150,8 +156,8 @@ function pagenest_companion_series($id)
         if ($ar !== $br) {
             return $ar <=> $br;
         }
-        $ao = pagenest_companion_post_setting($a->ID, 'order');
-        $bo = pagenest_companion_post_setting($b->ID, 'order');
+        $ao = $orders[$a->ID] ?? pagenest_companion_post_setting($a->ID, 'order');
+        $bo = $orders[$b->ID] ?? pagenest_companion_post_setting($b->ID, 'order');
         if (is_numeric($ao) && is_numeric($bo) && $ao != $bo) {
             return (float) $ao <=> (float) $bo;
         }

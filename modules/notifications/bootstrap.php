@@ -143,21 +143,15 @@ function pagenest_notifications_projection(bool $count_only = false)
         return pagenest_notifications_error('notifications_storage', 503);
     }
     $items = [];
-    $unread = 0;
     foreach ($comments as $reply) {
         $event = get_comment_meta($reply->comment_ID, '_pagenest_notification_event', true);
         if (!pagenest_notifications_visible($reply, $event, $user)) {
             continue;
         }
         $read = get_comment_meta($reply->comment_ID, '_pagenest_notification_read', true) === '1';
-        if (!$read) {
-            $unread++;
-        }
-        if ($count_only) {
-            continue;
-        }
         $items[] = [
             'id' => (int) $reply->comment_ID,
+            'kind' => 'comment_reply',
             'title' => wp_strip_all_tags(get_the_title($reply->comment_post_ID)),
             'author' => wp_strip_all_tags($reply->comment_author),
             'url' => get_comment_link($reply),
@@ -165,7 +159,20 @@ function pagenest_notifications_projection(bool $count_only = false)
             'read' => $read,
         ];
     }
-    return ['items' => $items, 'recentUnread' => $unread];
+    $paragraphs = pagenest_notifications_paragraph_items($user);
+    if ($paragraphs instanceof WP_Error) {
+        return $paragraphs;
+    }
+    $items = array_merge($items, $paragraphs);
+    usort(
+        $items,
+        static fn($a, $b) => strcmp($b['created'], $a['created']) ?:
+        strcmp($a['kind'], $b['kind']) ?:
+        $b['id'] <=> $a['id'],
+    );
+    $items = array_slice($items, 0, 100);
+    $unread = count(array_filter($items, static fn($item) => !$item['read']));
+    return ['items' => $count_only ? [] : $items, 'recentUnread' => $unread];
 }
 function pagenest_notifications_count($request)
 {
@@ -180,12 +187,20 @@ function pagenest_notifications_list($request)
     if ($projection instanceof WP_Error) {
         return $projection;
     }
-    $items = $projection['items'];
+    $filter = $request->get_param('filter') ?? 'all';
+    if (!in_array($filter, ['all', 'unread'], true)) {
+        return pagenest_notifications_error('notifications_input', 400);
+    }
+    $items =
+        $filter === 'unread'
+            ? array_values(array_filter($projection['items'], static fn($item) => !$item['read']))
+            : $projection['items'];
     $user = get_current_user_id();
     $pages = max(1, (int) ceil(count($items) / 10));
     $page = max(1, min($pages, (int) $request->get_param('page')));
     return new WP_REST_Response([
         'items' => array_slice($items, ($page - 1) * 10, 10),
+        'filter' => $filter,
         'page' => $page,
         'pages' => $pages,
         'recentUnread' => $projection['recentUnread'],
@@ -199,28 +214,100 @@ function pagenest_notifications_positive_id($value): bool
             preg_match('/^[1-9][0-9]*$/D', $value) === 1 &&
             filter_var($value, FILTER_VALIDATE_INT) !== false);
 }
-function pagenest_notifications_read($request)
+function pagenest_notifications_validate_item($item)
 {
-    if (!pagenest_notifications_positive_id($request->get_param('id'))) {
+    if (
+        !is_array($item) ||
+        !pagenest_notifications_positive_id($item['id'] ?? null) ||
+        !in_array($item['kind'] ?? '', ['comment_reply', 'paragraph_comment'], true)
+    ) {
         return pagenest_notifications_error('notifications_input', 400);
     }
-    $id = (int) $request->get_param('id');
-    $reply = get_comment($id);
+    $id = (int) $item['id'];
     $user = get_current_user_id();
-    if (
-        (int) get_comment_meta($id, '_pagenest_notification_recipient', true) !== $user ||
-        !pagenest_notifications_visible(
-            $reply,
-            get_comment_meta($id, '_pagenest_notification_event', true),
-            $user,
-        )
-    ) {
-        return pagenest_notifications_error('notifications_missing', 404);
+    if ($item['kind'] === 'paragraph_comment') {
+        $valid =
+            (int) get_post_meta($id, '_pagenest_notification_recipient', true) === $user &&
+            pagenest_notifications_paragraph_visible(
+                get_post($id),
+                get_post_meta($id, '_pagenest_notification_event', true),
+                $user,
+            );
+    } else {
+        $valid =
+            (int) get_comment_meta($id, '_pagenest_notification_recipient', true) === $user &&
+            pagenest_notifications_visible(
+                get_comment($id),
+                get_comment_meta($id, '_pagenest_notification_event', true),
+                $user,
+            );
+    }
+    return $valid
+        ? ['kind' => $item['kind'], 'id' => $id]
+        : pagenest_notifications_error('notifications_missing', 404);
+}
+function pagenest_notifications_write_read(array $item): bool
+{
+    $id = $item['id'];
+    if ($item['kind'] === 'paragraph_comment') {
+        update_post_meta($id, '_pagenest_notification_read', '1');
+        return get_post_meta($id, '_pagenest_notification_read', true) === '1';
     }
     update_comment_meta($id, '_pagenest_notification_read', '1');
-    return get_comment_meta($id, '_pagenest_notification_read', true) === '1'
+    return get_comment_meta($id, '_pagenest_notification_read', true) === '1';
+}
+function pagenest_notifications_read($request)
+{
+    $item = pagenest_notifications_validate_item([
+        'id' => $request->get_param('id'),
+        'kind' => $request->get_param('kind') ?? 'comment_reply',
+    ]);
+    if ($item instanceof WP_Error) {
+        return $item;
+    }
+    return pagenest_notifications_write_read($item)
         ? new WP_REST_Response(['read' => true])
         : pagenest_notifications_error('notifications_storage', 503);
+}
+function pagenest_notifications_read_page($request)
+{
+    $input = $request->get_json_params();
+    $items = $input['items'] ?? null;
+    if (
+        !is_array($items) ||
+        array_keys($items) !== range(0, count($items) - 1) ||
+        count($items) < 1 ||
+        count($items) > 10
+    ) {
+        return pagenest_notifications_error('notifications_input', 400);
+    }
+    $validated = [];
+    foreach ($items as $item) {
+        $valid = pagenest_notifications_validate_item($item);
+        if ($valid instanceof WP_Error) {
+            return $valid;
+        }
+        $key = $valid['kind'] . ':' . $valid['id'];
+        if (isset($validated[$key])) {
+            return pagenest_notifications_error('notifications_input', 400);
+        }
+        $validated[$key] = $valid;
+    }
+    $written = [];
+    foreach ($validated as $item) {
+        if (!pagenest_notifications_write_read($item)) {
+            return new WP_Error(
+                'notifications_partial',
+                __(
+                    'Some notifications could not be marked as read. The list has been refreshed.',
+                    'pagenest-companion',
+                ),
+                ['status' => 503, 'written' => $written],
+            );
+        }
+        $written[] = $item;
+    }
+    return new WP_REST_Response(['read' => true, 'written' => $written]);
 }
 function pagenest_notifications_preference($request)
 {
@@ -239,6 +326,7 @@ add_action('rest_api_init', static function () {
         [
             '' => ['GET', 'pagenest_notifications_list'],
             '/count' => ['GET', 'pagenest_notifications_count'],
+            '/read-page' => ['POST', 'pagenest_notifications_read_page'],
             '/read' => ['POST', 'pagenest_notifications_read'],
             '/preference' => ['POST', 'pagenest_notifications_preference'],
         ]
@@ -275,5 +363,6 @@ add_filter(
     20,
     3,
 );
+require_once __DIR__ . '/paragraph.php';
 require_once __DIR__ . '/presentation.php';
 require_once __DIR__ . '/privacy.php';

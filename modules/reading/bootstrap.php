@@ -5,7 +5,16 @@ function pagenest_reading_enabled(): bool
 {
     return get_option('pagenest_companion_reading', false) === '1';
 }
+require_once __DIR__ . '/account.php';
 add_action('admin_init', static function () {
+    register_setting('pagenest_reading', 'pagenest_companion_account_reading', [
+        'type' => 'string',
+        'default' => '0',
+        'sanitize_callback' => static fn($value) => current_user_can('manage_options') &&
+        $value === '1'
+            ? '1'
+            : '0',
+    ]);
     register_setting('pagenest_reading', 'pagenest_companion_reading', [
         'type' => 'string',
         'default' => '0',
@@ -41,7 +50,7 @@ add_action('admin_menu', static function () {
                 esc_html__('Enable My reading', 'pagenest-companion') .
                 '</label><p>' .
                 esc_html__(
-                    'Disabled by default. Readers separately choose whether to remember public articles on this device. Reading history is not saved to your account or synced between devices. Article IDs are sent only to check current public access.',
+                    'Disabled by default. Readers separately choose whether to remember public articles on this device. Account reading is a separate optional feature requiring the reader’s consent and an explicit manual merge. Device reading sends article IDs only to check current public access.',
                     'pagenest-companion',
                 ) .
                 '</p><p>' .
@@ -50,6 +59,25 @@ add_action('admin_menu', static function () {
                     'pagenest-companion',
                 ) .
                 '</p>';
+            echo '<p><label><input type="checkbox" name="pagenest_companion_account_reading" value="1" ' .
+                checked(get_option('pagenest_companion_account_reading', '0'), '1', false) .
+                (is_multisite() ? ' disabled' : '') .
+                '> ' .
+                esc_html__('Offer manual account reading sync', 'pagenest-companion') .
+                '</label></p><p>' .
+                esc_html__(
+                    'Disabled by default. Signed-in readers separately consent, then manually merge up to 100 public reading positions. Private comments and notes are never included.',
+                    'pagenest-companion',
+                ) .
+                '</p>';
+            if (is_multisite()) {
+                echo '<p>' .
+                    esc_html__(
+                        'Account reading sync currently supports single-site WordPress only.',
+                        'pagenest-companion',
+                    ) .
+                    '</p>';
+            }
             submit_button();
             echo '</form></div>';
         },
@@ -186,6 +214,9 @@ add_action('wp_enqueue_scripts', static function () {
     );
     $post = is_singular(['post', 'page']) ? get_queried_object() : null;
     wp_localize_script('pagenest-reading-center', 'PageNestReading', [
+        'accountApi' => pagenest_account_reading_offered()
+            ? rest_url('pagenest/v1/reading/account')
+            : '',
         'resolve' => rest_url('pagenest/v1/reading/resolve'),
         'api' => rest_url(pagenest_companion_config('paragraphs', 'rest_namespace') . '/'),
         'nonce' => is_user_logged_in() ? wp_create_nonce('wp_rest') : '',
@@ -197,6 +228,109 @@ add_action('wp_enqueue_scripts', static function () {
                     'headings' => array_column(pagenest_discovery_sections($post), 'id'),
                 ]
                 : null,
+        'accountText' => [
+            'serverPaused' => __(
+                'Account records were saved, but this site paused syncing. Device records were kept.',
+                'pagenest-companion',
+            ),
+            'savedReadback' => __(
+                'Account reading was saved, but its current list could not be loaded. Refresh before making another change.',
+                'pagenest-companion',
+            ),
+            'paused' => __(
+                'Account reading is paused on this site. Records are not loaded; you can still withdraw consent and clear account records.',
+                'pagenest-companion',
+            ),
+            'title' => __('Account reading', 'pagenest-companion'),
+            'intro' => __(
+                'Load account records only when you choose. Nothing uploads automatically.',
+                'pagenest-companion',
+            ),
+            'load' => __('Load account reading', 'pagenest-companion'),
+            'refresh' => __('Refresh account reading', 'pagenest-companion'),
+            'consent' => __(
+                'I agree to save public reading positions to my account',
+                'pagenest-companion',
+            ),
+            'enable' => __('Enable account reading', 'pagenest-companion'),
+            'off' => __(
+                'Account reading is off. Enabling it records your consent only; it does not upload device records.',
+                'pagenest-companion',
+            ),
+            'enabled' => __(
+                'Account reading is enabled. Use the merge button whenever you want to sync.',
+                'pagenest-companion',
+            ),
+            'merge' => __('Merge device and account records', 'pagenest-companion'),
+            'mergeHelp' => __(
+                'Requires device memory. Combines both lists, uses the newer reading position and keeps Read later from either list. Only the 100 most recent public articles are kept. Comments and private notes are excluded.',
+                'pagenest-companion',
+            ),
+            'manage' => __('Manage account records', 'pagenest-companion'),
+            'deleteHelp' => __(
+                'Removing account records does not delete device records. A later manual merge can add them again.',
+                'pagenest-companion',
+            ),
+            'remove' => __('Remove from account', 'pagenest-companion'),
+            'clear' => __('Clear account records', 'pagenest-companion'),
+            'withdraw' => __('Withdraw consent and clear account records', 'pagenest-companion'),
+            'confirmRemove' => __(
+                'Remove this account record? Device records will remain.',
+                'pagenest-companion',
+            ),
+            'confirmClear' => __(
+                'Clear all account reading records? Device records will remain.',
+                'pagenest-companion',
+            ),
+            'confirmWithdraw' => __(
+                'Stop account reading and clear its records? Device records will remain.',
+                'pagenest-companion',
+            ),
+            'localRequired' => __(
+                'Enable device memory with available browser storage before merging. You can still follow account links without downloading records to this device.',
+                'pagenest-companion',
+            ),
+            'conflict' => __(
+                'Account records changed. Refresh, review the latest list and confirm the action again.',
+                'pagenest-companion',
+            ),
+            'error' => __(
+                'Account reading could not be saved or loaded. Refresh and try again.',
+                'pagenest-companion',
+            ),
+            'changed' => __(
+                'Account records changed in another panel. Load them again before continuing.',
+                'pagenest-companion',
+            ),
+            'merged' => __(
+                'Account and device records merged. The 100 most recent public articles are kept.',
+                'pagenest-companion',
+            ),
+            'serverOnly' => __(
+                'The account merge succeeded, but device records could not be updated because consent, records or browser storage changed. Review the account list before merging again.',
+                'pagenest-companion',
+            ),
+            'saved' => __(
+                'Account reading updated. Device records were kept.',
+                'pagenest-companion',
+            ),
+            'mergeSummary' => __(
+                'Manual sync only. Keeps the 100 most recent public articles.',
+                'pagenest-companion',
+            ),
+            'loginRequired' => __(
+                'Sign in again before loading account reading.',
+                'pagenest-companion',
+            ),
+            'featureUnavailable' => __(
+                'Account reading is currently unavailable. Load again after it is enabled.',
+                'pagenest-companion',
+            ),
+            'needConsent' => __(
+                'Account reading consent has changed. Load again and review your choice.',
+                'pagenest-companion',
+            ),
+        ],
         'text' => [
             'reading' => __('My reading', 'pagenest-companion'),
             'notes' => __('Comments and notes', 'pagenest-companion'),
@@ -222,12 +356,12 @@ add_action('wp_enqueue_scripts', static function () {
             'device' => __('On this device', 'pagenest-companion'),
             'consent' => __('Remember my reading on this device', 'pagenest-companion'),
             'deviceSummary' => __(
-                'Stored on this device only. No device sync.',
+                'Stored on this device. Account sync requires a separate explicit manual merge.',
                 'pagenest-companion',
             ),
             'help' => __('How this works', 'pagenest-companion'),
             'deviceHelp' => __(
-                'Optional browser storage. No account history or device sync. Article IDs are checked with the site before display. Reading position does not mark an article as read.',
+                'Optional browser storage. Device records stay independent unless you explicitly merge them with account reading. Article IDs are checked with the site before display. Reading position does not mark an article as read.',
                 'pagenest-companion',
             ),
             'unavailable' => __(

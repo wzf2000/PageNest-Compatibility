@@ -77,6 +77,80 @@
     form.addEventListener('change', changed);
     form.addEventListener('reset', () => requestAnimationFrame(changed));
   });
+  root.querySelectorAll('[data-pn-directory-row]').forEach((row) => {
+    const picker = row.querySelector('[data-pn-directory-picker]');
+    const input = row.querySelector('[data-pn-directory-id]');
+    const preview = row.querySelector('[data-pn-directory-preview]');
+    const update = () => {
+      picker.value = input.value;
+      const choice = picker.selectedOptions[0];
+      preview.replaceChildren();
+      if (input.value && choice?.value) {
+        preview.append(`${window.PageNestAdmin?.directoryPending || 'Selected directory:'} `);
+        const link = document.createElement('a');
+        link.textContent = choice.textContent;
+        link.href = choice.dataset.url;
+        preview.append(link);
+      } else {
+        preview.textContent = input.value
+          ? window.PageNestAdmin?.directoryCheck || 'This ID will be checked when saved.'
+          : window.PageNestAdmin?.directoryUnlinked || 'No directory selected.';
+      }
+    };
+    picker.addEventListener('change', () => {
+      input.value = picker.value;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    input.addEventListener('input', update);
+  });
+  root.querySelectorAll('[data-pn-series-form]').forEach((form) => {
+    const list = form.querySelector('[data-pn-series-chapters]');
+    const state = form.querySelector('[data-pn-series-state]');
+    const changed = () => {
+      const token = form.querySelector('[name="pn_series_preview"]');
+      if (token) token.remove();
+      const save = form.querySelector('[name="pn_series_action"][value="save"]');
+      if (save) save.hidden = true;
+      if (state)
+        state.textContent = window.PageNestAdmin?.seriesChanged || 'Preview again before saving.';
+    };
+    form.addEventListener('input', changed);
+    form.querySelectorAll('[data-pn-series-move]').forEach((button) => {
+      button.hidden = false;
+      button.addEventListener('click', () => {
+        const row = button.closest('[data-pn-series-chapter]');
+        const previous = Number(button.dataset.pnSeriesMove) < 0;
+        const sibling = previous ? row.previousElementSibling : row.nextElementSibling;
+        if (!sibling) return;
+        if (previous) sibling.before(row);
+        else sibling.after(row);
+        Array.from(list.children).forEach((item, index) => {
+          item.querySelector('input[type="number"]').value = index + 1;
+          item.querySelector('.pn-series-position').textContent = `${index + 1}.`;
+        });
+        changed();
+        form.dispatchEvent(new Event('input', { bubbles: true }));
+        button.focus();
+      });
+    });
+  });
+  const result = root.querySelector('[data-pn-series-result]');
+  if (result) {
+    // Fragment navigation runs after footer scripts and can replace their focus.
+    // Wait for the new document to be shown, while preserving any user-selected control.
+    const focusResult = () =>
+      requestAnimationFrame(() => {
+        const active = document.activeElement;
+        if (
+          active === document.body ||
+          active === document.documentElement ||
+          active === root.querySelector('#pn-series-maintenance')
+        )
+          result.focus();
+      });
+    if (document.readyState === 'complete') focusResult();
+    else window.addEventListener('pageshow', focusResult, { once: true });
+  }
   const description = root.querySelector('#pagenest-description');
   if (description) {
     const count = root.querySelector('[data-pn-description-count]');

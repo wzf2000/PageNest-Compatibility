@@ -154,6 +154,9 @@ def main():
         wp("eval-file", str(installed / "tests/media-folders-wordpress.php"))
     )
     results["settings"] = json.loads(wp("eval-file", str(installed / "tests/wp-settings.php")))
+    results["series_maintenance"] = json.loads(
+        wp("eval-file", str(installed / "tests/wp-series-maintenance.php"))
+    )
     results["social_settings"] = json.loads(
         wp("eval-file", str(installed / "tests/social-settings-wordpress.php"))
     )
@@ -166,8 +169,26 @@ def main():
             "checks": ["native notification events, permissions and privacy"],
             "output": wp("eval-file", str(installed / "tests/notifications-wordpress.php")).strip(),
         }
+        results["notification_followups"] = {
+            "checks": ["typed batches, filters, paragraph events and native privacy"],
+            "output": wp(
+                "eval-file", str(installed / "tests/notifications-followups-wordpress.php")
+            ).strip(),
+        }
     finally:
         wp("config", "delete", "PAGENEST_NOTIFICATIONS_TEST_LAB")
+    wp("config", "set", "PAGENEST_ACCOUNT_READING_TEST_LAB", "true", "--raw")
+    try:
+        results["account_reading"] = {
+            "checks": [
+                "explicit consent, bounded merges, stale revisions, native privacy and row-lock concurrency"
+            ],
+            "output": wp(
+                "eval-file", str(installed / "tests/account-reading-wordpress.php")
+            ).strip(),
+        }
+    finally:
+        wp("config", "delete", "PAGENEST_ACCOUNT_READING_TEST_LAB")
     subprocess.run(
         [
             "python3",

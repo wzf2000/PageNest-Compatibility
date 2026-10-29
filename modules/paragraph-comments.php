@@ -538,6 +538,9 @@ function pagenest_pc_save($input, $import = false, $public_comment = false)
             wp_delete_post($note_id, true);
             return pagenest_pc_error('save_failed', '保存失败，输入尚未丢失，请重试。', 500);
         }
+        if ($public_comment && !$import) {
+            do_action('pagenest_pc_public_comment_created', (int) $note_id);
+        }
         return pagenest_pc_data(get_post($note_id));
     });
 }
