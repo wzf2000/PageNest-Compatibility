@@ -8,6 +8,7 @@ module.exports = defineConfig({
   testMatch: [
     'reading-center.spec.cjs',
     'account-reading.spec.cjs',
+    'reading-sync.spec.cjs',
     'admin-design.spec.cjs',
     'pdf-viewer.spec.cjs',
     'notifications.spec.cjs',

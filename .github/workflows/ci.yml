@@ -73,7 +73,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository_owner }}/PageNest
-          ref: e4032d4c81c1ae3dc6efb720fa6a0d90e3b1cae8
+          ref: 60de6e985cc43a9a2cf935d4bccf9caf24102f8b
           path: .runtime/pagenest-theme
           persist-credentials: false
       - name: Run frontend regressions

@@ -261,3 +261,15 @@ Simplified Chinese and deterministic `npm run i18n` / `npm run i18n:check` catal
 所有操作要求当前登录用户与 REST nonce，响应 `private, no-store` 并按 Cookie 区分。每次写入和隐私擦除在 InnoDB 事务内锁当前 users 行，取锁后清元数据缓存、检查最新 revision，经 WordPress 元数据 API 保存并回读；不支持事务时拒绝写入。旧 revision 返回 409，不覆盖、不自动合并重试；撤回保留随机 revision 的关闭状态以拒绝旧设备请求。双向合并在服务器确认后才更新本机，期间本机同意／数据变化或存储失败会明确区分账号成功与本机未更新。
 
 WordPress 原生导出与擦除在可选开关关闭后仍登记；只处理本人账号阅读元数据，账号真正删除后再定向清理本键，覆盖核心删除元数据之后才完成的同步写入；仅移除多站点成员资格时保留全局账号记录。来源后来隐藏时只读投影不暴露标题／链接，下一次手动合并清理不可公开条目；原始本人记录仍可被隐私导出或擦除。真实 WordPress 回归 `tests/account-reading-wordpress.php` 仅在 `PAGENEST_ACCOUNT_READING_TEST_LAB=true` 的可丢弃环境运行，包括权限、版本冲突、首次并发写、撤回和回滚；普通内存契约不替代并发数据库验证。
+
+### 自动位置与独立偏好接口（1.12）
+
+1.12.0 起提供以下接口。沿用账号阅读的单站点、管理员开关、本人登录、REST nonce、`no-store` 和用户行事务锁边界。
+
+`GET /pagenest/v1/reading/account/sync` 只读返回 `available`、`readingEnabled`、`automatic` 与 `preferences`，不创建同意。自动位置状态单独保存在 `_pagenest_reading_automatic`，包含 `enabled`、随机 `epoch` 与服务器同意起点 `started`。`POST .../automatic/consent` 接受 `{epoch,enabled}`；已启用时加入新设备保留 epoch，不上传历史。`POST .../automatic/progress` 只接受 `{epoch,item:{id,later,anchor}}`，当前公开来源核验后由服务器赋予阅读时间，同一文章的稍后读沿用手动合并的并集规则。接口不接受客户端时间或整份历史。`POST .../automatic/withdraw` 接受 `{epoch}`，不删除手动账号记录。
+
+手动移除、清空、撤回及关闭自动位置在同一用户锁内使自动 epoch 失效并暂停自动位置。旧 epoch 返回 409，客户端不得自动换用新 epoch 重发；重新加载后须明确确认。浏览器绑定只存不透明账号标识和 epoch，只有绑定仍有效且本机记忆可用时才发送同意之后的当前文章增量。关闭页面、隐藏或退出登录后取消在途请求，失败不建立持久重试队列。
+
+偏好保存在 `_pagenest_reading_preferences`，独立包含 `enabled`、`epoch`、`revision`、`values`，不随阅读位置更新 revision。`POST .../preferences/consent` 接受 `{revision}`，已有同意仅绑定当前设备；`POST .../preferences/update` 接受 `{revision,epoch,values}`，`values` 仅含用户改动的 `size`、`width`、`palette` 白名单字段；`POST .../preferences/withdraw` 接受 `{revision}`，清空值并轮换 epoch 和 revision。暂停模块时仍允许独立撤回两类同意；原生隐私擦除在同一事务中撤回三类状态，真实用户删除定向清理三键。
+
+主题交互通过版本 1 的 `pagenest-reader-preferences-ready/request/change/apply/applied` 事件，细节见 PageNest 1.8.0 扩展说明。只有 `source:user` 的 `change` 按 `changed` 字段上传；远程应用不写本机偏好或触发上传。主题没有协议时保留撤回，不声称应用成功。主要前端契约不依赖兄弟仓库；使用显式最小协议替身，指定兼容主题时再运行真实主题集成。`tests/reading-sync-wordpress.php` 仅允许在 `PAGENEST_READING_SYNC_TEST_LAB=true` 的可丢弃 WordPress 环境运行。

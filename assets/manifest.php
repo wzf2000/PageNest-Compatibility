@@ -9,7 +9,7 @@ return [
     'discovery_admin_js' => 'discovery-admin-83b901380405.js',
     'notifications_js' => 'notifications-6b6533876d39.js',
     'notifications_css' => 'notifications-eb675e0f67d6.css',
-    'reading_js' => 'reading-center-8f1f9e472528.js',
+    'reading_js' => 'reading-center-3cd214237acc.js',
     'reading_css' => 'reading-center-0c148d1a1b40.css',
     'guide_admin_js' => 'guide-admin-7a92860986a9.js',
     'guide_css' => 'guide-a5bbef5d13c8.css',
