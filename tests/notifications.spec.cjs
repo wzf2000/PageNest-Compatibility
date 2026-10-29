@@ -662,9 +662,9 @@ test('notification shortcode keeps dialog list and metadata spacing under real a
   });
   const shortcode = page.locator('article [data-pn-notifications]');
   await shortcode.locator('[data-pn-notifications-load]').click();
-  await page.locator('[data-pn-open-notifications]').click();
-  const measure = (scope) =>
-    scope.evaluate((root) => {
+  const measure = async (scope) => {
+    await expect(scope.locator('[data-pn-notifications-result] li p')).toHaveCount(1);
+    return scope.evaluate((root) => {
       const ul = getComputedStyle(root.querySelector('ul'));
       const li = getComputedStyle(root.querySelector('li'));
       const meta = getComputedStyle(root.querySelector('li p'));
@@ -679,8 +679,36 @@ test('notification shortcode keeps dialog list and metadata spacing under real a
         metaColor: meta.color,
       };
     });
+  };
   const actual = await measure(shortcode);
   expect(actual.indent).toBe('0px');
   expect(actual.metaSpace).toBe('0px');
-  expect(actual).toEqual(await measure(page.locator('dialog [data-pn-notifications]')));
+  let releaseDialog, markRequested;
+  const deferredDialog = new Promise((resolve) => {
+    releaseDialog = resolve;
+  });
+  const requested = new Promise((resolve) => {
+    markRequested = resolve;
+  });
+  await page.route(
+    (url) => url.origin === origin && url.pathname === '/wp-json/pagenest/v1/notifications',
+    async (route) => {
+      markRequested();
+      await deferredDialog;
+      await route.fallback();
+    },
+  );
+  const dialog = page.locator('dialog [data-pn-notifications]');
+  try {
+    await page.locator('[data-pn-open-notifications]').click();
+    await requested;
+    await expect(dialog.locator('[data-pn-notifications-status]')).toHaveText(text.loading);
+    await expect(dialog.locator('[data-pn-notifications-result] li')).toHaveCount(0);
+    // Start measuring while the real script is awaiting the deliberately held response.
+    const dialogMeasurement = measure(dialog);
+    releaseDialog();
+    expect(actual).toEqual(await dialogMeasurement);
+  } finally {
+    releaseDialog();
+  }
 });
