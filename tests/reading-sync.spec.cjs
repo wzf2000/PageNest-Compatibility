@@ -672,23 +672,38 @@ test('storage failure stops a queued automatic upload before it reaches the serv
 test('reopening the account panel continues to hold automatic positions until it closes', async ({
   page,
 }) => {
-  const f = await fixture(page, { resumeAutomatic: true });
+  const f = await fixture(page);
   await f.open();
+  await f.choose('automatic');
+  await expect(f.view.locator('[data-pn-sync-consent=automatic]')).toBeChecked();
+  const closePanel = async () => {
+    // Native close is asynchronous; finish its handlers before advancing timer callbacks.
+    await page.evaluate(() => {
+      window.testDialogClosed = new Promise((resolve) =>
+        document
+          .querySelector('.pn-reading-dialog')
+          .addEventListener('close', () => resolve(true), { once: true }),
+      );
+    });
+    await page.locator('[data-pn-close-reading]').click();
+    await page.evaluate(() => window.testDialogClosed);
+  };
   await f.flush();
   expect(f.calls.filter((call) => call.action === 'automatic/progress')).toHaveLength(0);
-  await page.locator('[data-pn-close-reading]').click();
+  await closePanel();
   await page.evaluate(() => dispatchEvent(new Event('scroll')));
   await f.flush();
   await f.flush();
   await expect
     .poll(() => f.calls.filter((call) => call.action === 'automatic/progress').length)
     .toBe(1);
+  await expect(f.view.locator('[data-pn-sync-status=automatic]')).toHaveText(syncText.saved);
   await page.locator('[data-pn-open-reading]').click();
   await page.evaluate(() => dispatchEvent(new Event('scroll')));
   await f.flush();
   await f.flush();
   expect(f.calls.filter((call) => call.action === 'automatic/progress')).toHaveLength(1);
-  await page.locator('[data-pn-close-reading]').click();
+  await closePanel();
   await page.evaluate(() => dispatchEvent(new Event('scroll')));
   await f.flush();
   await f.flush();
