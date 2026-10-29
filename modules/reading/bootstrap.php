@@ -50,7 +50,7 @@ add_action('admin_menu', static function () {
                 esc_html__('Enable My reading', 'pagenest-companion') .
                 '</label><p>' .
                 esc_html__(
-                    'Disabled by default. Readers separately choose whether to remember public articles on this device. Account reading is a separate optional feature requiring the reader’s consent and an explicit manual merge. Device reading sends article IDs only to check current public access.',
+                    'Disabled by default. Device reading memory remains optional. Account reading and reading preferences each require explicit consent. Device reading sends article IDs only to check current public access.',
                     'pagenest-companion',
                 ) .
                 '</p><p>' .
@@ -63,10 +63,10 @@ add_action('admin_menu', static function () {
                 checked(get_option('pagenest_companion_account_reading', '0'), '1', false) .
                 (is_multisite() ? ' disabled' : '') .
                 '> ' .
-                esc_html__('Offer manual account reading sync', 'pagenest-companion') .
+                esc_html__('Offer account reading sync', 'pagenest-companion') .
                 '</label></p><p>' .
                 esc_html__(
-                    'Disabled by default. Signed-in readers separately consent, then manually merge up to 100 public reading positions. Private comments and notes are never included.',
+                    'Disabled by default. Readers separately consent to manual account records, automatic current positions and reading preferences. Private comments and notes are never included.',
                     'pagenest-companion',
                 ) .
                 '</p>';
@@ -228,6 +228,98 @@ add_action('wp_enqueue_scripts', static function () {
                     'headings' => array_column(pagenest_discovery_sections($post), 'id'),
                 ]
                 : null,
+        'sync' =>
+            pagenest_account_reading_offered() && is_user_logged_in()
+                ? [
+                    'actor' => hash_hmac('sha256', (string) get_current_user_id(), wp_salt('auth')),
+                    'text' => [
+                        'saving' => __(
+                            'Saving reading preferences. You can withdraw after this request finishes.',
+                            'pagenest-companion',
+                        ),
+                        'title' => __(
+                            'Automatic reading and reading preferences',
+                            'pagenest-companion',
+                        ),
+                        'load' => __('Load sync settings', 'pagenest-companion'),
+                        'automatic' => __(
+                            'Automatically save future reading positions on this device',
+                            'pagenest-companion',
+                        ),
+                        'preferences' => __(
+                            'Sync reading size, width and palette on this device',
+                            'pagenest-companion',
+                        ),
+                        'help' => __(
+                            'Automatic reading saves only the current public article after consent. Earlier device history still needs a manual merge. Reading preferences have separate consent; withdrawing them keeps device preferences. Stopping automatic reading keeps saved reading records. Stopping automatic reading or withdrawing preferences also pauses other devices until they confirm again.',
+                            'pagenest-companion',
+                        ),
+                        'enabled' => __('Enabled on this device.', 'pagenest-companion'),
+                        'withdrawnPreferences' => __(
+                            'Account reading preferences cleared. Device preferences were kept.',
+                            'pagenest-companion',
+                        ),
+                        'stoppedAutomatic' => __(
+                            'Automatic saving stopped. Saved account and device records were kept.',
+                            'pagenest-companion',
+                        ),
+                        'saved' => __('Saved to your account.', 'pagenest-companion'),
+                        'applied' => __(
+                            'Account reading preferences applied to this page. Device values were kept.',
+                            'pagenest-companion',
+                        ),
+                        'reconfirm' => __(
+                            'This device is paused. Load the latest settings, then check the option to confirm again.',
+                            'pagenest-companion',
+                        ),
+                        'storage' => __(
+                            'Browser storage is unavailable. Automatic syncing is paused.',
+                            'pagenest-companion',
+                        ),
+                        'savedStorage' => __(
+                            'Account consent was saved, but this device could not save its sync marker. Syncing on this device is paused.',
+                            'pagenest-companion',
+                        ),
+                        'localRequired' => __(
+                            'Enable device reading memory with available browser storage before automatic saving.',
+                            'pagenest-companion',
+                        ),
+                        'failed' => __(
+                            'Syncing failed and is paused. Load the latest settings and confirm again.',
+                            'pagenest-companion',
+                        ),
+                        'conflict' => __(
+                            'Account state changed. Syncing is paused; load settings and confirm again. Older changes will not be resent.',
+                            'pagenest-companion',
+                        ),
+                        'login' => __(
+                            'Sign-in expired. Device preferences were restored; sign in and confirm syncing again.',
+                            'pagenest-companion',
+                        ),
+                        'paused' => __(
+                            'Account syncing is paused on this site. You can still withdraw existing consent.',
+                            'pagenest-companion',
+                        ),
+                        'savedPaused' => __(
+                            'The account update was saved, but this site paused syncing. Device values were kept.',
+                            'pagenest-companion',
+                        ),
+                        'accountFirst' => __(
+                            'Enable account reading above before separately allowing automatic positions.',
+                            'pagenest-companion',
+                        ),
+                        'noTheme' => __(
+                            'This theme has no compatible reading-preference interface. Nothing was applied; you can still withdraw account preferences.',
+                            'pagenest-companion',
+                        ),
+                        'withdrawPreferences' => __(
+                            'Withdraw consent and clear account preferences',
+                            'pagenest-companion',
+                        ),
+                        'stopAutomatic' => __('Stop automatic reading', 'pagenest-companion'),
+                    ],
+                ]
+                : null,
         'accountText' => [
             'serverPaused' => __(
                 'Account records were saved, but this site paused syncing. Device records were kept.',
@@ -243,7 +335,7 @@ add_action('wp_enqueue_scripts', static function () {
             ),
             'title' => __('Account reading', 'pagenest-companion'),
             'intro' => __(
-                'Load account records only when you choose. Nothing uploads automatically.',
+                'Load this list when needed. Automatic positions and reading preferences each need separate consent.',
                 'pagenest-companion',
             ),
             'load' => __('Load account reading', 'pagenest-companion'),
@@ -258,7 +350,7 @@ add_action('wp_enqueue_scripts', static function () {
                 'pagenest-companion',
             ),
             'enabled' => __(
-                'Account reading is enabled. Use the merge button whenever you want to sync.',
+                'Account reading is enabled. Merge earlier device history manually; automatic positions need separate consent.',
                 'pagenest-companion',
             ),
             'merge' => __('Merge device and account records', 'pagenest-companion'),
@@ -315,7 +407,7 @@ add_action('wp_enqueue_scripts', static function () {
                 'pagenest-companion',
             ),
             'mergeSummary' => __(
-                'Manual sync only. Keeps the 100 most recent public articles.',
+                'Manual merge keeps the 100 most recent public articles.',
                 'pagenest-companion',
             ),
             'loginRequired' => __(
@@ -356,12 +448,12 @@ add_action('wp_enqueue_scripts', static function () {
             'device' => __('On this device', 'pagenest-companion'),
             'consent' => __('Remember my reading on this device', 'pagenest-companion'),
             'deviceSummary' => __(
-                'Stored on this device. Account sync requires a separate explicit manual merge.',
+                'Device history stays here. Optional account features require separate consent.',
                 'pagenest-companion',
             ),
             'help' => __('How this works', 'pagenest-companion'),
             'deviceHelp' => __(
-                'Optional browser storage. Device records stay independent unless you explicitly merge them with account reading. Article IDs are checked with the site before display. Reading position does not mark an article as read.',
+                'Optional browser storage. Earlier device history stays local unless you manually merge it. Automatic positions and reading preferences each need separate consent. Article IDs are checked before display. Position does not mean an article was read.',
                 'pagenest-companion',
             ),
             'unavailable' => __(

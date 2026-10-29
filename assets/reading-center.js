@@ -30,7 +30,8 @@
   let device = { enabled: false, items: [] },
     storageOK = true,
     resolving = 0,
-    deviceGeneration = 0;
+    deviceGeneration = 0,
+    sync = null;
   function readDevice() {
     try {
       const saved = JSON.parse(localStorage.getItem(key) || 'null');
@@ -87,7 +88,9 @@
       { id: cfg.current.id, time: Date.now(), later: later || old?.later === true, anchor },
       ...device.items.filter((item) => item.id !== cfg.current.id),
     ].slice(0, 100);
-    return persist();
+    const saved = persist();
+    if (saved) sync?.record();
+    return saved;
   }
   if (device.enabled) remember();
   let scrollTimer;
@@ -636,6 +639,565 @@
   });
   // Account state stays inside each panel; the device store remains independently opt-in.
   const accountCenters = [];
+  const accountViewOpen = () =>
+    [...document.querySelectorAll('.pn-reading')].some(
+      (panel) =>
+        panel.dataset.pnView === 'account' &&
+        panel.getClientRects().length &&
+        (!panel.closest('dialog') || panel.closest('dialog').open),
+    );
+  const updateSyncPanelState = () => sync?.panel(accountViewOpen());
+  function createReadingSync() {
+    const config = cfg.sync;
+    if (!config?.actor || !cfg.nonce) return null;
+    const text = config.text;
+    const names = ['automatic', 'preferences'];
+    const allowed = {
+      size: ['default', '18', '20', '22'],
+      width: ['default', 'compact', 'wide'],
+      palette: ['default', 'paper', 'dark'],
+    };
+    const storageKey = (name) => 'pagenest.reading.' + name + '.v1';
+    let state = null,
+      generation = 0,
+      serial = Promise.resolve(),
+      busy = false,
+      authLost = false;
+    let timer,
+      delta = null,
+      patch = {},
+      sentPatch = {},
+      working = false,
+      workingKind = null,
+      themeReady = false,
+      applying = '',
+      consentingPreferences = false;
+    let suspended = document.hidden,
+      panelOpen = false;
+    const controllers = new Set(),
+      views = [],
+      markers = {},
+      messages = { automatic: '', preferences: '' };
+    function readMarker(name) {
+      try {
+        const value = JSON.parse(localStorage.getItem(storageKey(name)) || 'null');
+        if (
+          value &&
+          value.version === 1 &&
+          value.actor === config.actor &&
+          /^[a-f0-9]{32}$/.test(value.epoch)
+        )
+          return value;
+      } catch {
+        messages[name] = text.storage;
+      }
+      return null;
+    }
+    names.forEach((name) => {
+      markers[name] = readMarker(name);
+    });
+    const live = (name) =>
+      !suspended &&
+      !authLost &&
+      state?.available &&
+      state[name]?.enabled &&
+      markers[name]?.actor === config.actor &&
+      markers[name]?.epoch === state[name]?.epoch;
+    function serialize(task) {
+      const result = serial.then(task, task);
+      serial = result.catch(() => {});
+      return result;
+    }
+    function restoreLocal() {
+      applying = 'local-' + generation;
+      document.dispatchEvent(
+        new CustomEvent('pagenest-reader-preferences-apply', {
+          detail: {
+            version: 1,
+            source: 'local',
+            changed: [],
+            preferences: {},
+            requestId: applying,
+          },
+        }),
+      );
+    }
+    function applyPreferences() {
+      if (!live('preferences')) {
+        restoreLocal();
+        return;
+      }
+      if (!themeReady) {
+        messages.preferences = text.noTheme;
+        render();
+        return;
+      }
+      const values = { ...state.preferences.values, ...sentPatch, ...patch };
+      applying = 'remote-' + generation + '-' + state.preferences.revision;
+      document.dispatchEvent(
+        new CustomEvent('pagenest-reader-preferences-apply', {
+          detail: {
+            version: 1,
+            source: 'remote',
+            preferences: { ...values },
+            changed: Object.keys(values),
+            requestId: applying,
+          },
+        }),
+      );
+    }
+    function forget(name, message = '') {
+      const previous = markers[name];
+      markers[name] = null;
+      messages[name] = message;
+      try {
+        const current = JSON.parse(localStorage.getItem(storageKey(name)) || 'null');
+        // A stale tab may pause itself, but cannot erase a newer explicit device binding.
+        if (previous && current?.actor === previous.actor && current?.epoch === previous.epoch)
+          localStorage.removeItem(storageKey(name));
+      } catch {
+        messages[name] = message || text.storage;
+      }
+      if (name === 'automatic') delta = null;
+      else {
+        patch = {};
+        sentPatch = {};
+        restoreLocal();
+      }
+    }
+    function bind(name) {
+      const value = { version: 1, actor: config.actor, epoch: state[name].epoch };
+      try {
+        localStorage.setItem(storageKey(name), JSON.stringify(value));
+        markers[name] = value;
+        return true;
+      } catch {
+        forget(name, text.savedStorage);
+        return false;
+      }
+    }
+    async function request(path = '', body) {
+      const turn = generation;
+      return serialize(async () => {
+        if (turn !== generation || suspended || authLost)
+          throw Object.assign(Error(), { stale: true });
+        if (path === 'automatic/progress' || path === 'preferences/update') {
+          const name = path.startsWith('automatic') ? 'automatic' : 'preferences';
+          if (name === 'automatic') {
+            readDevice();
+            if (!storageOK || !device.enabled) throw Error(text.localRequired);
+          }
+          const currentMarker = readMarker(name);
+          if (!currentMarker || currentMarker.epoch !== state?.[name]?.epoch)
+            throw Error(messages[name] === text.storage ? text.storage : text.reconfirm);
+        }
+        const controller = new AbortController();
+        controllers.add(controller);
+        const timeout = setTimeout(() => controller.abort(), 15000);
+        try {
+          let url = new URL(cfg.accountApi, location.href);
+          const suffix = path || 'sync';
+          if (url.searchParams.has('rest_route'))
+            url.searchParams.set('rest_route', url.searchParams.get('rest_route') + '/' + suffix);
+          else url.pathname = url.pathname.replace(/\/$/, '') + '/' + suffix;
+          const response = await fetch(safeUrl(url.href), {
+            method: body === undefined ? 'GET' : 'POST',
+            credentials: 'same-origin',
+            cache: 'no-store',
+            signal: controller.signal,
+            headers: { 'X-WP-Nonce': cfg.nonce, 'Content-Type': 'application/json' },
+            ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+          });
+          const data = await response.json();
+          if (turn !== generation || suspended || authLost)
+            throw Object.assign(Error(), { stale: true });
+          if (response.status === 401 || data?.code === 'rest_cookie_invalid_nonce') {
+            document.dispatchEvent(new Event('pagenest-pc-auth-change'));
+            throw Object.assign(Error(), { stale: true });
+          }
+          if (!response.ok)
+            throw Object.assign(Error(response.status === 409 ? text.conflict : text.failed), {
+              status: response.status,
+            });
+          return data;
+        } catch (error) {
+          if (turn !== generation) error.stale = true;
+          throw error;
+        } finally {
+          clearTimeout(timeout);
+          controllers.delete(controller);
+        }
+      });
+    }
+    function validateMarkers() {
+      names.forEach((name) => {
+        if (
+          markers[name] &&
+          (!state.available || !state[name].enabled || markers[name].epoch !== state[name].epoch)
+        )
+          forget(name, text.reconfirm);
+      });
+    }
+    async function load(explicit = false) {
+      if (busy || authLost || suspended || (!explicit && !names.some((name) => markers[name])))
+        return;
+      const turn = generation;
+      busy = true;
+      render();
+      try {
+        const value = await request();
+        if (turn !== generation) return;
+        state = value;
+        validateMarkers();
+        applyPreferences();
+        panelOpen = accountViewOpen();
+        recordCurrent();
+      } catch (error) {
+        if (!error.stale) names.forEach((name) => forget(name, error.message));
+      } finally {
+        if (turn === generation) {
+          busy = false;
+          render();
+          if (delta || Object.keys(patch).length) schedule();
+        }
+      }
+    }
+    function fail(name, error) {
+      if (!error.stale) {
+        forget(name, error.message || text.failed);
+        render();
+      }
+    }
+    async function choose(name, enabled) {
+      if (
+        !state ||
+        busy ||
+        suspended ||
+        authLost ||
+        (name === 'preferences' && workingKind === 'preferences')
+      ) {
+        render();
+        return;
+      }
+      if (name === 'automatic' && enabled) {
+        readDevice();
+        if (!storageOK || !device.enabled || !persist()) {
+          messages.automatic = text.localRequired;
+          render();
+          return;
+        }
+      }
+      const turn = generation;
+      const opener = document.activeElement;
+      const focusName = opener?.dataset.pnSyncFocus;
+      let focusMoved = false;
+      const moved = (event) => {
+        if (
+          (event.type === 'pointerdown' || event.target !== document.body) &&
+          event.target !== opener
+        )
+          focusMoved = true;
+      };
+      document.addEventListener('focusin', moved);
+      document.addEventListener('pointerdown', moved);
+      busy = true;
+      consentingPreferences = name === 'preferences' && enabled;
+      // Stop before revocation starts. A lost response cannot resume this device.
+      if (!enabled) forget(name);
+      render();
+      try {
+        const body =
+          name === 'automatic'
+            ? enabled
+              ? { enabled, epoch: state.automatic.epoch }
+              : { epoch: state.automatic.epoch }
+            : { revision: state.preferences.revision };
+        const value = await request(name + (enabled ? '/consent' : '/withdraw'), body);
+        if (turn !== generation) return;
+        state.available = value.available !== false;
+        delete value.available;
+        state[name] = value;
+        if (!state.available) {
+          names.forEach((kind) => forget(kind, text.savedPaused));
+          return;
+        }
+        messages[name] = enabled
+          ? text.enabled
+          : name === 'preferences'
+            ? text.withdrawnPreferences
+            : text.stoppedAutomatic;
+        if (enabled && bind(name)) {
+          if (name === 'preferences') applyPreferences();
+          else recordCurrent();
+        }
+      } catch (error) {
+        fail(name, error);
+      } finally {
+        document.removeEventListener('focusin', moved);
+        document.removeEventListener('pointerdown', moved);
+        if (turn === generation) {
+          busy = false;
+          consentingPreferences = false;
+          render();
+          if (focusName && !focusMoved && document.activeElement === document.body)
+            views
+              .flatMap((view) => [...view.querySelectorAll('[data-pn-sync-focus]')])
+              .find(
+                (control) =>
+                  control.dataset.pnSyncFocus === focusName && control.getClientRects().length,
+              )
+              ?.focus({ preventScroll: true });
+          if (Object.keys(patch).length) schedule();
+        }
+      }
+    }
+    function recordCurrent() {
+      if (!cfg.current || !live('automatic') || panelOpen) return;
+      readDevice();
+      if (!storageOK || !device.enabled) {
+        forget('automatic', text.localRequired);
+        render();
+        return;
+      }
+      const current = device.items.find((item) => item.id === cfg.current.id);
+      if (!current) return;
+      delta = { id: current.id, later: current.later, anchor: current.anchor };
+      schedule();
+    }
+    function schedule() {
+      if (suspended || authLost) return;
+      clearTimeout(timer);
+      timer = setTimeout(flush, 800);
+    }
+    async function flush() {
+      if (working || busy || suspended || authLost) return;
+      const turn = generation;
+      const kind =
+        live('preferences') && Object.keys(patch).length
+          ? 'preferences'
+          : live('automatic') && !panelOpen && delta
+            ? 'automatic'
+            : null;
+      if (!kind) return;
+      working = true;
+      workingKind = kind;
+      render();
+      const value = kind === 'preferences' ? patch : delta;
+      if (kind === 'preferences') {
+        sentPatch = value;
+        patch = {};
+      } else delta = null;
+      try {
+        const body =
+          kind === 'preferences'
+            ? {
+                revision: state.preferences.revision,
+                epoch: state.preferences.epoch,
+                values: value,
+              }
+            : { epoch: state.automatic.epoch, item: value };
+        const data = await request(kind + (kind === 'preferences' ? '/update' : '/progress'), body);
+        if (turn !== generation) return;
+        state.available = data.available !== false;
+        delete data.available;
+        if (!state.available) {
+          names.forEach((name) => forget(name, text.savedPaused));
+          render();
+          return;
+        }
+        if (kind === 'preferences') {
+          state.preferences = data;
+          sentPatch = {};
+        } else accountCenters.forEach((center) => center.clear());
+        messages[kind] = text.saved;
+        render();
+      } catch (error) {
+        fail(kind, error);
+      } finally {
+        if (turn === generation) {
+          working = false;
+          workingKind = null;
+          render();
+          if (delta || Object.keys(patch).length) schedule();
+        }
+      }
+    }
+    function render() {
+      views.forEach((view) => {
+        const focused = view.contains(document.activeElement)
+          ? document.activeElement?.dataset.pnSyncFocus
+          : null;
+        const open = view.querySelector('details')?.open;
+        view.replaceChildren();
+        const settings = node('details', undefined, 'pn-reading-management');
+        settings.open = Boolean(open);
+        settings.append(node('summary', text.title));
+        const refresh = button(text.load, () => load(true));
+        refresh.dataset.pnSyncFocus = 'load';
+        refresh.disabled = busy || authLost;
+        settings.append(refresh);
+        if (state)
+          names.forEach((name) => {
+            const box = node('div');
+            const label = node('label', undefined, 'pn-reading-consent');
+            const input = node('input');
+            input.type = 'checkbox';
+            input.dataset.pnSyncFocus = name;
+            input.dataset.pnSyncConsent = name;
+            input.checked = Boolean(live(name));
+            input.disabled =
+              busy ||
+              authLost ||
+              (name === 'preferences' && workingKind === 'preferences') ||
+              !state.available ||
+              (name === 'automatic' && !state.readingEnabled);
+            label.append(input, document.createTextNode(' ' + text[name]));
+            input.addEventListener('change', () => choose(name, input.checked));
+            const feedback = node(
+              'p',
+              (name === 'preferences' && workingKind === 'preferences' ? text.saving : '') ||
+                messages[name] ||
+                (!state.available
+                  ? text.paused
+                  : name === 'automatic' && !state.readingEnabled
+                    ? text.accountFirst
+                    : state[name].enabled && !live(name)
+                      ? text.reconfirm
+                      : ''),
+              'pn-reading-hint',
+            );
+            feedback.dataset.pnSyncStatus = name;
+            feedback.setAttribute('role', 'status');
+            box.append(label, feedback);
+            if (state[name].enabled) {
+              const withdraw = button(
+                name === 'preferences' ? text.withdrawPreferences : text.stopAutomatic,
+                () => choose(name, false),
+              );
+              withdraw.disabled =
+                busy || authLost || (name === 'preferences' && workingKind === 'preferences');
+              withdraw.dataset.pnSyncWithdraw = name;
+              withdraw.dataset.pnSyncFocus = 'withdraw-' + name;
+              box.append(withdraw);
+            }
+            settings.append(box);
+          });
+        settings.append(node('p', text.help, 'pn-reading-hint'));
+        view.append(settings);
+        if (focused && document.activeElement === document.body)
+          view.querySelector(`[data-pn-sync-focus="${focused}"]`)?.focus({ preventScroll: true });
+      });
+    }
+    function suspend(authentication = false) {
+      generation++;
+      suspended = true;
+      clearTimeout(timer);
+      delta = null;
+      patch = {};
+      sentPatch = {};
+      consentingPreferences = false;
+      busy = false;
+      working = false;
+      workingKind = null;
+      controllers.forEach((controller) => controller.abort());
+      controllers.clear();
+      state = null;
+      restoreLocal();
+      if (authentication) {
+        authLost = true;
+        names.forEach((name) => forget(name, text.login));
+      }
+      render();
+    }
+    document.addEventListener('pagenest-reader-preferences-ready', (event) => {
+      if (event.detail?.version !== 1) return;
+      themeReady = true;
+      if (live('preferences')) applyPreferences();
+    });
+    document.addEventListener('pagenest-reader-preferences-applied', (event) => {
+      if (event.detail?.version !== 1 || event.detail.requestId !== applying) return;
+      if (event.detail.source === 'remote' && live('preferences')) {
+        messages.preferences = text.applied;
+        render();
+      }
+    });
+    document.addEventListener('pagenest-reader-preferences-change', (event) => {
+      const value = event.detail;
+      if (
+        (!live('preferences') && !consentingPreferences && !markers.preferences) ||
+        suspended ||
+        authLost ||
+        !themeReady ||
+        value?.version !== 1 ||
+        value.source !== 'user' ||
+        !Array.isArray(value.changed) ||
+        !value.changed.length ||
+        value.changed.length > 3 ||
+        new Set(value.changed).size !== value.changed.length ||
+        !value.preferences ||
+        value.changed.some(
+          (name) =>
+            !Object.hasOwn(allowed, name) || !allowed[name].includes(value.preferences[name]),
+        )
+      )
+        return;
+      value.changed.forEach((name) => {
+        patch[name] = value.preferences[name];
+      });
+      schedule();
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) suspend();
+      else if (!authLost) {
+        suspended = false;
+        load();
+      }
+    });
+    addEventListener('pagehide', () => suspend());
+    addEventListener('pageshow', (event) => {
+      if (event.persisted && !authLost) {
+        suspended = false;
+        load();
+      }
+    });
+    document.addEventListener('pagenest-pc-auth-change', () => suspend(true));
+    addEventListener('storage', (event) => {
+      if (!names.some((name) => event.key === storageKey(name)) && event.key !== null) return;
+      names.forEach((name) => {
+        const current = readMarker(name);
+        if (!current || current.epoch !== markers[name]?.epoch) forget(name, text.reconfirm);
+      });
+      render();
+    });
+    document.dispatchEvent(
+      new CustomEvent('pagenest-reader-preferences-request', {
+        detail: { version: 1, requestId: 'reading-sync' },
+      }),
+    );
+    load();
+    return {
+      attach(view) {
+        views.push(view);
+        render();
+      },
+      serialize,
+      record: recordCurrent,
+      panel(open) {
+        panelOpen = open;
+        if (open) delta = null;
+      },
+      beforeManual(action) {
+        if (['remove', 'clear', 'withdraw'].includes(action)) {
+          forget('automatic', text.reconfirm);
+          render();
+        }
+      },
+      afterManual(action) {
+        if (state && ['consent', 'remove', 'clear', 'withdraw'].includes(action)) load(true);
+      },
+    };
+  }
+  sync = createReadingSync();
   function accountPanel(view) {
     const a = cfg.accountText;
     let state = null,
@@ -656,6 +1218,12 @@
       return { view, clear() {} };
     }
     view.append(loadButton, status, content);
+    if (sync) {
+      const settings = node('div');
+      settings.dataset.pnSyncSettings = '';
+      view.append(settings);
+      sync.attach(settings);
+    }
     function clear(message = '') {
       generation++;
       controllers.forEach((controller) => controller.abort());
@@ -672,7 +1240,6 @@
       const turn = generation,
         controller = new AbortController();
       controllers.add(controller);
-      const timeout = setTimeout(() => controller.abort(), 15000);
       try {
         let url = new URL(cfg.accountApi, location.href);
         if (action) {
@@ -680,15 +1247,26 @@
             url.searchParams.set('rest_route', url.searchParams.get('rest_route') + '/' + action);
           else url.pathname = url.pathname.replace(/\/$/, '') + '/' + action;
         }
-        const response = await fetch(safeUrl(url.href), {
-          method: body === undefined ? 'GET' : 'POST',
-          credentials: 'same-origin',
-          cache: 'no-store',
-          signal: controller.signal,
-          headers: { 'X-WP-Nonce': cfg.nonce, 'Content-Type': 'application/json' },
-          ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-        });
-        const data = await response.json();
+        const send = async () => {
+          if (turn !== generation || controller.signal.aborted)
+            throw Object.assign(Error(), { stale: true });
+          const timeout = setTimeout(() => controller.abort(), 15000);
+          try {
+            const response = await fetch(safeUrl(url.href), {
+              method: body === undefined ? 'GET' : 'POST',
+              credentials: 'same-origin',
+              cache: 'no-store',
+              signal: controller.signal,
+              headers: { 'X-WP-Nonce': cfg.nonce, 'Content-Type': 'application/json' },
+              ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+            });
+            const data = await response.json();
+            return { response, data };
+          } finally {
+            clearTimeout(timeout);
+          }
+        };
+        const { response, data } = sync ? await sync.serialize(send) : await send();
         if (turn !== generation) throw Object.assign(Error(), { stale: true });
         if (response.status === 401 || data?.code === 'rest_cookie_invalid_nonce') {
           document.dispatchEvent(new Event('pagenest-pc-auth-change'));
@@ -719,7 +1297,6 @@
         if (turn !== generation) error.stale = true;
         throw error;
       } finally {
-        clearTimeout(timeout);
         controllers.delete(controller);
       }
     }
@@ -842,6 +1419,7 @@
     async function mutate(action, input = {}, deviceSnapshot = null) {
       if (pending || !state) return;
       const turn = generation;
+      sync?.beforeManual(action);
       const manageAction = action === 'remove' || action === 'clear';
       const removedIndex =
         action === 'remove' ? state.items.findIndex((item) => item.id === input.id) : -1;
@@ -870,7 +1448,8 @@
       document.addEventListener('focusin', moved);
       document.addEventListener('pointerdown', moved);
       pending = true;
-      view.querySelectorAll('button, input').forEach((control) => {
+      loadButton.disabled = true;
+      content.querySelectorAll('button, input').forEach((control) => {
         control.disabled = true;
       });
       status.textContent = t.loading;
@@ -881,6 +1460,7 @@
           .filter((center) => center.view !== view)
           .forEach((center) => center.clear(a.changed));
         state = data;
+        sync?.afterManual(action);
         let message = action === 'merge' ? a.merged : action === 'consent' ? a.enabled : a.saved;
         if (action === 'merge') {
           if (data.available === false) message = a.serverPaused;
@@ -989,6 +1569,7 @@
       deviceView.hidden = ['records', 'account'].includes(selected);
       if (account) account.hidden = selected !== 'account';
       records.hidden = selected !== 'records';
+      updateSyncPanelState();
       [...tabs.children].forEach((tab) => {
         const active = tab.dataset.pnTab === selected;
         tab.setAttribute('aria-selected', String(active));
@@ -1069,6 +1650,7 @@
     opener.addEventListener('click', () => {
       dialogOpener = opener;
       dialog?.showModal();
+      updateSyncPanelState();
       updateReadingScrollPadding();
       renderDevice();
     });
@@ -1078,6 +1660,7 @@
     ?.addEventListener('click', () => dialog.close());
   dialog?.addEventListener('close', () => {
     if (dialog.open) return;
+    updateSyncPanelState();
     accountCenters.forEach((center) => center.clear());
     centers.forEach((center) => center.clear());
     const candidates = [

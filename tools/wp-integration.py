@@ -189,6 +189,14 @@ def main():
         }
     finally:
         wp("config", "delete", "PAGENEST_ACCOUNT_READING_TEST_LAB")
+    wp("config", "set", "PAGENEST_READING_SYNC_TEST_LAB", "true", "--raw")
+    try:
+        results["reading_sync"] = {
+            "checks": ["automatic epochs, independent preferences, server time and atomic privacy"],
+            "output": wp("eval-file", str(installed / "tests/reading-sync-wordpress.php")).strip(),
+        }
+    finally:
+        wp("config", "delete", "PAGENEST_READING_SYNC_TEST_LAB")
     subprocess.run(
         [
             "python3",

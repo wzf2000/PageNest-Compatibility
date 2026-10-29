@@ -13,7 +13,17 @@ function pagenest_account_reading_offered(): bool
         pagenest_reading_enabled() &&
         (pagenest_account_reading_enabled() ||
             (get_current_user_id() &&
-                metadata_exists('user', get_current_user_id(), '_pagenest_account_reading')));
+                (metadata_exists('user', get_current_user_id(), '_pagenest_account_reading') ||
+                    metadata_exists(
+                        'user',
+                        get_current_user_id(),
+                        '_pagenest_reading_preferences',
+                    ) ||
+                    metadata_exists(
+                        'user',
+                        get_current_user_id(),
+                        '_pagenest_reading_automatic',
+                    ))));
 }
 function pagenest_account_reading_error(string $code = 'storage', int $status = 500): WP_Error
 {
@@ -134,102 +144,98 @@ function pagenest_account_reading_write(
     array $input = [],
     bool $privacy = false,
 ) {
-    global $wpdb;
     if (is_multisite() && $action !== 'withdraw') {
         return pagenest_account_reading_error('unsupported', 403);
     }
-    foreach ([$wpdb->users, $wpdb->usermeta] as $table) {
-        $engine = $wpdb->get_var(
-            $wpdb->prepare(
-                'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s',
-                $table,
-            ),
-        );
-        if (strtoupper((string) $engine) !== 'INNODB') {
-            return pagenest_account_reading_error();
-        }
-    }
-    if ($wpdb->query('START TRANSACTION') === false) {
-        return pagenest_account_reading_error();
-    }
-    $result = pagenest_account_reading_error();
-    try {
-        $locked = $wpdb->get_var(
-            $wpdb->prepare("SELECT ID FROM {$wpdb->users} WHERE ID = %d FOR UPDATE", $user),
-        );
-        if ((int) $locked !== $user || $wpdb->last_error !== '') {
-            throw new RuntimeException();
-        }
-        wp_cache_delete($user, 'user_meta');
-        $state = pagenest_account_reading_state($user);
-        if (is_wp_error($state)) {
-            $result = $state;
-            throw new RuntimeException();
-        }
-        if (!$privacy && $state['revision'] !== $input['revision']) {
-            $result = pagenest_account_reading_error('conflict', 409);
-            throw new RuntimeException();
-        }
-        if (!$privacy && $action !== 'withdraw' && !pagenest_account_reading_enabled()) {
-            $result = pagenest_account_reading_error('disabled', 403);
-            throw new RuntimeException();
-        }
-        if ($action === 'consent') {
-            $state['enabled'] = true;
-        } elseif ($action === 'withdraw') {
-            $state = ['enabled' => false, 'items' => []];
-        } else {
-            if (!$state['enabled']) {
-                $result = pagenest_account_reading_error('consent', 403);
+    return pagenest_reading_sync_transaction($user, static function () use (
+        $user,
+        $action,
+        $input,
+        $privacy,
+    ) {
+        global $wpdb;
+        $result = pagenest_account_reading_error();
+        try {
+            $state = pagenest_account_reading_state($user);
+            if (is_wp_error($state)) {
+                $result = $state;
                 throw new RuntimeException();
             }
-            if ($action === 'merge') {
-                $stored = pagenest_account_reading_project($state['items'], false);
-                if (is_wp_error($stored)) {
-                    $result = $stored;
-                    throw new RuntimeException();
-                }
-                $incoming = pagenest_account_reading_project($input['items'], false);
-                if (is_wp_error($incoming)) {
-                    $result = $incoming;
-                    throw new RuntimeException();
-                }
-                $state['items'] = pagenest_account_reading_merge($stored, $incoming);
-            } elseif ($action === 'clear') {
-                $state['items'] = [];
-            } elseif ($action === 'remove') {
-                $state['items'] = array_values(
-                    array_filter($state['items'], static fn($item) => $item['id'] !== $input['id']),
-                );
+            if (!$privacy && $state['revision'] !== $input['revision']) {
+                $result = pagenest_account_reading_error('conflict', 409);
+                throw new RuntimeException();
+            }
+            if (!$privacy && $action !== 'withdraw' && !pagenest_account_reading_enabled()) {
+                $result = pagenest_account_reading_error('disabled', 403);
+                throw new RuntimeException();
+            }
+            if ($action === 'consent') {
+                $state['enabled'] = true;
+            } elseif ($action === 'withdraw') {
+                $state = ['enabled' => false, 'items' => []];
             } else {
+                if (!$state['enabled']) {
+                    $result = pagenest_account_reading_error('consent', 403);
+                    throw new RuntimeException();
+                }
+                if ($action === 'merge') {
+                    $stored = pagenest_account_reading_project($state['items'], false);
+                    if (is_wp_error($stored)) {
+                        $result = $stored;
+                        throw new RuntimeException();
+                    }
+                    $incoming = pagenest_account_reading_project($input['items'], false);
+                    if (is_wp_error($incoming)) {
+                        $result = $incoming;
+                        throw new RuntimeException();
+                    }
+                    $state['items'] = pagenest_account_reading_merge($stored, $incoming);
+                } elseif ($action === 'clear') {
+                    $state['items'] = [];
+                } elseif ($action === 'remove') {
+                    $state['items'] = array_values(
+                        array_filter(
+                            $state['items'],
+                            static fn($item) => $item['id'] !== $input['id'],
+                        ),
+                    );
+                } else {
+                    throw new RuntimeException();
+                }
+            }
+            $state['revision'] = bin2hex(random_bytes(16));
+            $state = [
+                'enabled' => $state['enabled'],
+                'revision' => $state['revision'],
+                'items' => $state['items'],
+            ];
+            update_user_meta($user, '_pagenest_account_reading', wp_slash($state));
+            if ($wpdb->last_error !== '') {
                 throw new RuntimeException();
             }
+            wp_cache_delete($user, 'user_meta');
+            if (pagenest_account_reading_state($user) !== $state) {
+                throw new RuntimeException();
+            }
+            if (in_array($action, ['remove', 'clear', 'withdraw'], true)) {
+                $automatic = pagenest_reading_sync_revoke($user, 'automatic');
+                if (is_wp_error($automatic)) {
+                    return $automatic;
+                }
+            }
+            if ($privacy) {
+                $preferences = pagenest_reading_sync_revoke($user, 'preferences');
+                if (is_wp_error($preferences)) {
+                    return $preferences;
+                }
+            }
+            return $state;
+        } catch (Throwable $error) {
+            return $result;
         }
-        $state['revision'] = bin2hex(random_bytes(16));
-        $state = [
-            'enabled' => $state['enabled'],
-            'revision' => $state['revision'],
-            'items' => $state['items'],
-        ];
-        update_user_meta($user, '_pagenest_account_reading', wp_slash($state));
-        if ($wpdb->last_error !== '') {
-            throw new RuntimeException();
-        }
-        wp_cache_delete($user, 'user_meta');
-        if (pagenest_account_reading_state($user) !== $state) {
-            throw new RuntimeException();
-        }
-        if ($wpdb->query('COMMIT') === false) {
-            throw new RuntimeException();
-        }
-        wp_cache_delete($user, 'user_meta');
-        return $state;
-    } catch (Throwable $error) {
-        $wpdb->query('ROLLBACK');
-        wp_cache_delete($user, 'user_meta');
-        return $result;
-    }
+    });
 }
+
 function pagenest_account_reading_permission($request)
 {
     if (!get_current_user_id() || !wp_verify_nonce($request->get_header('X-WP-Nonce'), 'wp_rest')) {
@@ -393,7 +399,11 @@ function pagenest_account_reading_export(string $email, int $page = 1)
             ),
         ];
     }
-    return ['data' => $data, 'done' => true];
+    $extra = pagenest_reading_sync_export((int) $user->ID);
+    if (is_wp_error($extra)) {
+        return $extra;
+    }
+    return ['data' => array_merge($data, $extra), 'done' => true];
 }
 add_filter('wp_privacy_personal_data_erasers', static function (array $erasers): array {
     $erasers['pagenest-account-reading'] = [
@@ -443,6 +453,17 @@ function pagenest_account_reading_deleted_user(int $user): void
     if ($wpdb->last_error !== '' || $exists !== null) {
         return;
     }
-    delete_user_meta($user, '_pagenest_account_reading');
+    foreach (
+        [
+            '_pagenest_account_reading',
+            '_pagenest_reading_automatic',
+            '_pagenest_reading_preferences',
+        ]
+        as $key
+    ) {
+        delete_user_meta($user, $key);
+    }
 }
 add_action('deleted_user', 'pagenest_account_reading_deleted_user', PHP_INT_MAX);
+
+require_once __DIR__ . '/sync.php';

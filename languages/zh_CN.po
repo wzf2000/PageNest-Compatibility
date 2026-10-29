@@ -961,9 +961,8 @@ msgstr "账号阅读未能保存或加载，请刷新后重试。"
 msgid "Account reading is currently unavailable. Load again after it is enabled."
 msgstr "账号阅读目前不可用，请在功能开启后重新加载。"
 
-#: modules/reading/bootstrap.php:215
-msgid "Account reading is enabled. Use the merge button whenever you want to sync."
-msgstr "账号阅读已启用，需要同步时请手动合并。"
+msgid "Account reading is enabled. Merge earlier device history manually; automatic positions need separate consent."
+msgstr "账号阅读已启用。旧本机历史需手动合并，自动保存位置须另行同意。"
 
 #: modules/reading/bootstrap.php:214
 msgid "Account reading is off. Enabling it records your consent only; it does not upload device records."
@@ -989,13 +988,11 @@ msgstr "清空账号记录"
 msgid "Clear all account reading records? Device records will remain."
 msgstr "清空全部账号阅读记录？本机记录会保留。"
 
-#: modules/reading/bootstrap.php:48
-msgid "Disabled by default. Readers separately choose whether to remember public articles on this device. Account reading is a separate optional feature requiring the reader’s consent and an explicit manual merge. Device reading sends article IDs only to check current public access."
-msgstr "默认关闭。读者可单独选择是否在本机记录公开文章。账号阅读是独立可选功能，需读者同意并明确手动合并。本机阅读发送的文章 ID 仅用于检查当前公开访问权限。"
+msgid "Disabled by default. Device reading memory remains optional. Account reading and reading preferences each require explicit consent. Device reading sends article IDs only to check current public access."
+msgstr "默认关闭。本机阅读记忆保持可选。账号阅读和阅读偏好均须读者明确同意。本机阅读发送的文章 ID 仅用于检查当前公开访问权限。"
 
-#: modules/reading/bootstrap.php:58
-msgid "Disabled by default. Signed-in readers separately consent, then manually merge up to 100 public reading positions. Private comments and notes are never included."
-msgstr "默认关闭。登录读者单独同意后，可手动合并最多 100 条公开文章阅读位置，不包含私人评论和笔记。"
+msgid "Disabled by default. Readers separately consent to manual account records, automatic current positions and reading preferences. Private comments and notes are never included."
+msgstr "默认关闭。读者分别同意手动账号记录、自动保存当前位置及阅读偏好，不包含私人评论和笔记。"
 
 #: modules/reading/bootstrap.php:213
 msgid "Enable account reading"
@@ -1013,29 +1010,25 @@ msgstr "我同意将公开文章的阅读位置保存到账号"
 msgid "Load account reading"
 msgstr "加载账号阅读"
 
-#: modules/reading/bootstrap.php:209
-msgid "Load account records only when you choose. Nothing uploads automatically."
-msgstr "点击加载后才读取账号记录，不会自动上传。"
+msgid "Load this list when needed. Automatic positions and reading preferences each need separate consent."
+msgstr "需要时再加载此列表。自动保存位置和阅读偏好均须另行同意。"
 
 #: modules/reading/bootstrap.php:218
 msgid "Manage account records"
 msgstr "管理账号记录"
 
-#: modules/reading/bootstrap.php:233
-msgid "Manual sync only. Keeps the 100 most recent public articles."
-msgstr "仅手动同步，保留最近 100 篇公开文章。"
+msgid "Manual merge keeps the 100 most recent public articles."
+msgstr "手动合并保留最近 100 篇公开文章。"
 
 #: modules/reading/bootstrap.php:216
 msgid "Merge device and account records"
 msgstr "合并本机与账号记录"
 
-#: modules/reading/bootstrap.php:58
-msgid "Offer manual account reading sync"
-msgstr "提供手动账号阅读同步"
+msgid "Offer account reading sync"
+msgstr "提供账号阅读同步"
 
-#: modules/reading/bootstrap.php:267
-msgid "Optional browser storage. Device records stay independent unless you explicitly merge them with account reading. Article IDs are checked with the site before display. Reading position does not mark an article as read."
-msgstr "可选的浏览器存储。本机记录默认独立，只有你明确与账号阅读合并时才会同步。显示前会向本站检查文章 ID，阅读位置不代表文章已读。"
+msgid "Optional browser storage. Earlier device history stays local unless you manually merge it. Automatic positions and reading preferences each need separate consent. Article IDs are checked before display. Position does not mean an article was read."
+msgstr "可选的浏览器存储。旧本机历史只在手动合并时加入账号；自动保存位置和阅读偏好须分别同意。显示前会检查文章 ID，阅读位置不代表文章已读。"
 
 #: modules/reading/bootstrap.php:211
 msgid "Refresh account reading"
@@ -1065,9 +1058,8 @@ msgstr "请重新登录后加载账号阅读。"
 msgid "Stop account reading and clear its records? Device records will remain."
 msgstr "停止账号阅读并清空账号记录？本机记录会保留。"
 
-#: modules/reading/bootstrap.php:262
-msgid "Stored on this device. Account sync requires a separate explicit manual merge."
-msgstr "保存在本机，与账号同步需另行明确手动合并。"
+msgid "Device history stays here. Optional account features require separate consent."
+msgstr "本机历史保存在这里，可选账号功能需分别同意。"
 
 #: modules/reading/bootstrap.php:231
 msgid "The account merge succeeded, but device records could not be updated because consent, records or browser storage changed. Review the account list before merging again."
@@ -1088,3 +1080,75 @@ msgstr "账号记录已保存，但本站已暂停同步，本机记录已保留
 
 msgid "Account reading sync currently supports single-site WordPress only."
 msgstr "账号阅读同步目前仅支持单站点 WordPress。"
+
+msgid "Automatic reading and reading preferences"
+msgstr "自动阅读与阅读偏好"
+
+msgid "Load sync settings"
+msgstr "加载同步设置"
+
+msgid "Automatically save future reading positions on this device"
+msgstr "在此设备自动保存之后的阅读位置"
+
+msgid "Sync reading size, width and palette on this device"
+msgstr "在此设备同步字号、宽度和阅读配色"
+
+msgid "Automatic reading saves only the current public article after consent. Earlier device history still needs a manual merge. Reading preferences have separate consent; withdrawing them keeps device preferences. Stopping automatic reading keeps saved reading records. Stopping automatic reading or withdrawing preferences also pauses other devices until they confirm again."
+msgstr "自动阅读只保存同意后的当前公开文章，旧本机历史仍需手动合并。阅读偏好单独同意，撤回后本机偏好保留；停止自动阅读也不清空已有阅读记录。 停止自动阅读或撤回偏好也会暂停其他设备，需重新确认。"
+
+msgid "Enabled on this device."
+msgstr "已在此设备启用。"
+
+msgid "Account reading preferences cleared. Device preferences were kept."
+msgstr "账号阅读偏好已清除，本机偏好保留。"
+
+msgid "Automatic saving stopped. Saved account and device records were kept."
+msgstr "自动保存已停止，已有账号和本机记录保留。"
+
+msgid "Saved to your account."
+msgstr "已保存到账号。"
+
+msgid "Account reading preferences applied to this page. Device values were kept."
+msgstr "账号阅读偏好已应用于本页，本机原设置保留。"
+
+msgid "This device is paused. Load the latest settings, then check the option to confirm again."
+msgstr "此设备已暂停。请加载最新设置，再勾选以重新确认。"
+
+msgid "Browser storage is unavailable. Automatic syncing is paused."
+msgstr "浏览器存储不可用，自动同步已暂停。"
+
+msgid "Account consent was saved, but this device could not save its sync marker. Syncing on this device is paused."
+msgstr "账号已记录同意，但本机未能保存同步标记，此设备同步已暂停。"
+
+msgid "Enable device reading memory with available browser storage before automatic saving."
+msgstr "自动保存前，请启用本机阅读记忆并确保浏览器存储可用。"
+
+msgid "Syncing failed and is paused. Load the latest settings and confirm again."
+msgstr "同步未完成，已暂停。请加载最新设置后重新确认。"
+
+msgid "Account state changed. Syncing is paused; load settings and confirm again. Older changes will not be resent."
+msgstr "账号状态已变化，同步已暂停。请加载设置后重新确认，不会重发旧记录。"
+
+msgid "Sign-in expired. Device preferences were restored; sign in and confirm syncing again."
+msgstr "登录已失效，已恢复本机偏好。请重新登录后再确认同步。"
+
+msgid "Account syncing is paused on this site. You can still withdraw existing consent."
+msgstr "本站已暂停账号同步，你仍可撤回已有同意。"
+
+msgid "The account update was saved, but this site paused syncing. Device values were kept."
+msgstr "账号更新已保存，但本站已暂停同步，本机设置保留。"
+
+msgid "Enable account reading above before separately allowing automatic positions."
+msgstr "请先在上方启用账号阅读，再单独同意自动保存位置。"
+
+msgid "This theme has no compatible reading-preference interface. Nothing was applied; you can still withdraw account preferences."
+msgstr "当前主题没有兼容的阅读偏好接口，尚未应用；你仍可撤回账号偏好。"
+
+msgid "Withdraw consent and clear account preferences"
+msgstr "撤回同意并清空账号偏好"
+
+msgid "Stop automatic reading"
+msgstr "停止自动阅读"
+
+msgid "Saving reading preferences. You can withdraw after this request finishes."
+msgstr "正在保存阅读偏好，完成后可撤回。"
