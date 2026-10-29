@@ -706,7 +706,19 @@ for (const action of ['list', 'preference', 'read', 'count']) {
         await notifications.locator('[data-pn-notifications-load]').click();
         if (action === 'preference') {
           await notifications.locator('details summary').click();
-          await notifications.getByRole('checkbox').uncheck();
+          const preference = notifications.getByRole('checkbox');
+          await expect(preference).toBeChecked();
+          await preference.focus();
+          // Auth loss removes this control; assert the request instead of its detached checked state.
+          const [request] = await Promise.all([
+            page.waitForRequest(
+              (request) =>
+                request.method() === 'POST' &&
+                new URL(request.url()).pathname === '/cross-notifications/preference',
+            ),
+            page.keyboard.press('Space'),
+          ]);
+          expect(request.postDataJSON()).toEqual({ enabled: false });
         }
         if (action === 'read')
           await notifications
