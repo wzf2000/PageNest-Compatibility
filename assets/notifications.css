@@ -207,3 +207,15 @@
 [data-pn-notifications-badge][hidden] {
   display: none;
 }
+
+.pn-notifications-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block: 16px;
+}
+.pn-notifications-filters [aria-pressed='true'] {
+  border-color: var(--pagenest-accent, #426354);
+  box-shadow: inset 0 0 0 1px var(--pagenest-accent, #426354);
+  font-weight: 600;
+}

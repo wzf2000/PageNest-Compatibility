@@ -169,6 +169,12 @@ def main():
             "checks": ["native notification events, permissions and privacy"],
             "output": wp("eval-file", str(installed / "tests/notifications-wordpress.php")).strip(),
         }
+        results["notification_followups"] = {
+            "checks": ["typed batches, filters, paragraph events and native privacy"],
+            "output": wp(
+                "eval-file", str(installed / "tests/notifications-followups-wordpress.php")
+            ).strip(),
+        }
     finally:
         wp("config", "delete", "PAGENEST_NOTIFICATIONS_TEST_LAB")
     subprocess.run(

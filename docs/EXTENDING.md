@@ -241,3 +241,13 @@ Simplified Chinese and deterministic `npm run i18n` / `npm run i18n:check` catal
 阅读互动页签的章节维护只使用文章当前有效的 `series` 值确定成员，不把 `document_series` 目录绑定转为章节归属。前台与维护预览共用 `pagenest_companion_sort_series()`，保留显式文档顺序、数值顺序及原有回退比较规则；服务器 `series_order` 涉及的系列只读，`series_directories` 单独存在不限制章节编辑。
 
 保存需要 `manage_options`、每篇文章的读取／编辑权限、nonce、完整成员输入、旧值摘要及对应预览签名。请求在 InnoDB 事务内锁定有限的系列候选与相关元数据，重新校验当前状态，再通过 WordPress 元数据 API 仅写 `_pagenest_chapter_order`；冲突或任一更新失败时回滚。不能保证完整读取或事务能力时不保存，不降级成逐篇部分写入。该入口不修改内容、来源绑定、旧存储键或私人记录。详细操作与规模限制见 [使用指南](USAGE.md#维护整组章节顺序)。
+
+## 站内通知接口
+
+`pagenest_companion_notifications` 为总开关；`pagenest_companion_paragraph_notifications` 独立控制新公开段落评论通知，两者默认 `0`。`pagenest_pc_public_comment_created` 只在新的公开评论保存成功后触发，参数为记录 ID；它不是历史记录补发入口。普通回复使用 commentmeta，段落评论使用对应记录的 postmeta，均先写接收者索引，再写最小事件与接收标记；不保存正文、引用、邮箱或私人记录内容。
+
+`GET /pagenest/v1/notifications` 接受 `page` 与 `filter=all|unread`。各存储最多查询最近 100 个候选，逐项检查当前来源与接收权限，再按事件时间合并为最多 100 条；未读筛选在合并窗口内进行。单条包含 `kind=comment_reply|paragraph_comment` 与 `id`，两者共同标识记录。`GET .../count` 只返回 `recentUnread`。
+
+`POST .../read` 接受 `kind`、`id`；省略 `kind` 时按普通回复处理，保留旧调用兼容。`POST .../read-page` 接受 `items: [{kind, id}]`，要求 1–10 个不重复的明确条目。服务端先验证整批身份与访问权，再逐项保存已读；写入失败返回 503 和已写入的 typed 条目，客户端重新加载实际状态，不将部分成功冒称整批成功。所有接口要求本人登录及 REST nonce，响应 `no-store`；短码、页眉与弹窗共用权限边界，不接受其他用户 ID。
+
+隐私导出、擦除及账号删除同时覆盖两种元数据存储，各自有界分页；段落记录包含回收站中的通知元数据。擦除失败保留 owner 索引便于重试，只删除通知字段，保留原评论／笔记及非身份的去重决定标记。修改通知模块时应同时运行内存契约、通知浏览器测试与 `notifications-wordpress.php`／`notifications-followups-wordpress.php`；真实 WordPress 测试仅允许显式标记的可丢弃实验环境。

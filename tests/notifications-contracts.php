@@ -22,6 +22,18 @@ function __($text, ...$args)
 {
     return $text;
 }
+function pagenest_companion_config(...$args)
+{
+    return 'pn_note';
+}
+function get_post_stati()
+{
+    return ['private', 'trash'];
+}
+function get_posts($args)
+{
+    return [];
+}
 function get_option(...$args)
 {
     return $GLOBALS['enabled'];
@@ -176,6 +188,43 @@ $comments[2] = (object) [
 $reply = $comments[2];
 pagenest_notifications_submitted(2, 1);
 check(count(pagenest_notifications_list(new Request())->data['items']) === 1, 'new reply');
+check(
+    pagenest_notifications_list(new Request(['filter' => 'unknown']))->code ===
+        'notifications_input',
+    'unknown filter rejected',
+);
+check(
+    count(pagenest_notifications_list(new Request(['filter' => 'unread']))->data['items']) === 1,
+    'unread filter sees unread event',
+);
+$batch = [['kind' => 'comment_reply', 'id' => 2]];
+check(
+    pagenest_notifications_read_page(
+        new Request(['items' => array_merge($batch, [['kind' => 'comment_reply', 'id' => 999]])]),
+    )->code === 'notifications_missing' &&
+        get_comment_meta(2, '_pagenest_notification_read', true) === '',
+    'batch validates all items before writes',
+);
+check(
+    pagenest_notifications_read_page(new Request(['items' => array_merge($batch, $batch)]))
+        ->code === 'notifications_input',
+    'duplicate typed identity rejected',
+);
+check(
+    pagenest_notifications_read_page(new Request(['items' => array_fill(0, 11, $batch[0])]))
+        ->code === 'notifications_input',
+    'batch maximum ten',
+);
+check(
+    pagenest_notifications_read_page(new Request(['items' => $batch]))->data['read'] === true,
+    'typed page read succeeds',
+);
+$filtered = pagenest_notifications_list(new Request(['filter' => 'unread']))->data;
+check(
+    $filtered['items'] === [] && $filtered['recentUnread'] === 0 && $filtered['page'] === 1,
+    'unread filter follows write and clamps page',
+);
+delete_comment_meta(2, '_pagenest_notification_read');
 $count = pagenest_notifications_count(new Request())->data;
 check(
     array_keys($count) === ['recentUnread'] && $count['recentUnread'] === 1,

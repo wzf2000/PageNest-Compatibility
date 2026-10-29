@@ -93,8 +93,16 @@ function pagenest_notifications_privacy(string $email, int $page = 1, bool $eras
         }
     }
     if ($erase) {
-        // Keep a nonidentifying one-way decision on comments; preferences cannot regenerate seeds.
         update_user_meta($user->ID, '_pagenest_notifications_off', '1');
+    }
+    $paragraphs = pagenest_notifications_paragraph_privacy((int) $user->ID, $page, $erase);
+    if ($paragraphs instanceof WP_Error) {
+        return $paragraphs;
+    }
+    $data = array_merge($data, $paragraphs['data']);
+    $removed = $removed || $paragraphs['removed'];
+    if ($erase) {
+        // Keep a nonidentifying one-way decision on comments; preferences cannot regenerate seeds.
         if (
             $wpdb->last_error !== '' ||
             get_user_meta($user->ID, '_pagenest_notifications_off', true) !== '1' ||
@@ -106,7 +114,7 @@ function pagenest_notifications_privacy(string $email, int $page = 1, bool $eras
             'items_removed' => $removed,
             'items_retained' => $retained,
             'messages' => [],
-            'done' => count($comments) <= 50,
+            'done' => count($comments) <= 50 && $paragraphs['done'],
         ];
     }
     if ($page === 1) {
@@ -116,10 +124,7 @@ function pagenest_notifications_privacy(string $email, int $page = 1, bool $eras
             'item_id' => 'pagenest-notification-preference',
             'data' => [
                 [
-                    'name' => __(
-                        'Receive future comment reply notifications',
-                        'pagenest-companion',
-                    ),
+                    'name' => __('Receive future comment notifications', 'pagenest-companion'),
                     'value' =>
                         get_user_meta($user->ID, '_pagenest_notifications_off', true) === '1'
                             ? 'no'
@@ -128,7 +133,7 @@ function pagenest_notifications_privacy(string $email, int $page = 1, bool $eras
             ],
         ];
     }
-    return ['data' => $data, 'done' => count($comments) <= 50];
+    return ['data' => $data, 'done' => count($comments) <= 50 && $paragraphs['done']];
 }
 add_filter('wp_privacy_personal_data_exporters', static function ($items) {
     $items['pagenest-notifications'] = [
@@ -161,3 +166,70 @@ add_action('delete_user', static function ($id) {
         } while (!$result['done']);
     }
 });
+
+/** Owner-indexed postmeta jobs include partial events, independent of module switches. */
+function pagenest_notifications_paragraph_privacy(int $user, int $page, bool $erase)
+{
+    global $wpdb;
+    $notes = get_posts([
+        'post_type' => pagenest_companion_config('paragraphs', 'post_type'),
+        'post_status' => array_values(get_post_stati()),
+        'numberposts' => 51,
+        'offset' => $erase ? 0 : (max(1, $page) - 1) * 50,
+        'orderby' => 'ID',
+        'order' => 'ASC',
+        'meta_key' => '_pagenest_notification_owner',
+        'meta_value' => $user,
+    ]);
+    if ($wpdb->last_error !== '') {
+        return pagenest_notifications_error('notifications_storage', 503);
+    }
+    $data = [];
+    $removed = false;
+    $retained = false;
+    foreach (array_slice($notes, 0, 50) as $note) {
+        if ((int) get_post_meta($note->ID, '_pagenest_notification_owner', true) !== $user) {
+            continue;
+        }
+        $event = get_post_meta($note->ID, '_pagenest_notification_event', true);
+        if ($erase) {
+            $remaining = false;
+            foreach (
+                [
+                    '_pagenest_notification_recipient',
+                    '_pagenest_notification_event',
+                    '_pagenest_notification_read',
+                ]
+                as $key
+            ) {
+                $removed = delete_post_meta($note->ID, $key) || $removed;
+                $remaining = get_post_meta($note->ID, $key, true) !== '' || $remaining;
+            }
+            if (!$remaining) {
+                $removed = delete_post_meta($note->ID, '_pagenest_notification_owner') || $removed;
+                $remaining = get_post_meta($note->ID, '_pagenest_notification_owner', true) !== '';
+            }
+            $retained = $retained || $remaining;
+        } elseif (is_array($event) && (int) ($event['recipient'] ?? 0) === $user) {
+            $data[] = [
+                'group_id' => 'pagenest-notifications',
+                'group_label' => __('Notifications', 'pagenest-companion'),
+                'item_id' => 'pagenest-paragraph-notification-' . $note->ID,
+                'data' => [
+                    ['name' => 'Paragraph comment ID', 'value' => (string) $note->ID],
+                    ['name' => 'Created', 'value' => esc_html($event['created'])],
+                    [
+                        'name' => 'Read',
+                        'value' =>
+                            get_post_meta($note->ID, '_pagenest_notification_read', true) === '1'
+                                ? 'yes'
+                                : 'no',
+                    ],
+                ],
+            ];
+        }
+    }
+    return $retained
+        ? pagenest_notifications_error('notifications_storage', 503)
+        : ['data' => $data, 'removed' => $removed, 'done' => count($notes) <= 50];
+}

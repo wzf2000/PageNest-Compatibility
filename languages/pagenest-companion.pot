@@ -35,6 +35,10 @@ msgstr ""
 msgid "Administrator access required."
 msgstr ""
 
+#: modules/notifications/presentation.php:174
+msgid "All"
+msgstr ""
+
 #: modules/media/quality.php:394
 msgid "All images"
 msgstr ""
@@ -155,7 +159,7 @@ msgstr ""
 msgid "Choose up to 100 articles."
 msgstr ""
 
-#: modules/paragraph-comments.php:871
+#: modules/paragraph-comments.php:874
 msgid "Choose up to 200 records."
 msgstr ""
 
@@ -163,7 +167,7 @@ msgstr ""
 msgid "Clear device records"
 msgstr ""
 
-#: modules/notifications/presentation.php:85 modules/reading/bootstrap.php:96
+#: modules/notifications/presentation.php:113 modules/reading/bootstrap.php:96
 msgid "Close"
 msgstr ""
 
@@ -171,11 +175,19 @@ msgstr ""
 msgid "Columns"
 msgstr ""
 
+#: modules/notifications/presentation.php:29
+msgid "Comment replies and public paragraph comments. Email settings are separate."
+msgstr ""
+
+#: modules/notifications/presentation.php:182
+msgid "Comment reply"
+msgstr ""
+
 #: modules/reading/bootstrap.php:202
 msgid "Comments and notes"
 msgstr ""
 
-#: modules/paragraph-comments.php:774
+#: modules/paragraph-comments.php:777
 msgid "Comments are temporarily unavailable. Try again later."
 msgstr ""
 
@@ -279,7 +291,7 @@ msgstr ""
 msgid "Disabled by default. New blocks select attachments directly; existing compatible blocks and imported mappings are preserved."
 msgstr ""
 
-#: modules/notifications/presentation.php:34
+#: modules/notifications/presentation.php:42
 msgid "Disabled by default. Only new comment submissions are eligible; existing comments are not backfilled. Add [pagenest_notifications] to an existing page for other themes."
 msgstr ""
 
@@ -303,7 +315,7 @@ msgstr ""
 msgid "Edit text"
 msgstr ""
 
-#: modules/notifications/presentation.php:63
+#: modules/notifications/presentation.php:91
 msgid "Enable JavaScript to load notifications."
 msgstr ""
 
@@ -323,7 +335,7 @@ msgstr ""
 msgid "Enable native gallery and PDF authoring blocks"
 msgstr ""
 
-#: modules/notifications/presentation.php:32
+#: modules/notifications/presentation.php:40
 msgid "Enable notifications"
 msgstr ""
 
@@ -440,7 +452,7 @@ msgstr ""
 msgid "Load more"
 msgstr ""
 
-#: modules/paragraph-comments.php:1218
+#: modules/paragraph-comments.php:1221
 msgid "Load more comments"
 msgstr ""
 
@@ -448,11 +460,11 @@ msgstr ""
 msgid "Load my records"
 msgstr ""
 
-#: modules/notifications/presentation.php:133 modules/notifications/presentation.php:61
+#: modules/notifications/presentation.php:162 modules/notifications/presentation.php:89
 msgid "Load notifications"
 msgstr ""
 
-#: modules/notifications/presentation.php:139
+#: modules/notifications/presentation.php:168
 msgid "Loading notifications…"
 msgstr ""
 
@@ -464,8 +476,12 @@ msgstr ""
 msgid "Manage device records"
 msgstr ""
 
-#: modules/notifications/presentation.php:147
+#: modules/notifications/presentation.php:185
 msgid "Mark as read"
+msgstr ""
+
+#: modules/notifications/presentation.php:176
+msgid "Mark this page as read"
 msgstr ""
 
 #: admin-design.php:26
@@ -548,7 +564,7 @@ msgstr ""
 msgid "New blocks select existing attachments and do not migrate old blocks."
 msgstr ""
 
-#: modules/notifications/presentation.php:149
+#: modules/notifications/presentation.php:187
 msgid "Next"
 msgstr ""
 
@@ -596,8 +612,8 @@ msgstr ""
 msgid "No public share image. Choose a public image, featured image, site image or logo."
 msgstr ""
 
-#: modules/notifications/presentation.php:140
-msgid "No recent replies to show."
+#: modules/notifications/presentation.php:169
+msgid "No recent notifications to show."
 msgstr ""
 
 #: modules/reading/bootstrap.php:246
@@ -620,24 +636,28 @@ msgstr ""
 msgid "Notes"
 msgstr ""
 
-#: modules/notifications/presentation.php:157
+#: modules/notifications/presentation.php:195
 msgid "Notification preference saved."
 msgstr ""
 
-#: modules/notifications/presentation.php:156
+#: modules/notifications/presentation.php:194
 msgid "Notification preferences"
 msgstr ""
 
-#: admin-design.php:16 modules/diagnostics.php:54 modules/notifications/presentation.php:20 modules/notifications/presentation.php:44 modules/notifications/presentation.php:45 modules/notifications/presentation.php:57 modules/notifications/presentation.php:70 modules/notifications/presentation.php:72 modules/notifications/presentation.php:83 modules/notifications/privacy.php:115 modules/notifications/privacy.php:135 modules/notifications/privacy.php:142 modules/notifications/privacy.php:75
+#: admin-design.php:16 modules/diagnostics.php:54 modules/notifications/presentation.php:100 modules/notifications/presentation.php:111 modules/notifications/presentation.php:28 modules/notifications/presentation.php:69 modules/notifications/presentation.php:70 modules/notifications/presentation.php:82 modules/notifications/presentation.php:98 modules/notifications/privacy.php:123 modules/notifications/privacy.php:140 modules/notifications/privacy.php:147 modules/notifications/privacy.php:216 modules/notifications/privacy.php:75
 msgid "Notifications"
 msgstr ""
 
-#: modules/notifications/presentation.php:143
+#: modules/notifications/presentation.php:172
 msgid "Notifications are currently unavailable."
 msgstr ""
 
-#: modules/notifications/bootstrap.php:115 modules/notifications/presentation.php:141
+#: modules/notifications/bootstrap.php:115 modules/notifications/presentation.php:170
 msgid "Notifications could not be loaded. Try again."
+msgstr ""
+
+#: modules/notifications/presentation.php:54
+msgid "Notify article authors about new public paragraph comments"
 msgstr ""
 
 #: modules/reading/bootstrap.php:30
@@ -650,10 +670,6 @@ msgstr ""
 
 #: modules/diagnostics.php:33
 msgid "Only public, unprotected and discoverable entries are returned."
-msgstr ""
-
-#: modules/notifications/presentation.php:135
-msgid "Only the latest 100 eligible replies are checked."
 msgstr ""
 
 #: modules/media/quality.php:438
@@ -748,7 +764,7 @@ msgstr ""
 msgid "Preview uses saved article defaults and your current overrides. Save the article to apply. Draft images can be selected here; only publicly readable images appear in public sharing metadata."
 msgstr ""
 
-#: modules/notifications/presentation.php:148
+#: modules/notifications/presentation.php:186
 msgid "Previous"
 msgstr ""
 
@@ -776,11 +792,15 @@ msgstr ""
 msgid "Public comments"
 msgstr ""
 
+#: modules/notifications/presentation.php:181
+msgid "Public paragraph comment"
+msgstr ""
+
 #: modules/diagnostics.php:30
 msgid "Public search suggestions"
 msgstr ""
 
-#: modules/notifications/presentation.php:145
+#: modules/notifications/presentation.php:183
 msgid "Read"
 msgstr ""
 
@@ -800,16 +820,16 @@ msgstr ""
 msgid "Reading and interaction"
 msgstr ""
 
-#: modules/notifications/presentation.php:150 modules/notifications/privacy.php:119
-msgid "Receive future comment reply notifications"
+#: modules/notifications/presentation.php:188 modules/notifications/privacy.php:127
+msgid "Receive future comment notifications"
+msgstr ""
+
+#: modules/notifications/presentation.php:84
+msgid "Recent comment replies and public paragraph comments on your articles."
 msgstr ""
 
 #: modules/reading/bootstrap.php:243
 msgid "Recent reading"
-msgstr ""
-
-#: modules/notifications/presentation.php:59
-msgid "Recent replies to your comments."
 msgstr ""
 
 #: modules/privacy.php:89
@@ -833,7 +853,7 @@ msgstr ""
 msgid "References to attachment #%d"
 msgstr ""
 
-#: modules/notifications/presentation.php:134
+#: modules/notifications/presentation.php:163
 msgid "Refresh notifications"
 msgstr ""
 
@@ -853,8 +873,12 @@ msgstr ""
 msgid "Replace saved reference"
 msgstr ""
 
-#: modules/diagnostics.php:57 modules/notifications/presentation.php:21
+#: modules/diagnostics.php:57
 msgid "Replies to signed-in readers’ ordinary comments. Email settings are separate."
+msgstr ""
+
+#: modules/notifications/presentation.php:59
+msgid "Requires notifications and paragraph comments to be enabled. Existing records are not backfilled."
 msgstr ""
 
 #: modules/reading/bootstrap.php:242
@@ -1009,7 +1033,11 @@ msgstr ""
 msgid "Show image captions"
 msgstr ""
 
-#: modules/notifications/presentation.php:144
+#: modules/notifications/presentation.php:175
+msgid "Show notifications"
+msgstr ""
+
+#: modules/notifications/presentation.php:173
 msgid "Sign in to view your notifications."
 msgstr ""
 
@@ -1027,6 +1055,10 @@ msgstr ""
 
 #: admin-design.php:30
 msgid "Social sign-in"
+msgstr ""
+
+#: modules/notifications/bootstrap.php:301 modules/notifications/presentation.php:177
+msgid "Some notifications could not be marked as read. The list has been refreshed."
 msgstr ""
 
 #: modules/diagnostics.php:191 modules/diagnostics.php:223
@@ -1059,6 +1091,10 @@ msgstr ""
 
 #: modules/content/editor.php:218
 msgid "The guide is disabled. Saved groups are kept."
+msgstr ""
+
+#: modules/notifications/presentation.php:164
+msgid "The latest 100 eligible notifications are shown. Filters apply within this recent window."
 msgstr ""
 
 #: modules/reading/bootstrap.php:276
@@ -1106,7 +1142,7 @@ msgstr ""
 msgid "This page checked %1$d saved posts/pages and skipped %2$d inaccessible or oversized entries."
 msgstr ""
 
-#: modules/notifications/presentation.php:151
+#: modules/notifications/presentation.php:189
 msgid "This preference does not change comment email settings."
 msgstr ""
 
@@ -1147,12 +1183,12 @@ msgstr ""
 msgid "Unavailable source #%d"
 msgstr ""
 
-#: modules/notifications/presentation.php:146
+#: modules/notifications/presentation.php:184
 msgid "Unread"
 msgstr ""
 
-#: modules/notifications/presentation.php:155
-msgid "Unread in recent replies:"
+#: modules/notifications/presentation.php:193
+msgid "Unread in recent notifications:"
 msgstr ""
 
 #: admin-design.php:125
@@ -1215,7 +1251,7 @@ msgstr ""
 msgid "You cannot maintain this series."
 msgstr ""
 
-#: modules/paragraph-comments.php:784 modules/paragraph-comments.php:900
+#: modules/paragraph-comments.php:787 modules/paragraph-comments.php:903
 msgid "You cannot read this article."
 msgstr ""
 
@@ -1227,6 +1263,6 @@ msgstr ""
 msgid "Your records load only when you choose to view them."
 msgstr ""
 
-#: modules/notifications/presentation.php:142
+#: modules/notifications/presentation.php:171
 msgid "Your session expired. Sign in again."
 msgstr ""

@@ -16,9 +16,6 @@ msgstr "啟用站內通知"
 msgid "Disabled by default. Only new comment submissions are eligible; existing comments are not backfilled. Add [pagenest_notifications] to an existing page for other themes."
 msgstr "預設關閉。僅處理啟用後新提交的留言，不補發歷史通知。其他佈景主題可在現有頁面加入 [pagenest_notifications]。"
 
-msgid "Recent replies to your comments."
-msgstr "查看最近的留言回覆。"
-
 msgid "Load notifications"
 msgstr "載入通知"
 
@@ -27,9 +24,6 @@ msgstr "請啟用 JavaScript 以載入通知。"
 
 msgid "Loading notifications…"
 msgstr "正在載入通知…"
-
-msgid "No recent replies to show."
-msgstr "暫無可顯示的近期回覆。"
 
 msgid "Your session expired. Sign in again."
 msgstr "登入已過期，請重新登入。"
@@ -49,14 +43,8 @@ msgstr "未讀"
 msgid "Mark as read"
 msgstr "標為已讀"
 
-msgid "Receive future comment reply notifications"
-msgstr "接收今後的留言回覆通知"
-
 msgid "This preference does not change comment email settings."
 msgstr "此偏好不影響留言郵件設定。"
-
-msgid "Unread in recent replies:"
-msgstr "最近回覆中的未讀："
 
 msgid "Notification preference saved."
 msgstr "已儲存通知偏好。"
@@ -76,9 +64,6 @@ msgstr "關閉"
 msgid "Refresh notifications"
 msgstr "重新整理通知"
 
-msgid "Only the latest 100 eligible replies are checked."
-msgstr "僅檢查最近 100 則符合接收條件的回覆。"
-
 msgid "Reading and interaction"
 msgstr "閱讀互動"
 
@@ -93,3 +78,45 @@ msgstr "社群登入"
 
 msgid "PageNest settings"
 msgstr "PageNest 設定"
+
+msgid "All"
+msgstr "全部"
+
+msgid "Comment reply"
+msgstr "留言回覆"
+
+msgid "Mark this page as read"
+msgstr "本頁標為已讀"
+
+msgid "No recent notifications to show."
+msgstr "最近沒有符合條件的通知。"
+
+msgid "Notify article authors about new public paragraph comments"
+msgstr "有新的公開段落留言時通知文章作者"
+
+msgid "Public paragraph comment"
+msgstr "公開段落留言"
+
+msgid "Receive future comment notifications"
+msgstr "接收後續留言通知"
+
+msgid "Recent comment replies and public paragraph comments on your articles."
+msgstr "最近的留言回覆，以及你文章下的公開段落留言。"
+
+msgid "Requires notifications and paragraph comments to be enabled. Existing records are not backfilled."
+msgstr "需要同時啟用通知和段落留言，不為已有紀錄補發通知。"
+
+msgid "Show notifications"
+msgstr "篩選通知"
+
+msgid "Some notifications could not be marked as read. The list has been refreshed."
+msgstr "部分通知未能標為已讀，清單已重新載入。"
+
+msgid "The latest 100 eligible notifications are shown. Filters apply within this recent window."
+msgstr "僅顯示最近 100 則符合條件的通知，篩選也在此範圍內進行。"
+
+msgid "Unread in recent notifications:"
+msgstr "最近通知中未讀："
+
+msgid "Comment replies and public paragraph comments. Email settings are separate."
+msgstr "留言回覆和公開段落留言的站內通知，郵件設定獨立管理。"

@@ -2,6 +2,14 @@
 /** Notifications settings and an explicitly opened, memory-only account view. */
 defined('ABSPATH') || exit();
 add_action('admin_init', static function () {
+    register_setting('pagenest_notifications', 'pagenest_companion_paragraph_notifications', [
+        'type' => 'string',
+        'default' => '0',
+        'sanitize_callback' => static fn($value) => current_user_can('manage_options') &&
+        $value === '1'
+            ? '1'
+            : '0',
+    ]);
     register_setting('pagenest_notifications', 'pagenest_companion_notifications', [
         'type' => 'string',
         'default' => '0',
@@ -19,7 +27,7 @@ function pagenest_notifications_settings(): void
     pagenest_companion_admin_header(
         __('Notifications', 'pagenest-companion'),
         __(
-            'Replies to signed-in readers’ ordinary comments. Email settings are separate.',
+            'Comment replies and public paragraph comments. Email settings are separate.',
             'pagenest-companion',
         ),
         'pagenest-notifications',
@@ -33,6 +41,23 @@ function pagenest_notifications_settings(): void
         '</label><p>' .
         esc_html__(
             'Disabled by default. Only new comment submissions are eligible; existing comments are not backfilled. Add [pagenest_notifications] to an existing page for other themes.',
+            'pagenest-companion',
+        ) .
+        '</p>';
+    echo '<p><input type="hidden" name="pagenest_companion_paragraph_notifications" value="0"><label><input type="checkbox" name="pagenest_companion_paragraph_notifications" value="1" ' .
+        checked(
+            get_option('pagenest_companion_paragraph_notifications', '0') === '1',
+            true,
+            false,
+        ) .
+        '> ' .
+        esc_html__(
+            'Notify article authors about new public paragraph comments',
+            'pagenest-companion',
+        ) .
+        '</label></p><p>' .
+        esc_html__(
+            'Requires notifications and paragraph comments to be enabled. Existing records are not backfilled.',
             'pagenest-companion',
         ) .
         '</p>';
@@ -56,7 +81,10 @@ function pagenest_notifications_markup(): string
     return '<section class="pn-notifications" data-pn-notifications><h2>' .
         esc_html__('Notifications', 'pagenest-companion') .
         '</h2><p>' .
-        esc_html__('Recent replies to your comments.', 'pagenest-companion') .
+        esc_html__(
+            'Recent comment replies and public paragraph comments on your articles.',
+            'pagenest-companion',
+        ) .
         '</p><button type="button" data-pn-notifications-load hidden>' .
         esc_html__('Load notifications', 'pagenest-companion') .
         '</button><noscript>' .
@@ -125,6 +153,7 @@ add_action('wp_enqueue_scripts', static function () {
     wp_localize_script('pagenest-notifications', 'PageNestNotifications', [
         'api' => rest_url('pagenest/v1/notifications'),
         'countApi' => rest_url('pagenest/v1/notifications/count'),
+        'batchApi' => rest_url('pagenest/v1/notifications/read-page'),
         'readApi' => rest_url('pagenest/v1/notifications/read'),
         'preferenceApi' => rest_url('pagenest/v1/notifications/preference'),
         'nonce' => is_user_logged_in() ? wp_create_nonce('wp_rest') : '',
@@ -133,26 +162,35 @@ add_action('wp_enqueue_scripts', static function () {
             'load' => __('Load notifications', 'pagenest-companion'),
             'refresh' => __('Refresh notifications', 'pagenest-companion'),
             'window' => __(
-                'Only the latest 100 eligible replies are checked.',
+                'The latest 100 eligible notifications are shown. Filters apply within this recent window.',
                 'pagenest-companion',
             ),
             'loading' => __('Loading notifications…', 'pagenest-companion'),
-            'empty' => __('No recent replies to show.', 'pagenest-companion'),
+            'empty' => __('No recent notifications to show.', 'pagenest-companion'),
             'error' => __('Notifications could not be loaded. Try again.', 'pagenest-companion'),
             'expired' => __('Your session expired. Sign in again.', 'pagenest-companion'),
             'off' => __('Notifications are currently unavailable.', 'pagenest-companion'),
             'login' => __('Sign in to view your notifications.', 'pagenest-companion'),
+            'all' => __('All', 'pagenest-companion'),
+            'filter' => __('Show notifications', 'pagenest-companion'),
+            'batch' => __('Mark this page as read', 'pagenest-companion'),
+            'partial' => __(
+                'Some notifications could not be marked as read. The list has been refreshed.',
+                'pagenest-companion',
+            ),
+            'paragraph' => __('Public paragraph comment', 'pagenest-companion'),
+            'reply' => __('Comment reply', 'pagenest-companion'),
             'read' => __('Read', 'pagenest-companion'),
             'unread' => __('Unread', 'pagenest-companion'),
             'mark' => __('Mark as read', 'pagenest-companion'),
             'previous' => __('Previous', 'pagenest-companion'),
             'next' => __('Next', 'pagenest-companion'),
-            'preference' => __('Receive future comment reply notifications', 'pagenest-companion'),
+            'preference' => __('Receive future comment notifications', 'pagenest-companion'),
             'independent' => __(
                 'This preference does not change comment email settings.',
                 'pagenest-companion',
             ),
-            'recent' => __('Unread in recent replies:', 'pagenest-companion'),
+            'recent' => __('Unread in recent notifications:', 'pagenest-companion'),
             'settings' => __('Notification preferences', 'pagenest-companion'),
             'saved' => __('Notification preference saved.', 'pagenest-companion'),
         ],
