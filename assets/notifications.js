@@ -3,6 +3,8 @@
   const config = window.PageNestNotifications;
   if (!config) return;
   const t = config.text;
+  const authFailure = (status, code) => status === 401 || code === 'rest_cookie_invalid_nonce';
+  const broadcastAuthChange = () => document.dispatchEvent(new Event('pagenest-pc-auth-change'));
   const openButtons = Array.from(document.querySelectorAll('[data-pn-open-notifications]'));
   const labels = new Map(
     openButtons.map((button) => [
@@ -61,11 +63,19 @@
         headers: { 'X-WP-Nonce': config.nonce },
         signal: countController.signal,
       });
-      if (!response.ok) throw new Error('count');
-      const data = await response.json();
-      if (generation === countGeneration && !document.hidden) displayCount(data.recentUnread);
-    } catch {
-      if (generation === countGeneration) clearCount();
+      const data = await response.json().catch((error) => {
+        if (response.ok) throw error;
+        return {};
+      });
+      if (generation !== countGeneration || document.hidden) return;
+      if (!response.ok)
+        throw Object.assign(new Error('count'), { status: response.status, code: data.code });
+      displayCount(data.recentUnread);
+    } catch (error) {
+      if (generation === countGeneration && !document.hidden) {
+        if (authFailure(error.status, error.code)) broadcastAuthChange();
+        else clearCount();
+      }
     }
   };
   const states = [];
@@ -166,8 +176,8 @@
     };
     const fail = (error) => {
       clearCount();
-      if (error.status === 401 || error.code === 'rest_cookie_invalid_nonce') {
-        states.forEach((state) => state.sessionExpired());
+      if (authFailure(error.status, error.code)) {
+        broadcastAuthChange();
         return;
       }
       if (error.status === 403) invalidateOthers(root);

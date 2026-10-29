@@ -714,3 +714,42 @@ for (const action of ['disable', 'move focus']) {
     }
   });
 }
+test('reading shortcode keeps dialog list spacing and muted hints under real article CSS', async ({
+  page,
+}) => {
+  test.skip(!process.env.PAGENEST_TEST_THEME_ROOT, 'requires the actual theme content stylesheet');
+  await page.route('**/reading-style-origin', (route) =>
+    route.fulfill({ contentType: 'text/html', body: '<!doctype html><html><body></body></html>' }),
+  );
+  await page.goto('/reading-style-origin');
+  const panel =
+    '<section class="pn-reading" data-pn-reading><p class="pn-reading-hint">Manual sync and recent records</p><ul class="pn-reading-device-items"><li><div class="pn-reading-item-body"><a href="/article/1">Public article</a><time>Oct 29</time></div></li></ul><details class="pn-reading-help" open><summary>Help</summary><p>Reading remains optional.</p></details></section>';
+  await page.setContent(
+    `<style>body{font:16px system-ui}${fs.readFileSync(path.join(readingAssets, 'reading-center.css'), 'utf8')}</style><article class="pagenest-article-body" style="--pagenest-reading-size:16px;--pagenest-reading-line-height:1.6">${panel}</article><dialog class="pn-reading-dialog" open>${panel}</dialog>`,
+  );
+  await page.addStyleTag({
+    path: path.join(process.env.PAGENEST_TEST_THEME_ROOT, 'assets/content.css'),
+  });
+  const measure = (scope) =>
+    scope.evaluate((root) => {
+      const ul = getComputedStyle(root.querySelector('ul'));
+      const li = getComputedStyle(root.querySelector('li'));
+      const hint = getComputedStyle(root.querySelector('.pn-reading-hint'));
+      const help = getComputedStyle(root.querySelector('.pn-reading-help p'));
+      return {
+        indent: ul.paddingInlineStart,
+        listMargin: ul.marginBottom,
+        rowMargin: li.marginTop,
+        rowHeight: li.lineHeight,
+        hintSize: hint.fontSize,
+        hintSpace: hint.marginBottom,
+        hintColor: hint.color,
+        helpSpace: help.marginBottom,
+      };
+    });
+  const actual = await measure(page.locator('article .pn-reading'));
+  expect(actual.indent).toBe('0px');
+  expect(actual.hintSize).toBe('14px');
+  expect(actual.hintSpace).toBe('12px');
+  expect(actual).toEqual(await measure(page.locator('dialog .pn-reading')));
+});

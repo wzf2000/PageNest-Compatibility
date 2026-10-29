@@ -177,6 +177,18 @@ def main():
         }
     finally:
         wp("config", "delete", "PAGENEST_NOTIFICATIONS_TEST_LAB")
+    wp("config", "set", "PAGENEST_ACCOUNT_READING_TEST_LAB", "true", "--raw")
+    try:
+        results["account_reading"] = {
+            "checks": [
+                "explicit consent, bounded merges, stale revisions, native privacy and row-lock concurrency"
+            ],
+            "output": wp(
+                "eval-file", str(installed / "tests/account-reading-wordpress.php")
+            ).strip(),
+        }
+    finally:
+        wp("config", "delete", "PAGENEST_ACCOUNT_READING_TEST_LAB")
     subprocess.run(
         [
             "python3",

@@ -643,3 +643,44 @@ test('keyboard preference and filter changes retain expanded settings and focus'
     'true',
   );
 });
+test('notification shortcode keeps dialog list and metadata spacing under real article CSS', async ({
+  page,
+}) => {
+  test.skip(!process.env.PAGENEST_TEST_THEME_ROOT, 'requires the actual theme content stylesheet');
+  await fixture(page, { panels: 1 });
+  await page.evaluate(() => {
+    const root = document.querySelector('body > [data-pn-notifications]');
+    const article = document.createElement('article');
+    article.className = 'pagenest-article-body';
+    article.style.cssText = '--pagenest-reading-size:16px;--pagenest-reading-line-height:1.6';
+    root.before(article);
+    article.append(root);
+  });
+  // Load theme CSS last: component specificity must survive either enqueue order.
+  await page.addStyleTag({
+    path: path.join(process.env.PAGENEST_TEST_THEME_ROOT, 'assets/content.css'),
+  });
+  const shortcode = page.locator('article [data-pn-notifications]');
+  await shortcode.locator('[data-pn-notifications-load]').click();
+  await page.locator('[data-pn-open-notifications]').click();
+  const measure = (scope) =>
+    scope.evaluate((root) => {
+      const ul = getComputedStyle(root.querySelector('ul'));
+      const li = getComputedStyle(root.querySelector('li'));
+      const meta = getComputedStyle(root.querySelector('li p'));
+      return {
+        indent: ul.paddingInlineStart,
+        listMargin: ul.marginBottom,
+        rowMargin: li.marginTop,
+        rowHeight: li.lineHeight,
+        metaSize: meta.fontSize,
+        metaSpace: meta.marginBottom,
+        metaTop: meta.marginTop,
+        metaColor: meta.color,
+      };
+    });
+  const actual = await measure(shortcode);
+  expect(actual.indent).toBe('0px');
+  expect(actual.metaSpace).toBe('0px');
+  expect(actual).toEqual(await measure(page.locator('dialog [data-pn-notifications]')));
+});

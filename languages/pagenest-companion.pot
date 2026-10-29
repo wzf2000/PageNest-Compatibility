@@ -7,11 +7,71 @@ msgstr "Project-Id-Version: PageNest Companion\nPO-Revision-Date: 2026-10-13 00:
 msgid "%d existing documents have server-managed series bindings for directory links only. These bindings do not add chapters to a series."
 msgstr ""
 
+#: modules/reading/bootstrap.php:305
+msgid "Account and device records merged. The 100 most recent public articles are kept."
+msgstr ""
+
+#: modules/reading/account.php:356 modules/reading/account.php:374 modules/reading/account.php:382 modules/reading/account.php:400 modules/reading/bootstrap.php:244
+msgid "Account reading"
+msgstr ""
+
+#: modules/reading/bootstrap.php:329
+msgid "Account reading consent has changed. Load again and review your choice."
+msgstr ""
+
+#: modules/reading/account.php:423
+msgid "Account reading could not be erased. Retry after storage is available."
+msgstr ""
+
+#: modules/reading/account.php:22 modules/reading/bootstrap.php:297
+msgid "Account reading could not be saved or loaded. Refresh and try again."
+msgstr ""
+
+#: modules/reading/bootstrap.php:325
+msgid "Account reading is currently unavailable. Load again after it is enabled."
+msgstr ""
+
+#: modules/reading/bootstrap.php:260
+msgid "Account reading is enabled. Use the merge button whenever you want to sync."
+msgstr ""
+
+#: modules/reading/bootstrap.php:256
+msgid "Account reading is off. Enabling it records your consent only; it does not upload device records."
+msgstr ""
+
+#: modules/reading/bootstrap.php:240
+msgid "Account reading is paused on this site. Records are not loaded; you can still withdraw consent and clear account records."
+msgstr ""
+
+#: modules/reading/bootstrap.php:75
+msgid "Account reading sync currently supports single-site WordPress only."
+msgstr ""
+
+#: modules/reading/bootstrap.php:313
+msgid "Account reading updated. Device records were kept."
+msgstr ""
+
+#: modules/reading/account.php:295 modules/reading/bootstrap.php:236
+msgid "Account reading was saved, but its current list could not be loaded. Refresh before making another change."
+msgstr ""
+
+#: modules/reading/bootstrap.php:301
+msgid "Account records changed in another panel. Load them again before continuing."
+msgstr ""
+
+#: modules/reading/bootstrap.php:293
+msgid "Account records changed. Refresh, review the latest list and confirm the action again."
+msgstr ""
+
+#: modules/reading/bootstrap.php:232
+msgid "Account records were saved, but this site paused syncing. Device records were kept."
+msgstr ""
+
 #: modules/privacy.php:205
 msgid "Account subject SHA-256"
 msgstr ""
 
-#: modules/reading/bootstrap.php:48
+#: modules/reading/bootstrap.php:57
 msgid "Add [pagenest_my_reading] to an existing page or use the PageNest reading entry. No page or menu is created automatically. Private records require sign-in and remain in page memory."
 msgstr ""
 
@@ -43,7 +103,7 @@ msgstr ""
 msgid "All images"
 msgstr ""
 
-#: modules/reading/bootstrap.php:255
+#: modules/reading/bootstrap.php:389
 msgid "All records"
 msgstr ""
 
@@ -79,15 +139,15 @@ msgstr ""
 msgid "Attachment text saved."
 msgstr ""
 
-#: modules/reading/bootstrap.php:217
+#: modules/reading/bootstrap.php:351
 msgid "Backup and import"
 msgstr ""
 
-#: modules/reading/bootstrap.php:233
+#: modules/reading/bootstrap.php:367
 msgid "Browser storage is unavailable. Device reading is paused."
 msgstr ""
 
-#: modules/reading/bootstrap.php:268
+#: modules/reading/bootstrap.php:402
 msgid "Cancel"
 msgstr ""
 
@@ -127,11 +187,11 @@ msgstr ""
 msgid "Choose a page…"
 msgstr ""
 
-#: modules/reading/bootstrap.php:282
+#: modules/reading/bootstrap.php:416
 msgid "Choose a paragraph"
 msgstr ""
 
-#: modules/reading/bootstrap.php:280
+#: modules/reading/bootstrap.php:414
 msgid "Choose a replacement paragraph"
 msgstr ""
 
@@ -155,7 +215,7 @@ msgstr ""
 msgid "Choose share image"
 msgstr ""
 
-#: modules/reading/bootstrap.php:145
+#: modules/reading/bootstrap.php:173
 msgid "Choose up to 100 articles."
 msgstr ""
 
@@ -163,11 +223,19 @@ msgstr ""
 msgid "Choose up to 200 records."
 msgstr ""
 
-#: modules/reading/bootstrap.php:237
+#: modules/reading/bootstrap.php:275
+msgid "Clear account records"
+msgstr ""
+
+#: modules/reading/bootstrap.php:281
+msgid "Clear all account reading records? Device records will remain."
+msgstr ""
+
+#: modules/reading/bootstrap.php:371
 msgid "Clear device records"
 msgstr ""
 
-#: modules/notifications/presentation.php:113 modules/reading/bootstrap.php:96
+#: modules/notifications/presentation.php:113 modules/reading/bootstrap.php:124
 msgid "Close"
 msgstr ""
 
@@ -183,7 +251,7 @@ msgstr ""
 msgid "Comment reply"
 msgstr ""
 
-#: modules/reading/bootstrap.php:202
+#: modules/reading/bootstrap.php:336
 msgid "Comments and notes"
 msgstr ""
 
@@ -227,7 +295,7 @@ msgstr ""
 msgid "Content guide"
 msgstr ""
 
-#: modules/reading/bootstrap.php:203
+#: modules/reading/bootstrap.php:337
 msgid "Continue reading"
 msgstr ""
 
@@ -235,11 +303,11 @@ msgstr ""
 msgid "Could not load content. Try again."
 msgstr ""
 
-#: modules/reading/bootstrap.php:262
+#: modules/reading/bootstrap.php:396
 msgid "Could not load records. Sign in again if your session expired."
 msgstr ""
 
-#: modules/reading/bootstrap.php:238
+#: modules/reading/bootstrap.php:372
 msgid "Could not load this device's reading list. Try again."
 msgstr ""
 
@@ -255,19 +323,19 @@ msgstr ""
 msgid "Default"
 msgstr ""
 
-#: modules/reading/bootstrap.php:269
+#: modules/reading/bootstrap.php:403
 msgid "Delete"
 msgstr ""
 
-#: modules/reading/bootstrap.php:270
+#: modules/reading/bootstrap.php:404
 msgid "Delete this record permanently?"
 msgstr ""
 
-#: modules/reading/bootstrap.php:211
+#: modules/reading/bootstrap.php:345
 msgid "Device memory disabled and records cleared."
 msgstr ""
 
-#: modules/reading/bootstrap.php:210
+#: modules/reading/bootstrap.php:344
 msgid "Device memory enabled."
 msgstr ""
 
@@ -275,7 +343,7 @@ msgstr ""
 msgid "Device memory needs reader consent. Private records require authentication."
 msgstr ""
 
-#: modules/reading/bootstrap.php:215
+#: modules/reading/bootstrap.php:349
 msgid "Device records cleared."
 msgstr ""
 
@@ -295,8 +363,12 @@ msgstr ""
 msgid "Disabled by default. Only new comment submissions are eligible; existing comments are not backfilled. Add [pagenest_notifications] to an existing page for other themes."
 msgstr ""
 
-#: modules/reading/bootstrap.php:43
-msgid "Disabled by default. Readers separately choose whether to remember public articles on this device. Reading history is not saved to your account or synced between devices. Article IDs are sent only to check current public access."
+#: modules/reading/bootstrap.php:52
+msgid "Disabled by default. Readers separately choose whether to remember public articles on this device. Account reading is a separate optional feature requiring the reader’s consent and an explicit manual merge. Device reading sends article IDs only to check current public access."
+msgstr ""
+
+#: modules/reading/bootstrap.php:68
+msgid "Disabled by default. Signed-in readers separately consent, then manually merge up to 100 public reading positions. Private comments and notes are never included."
 msgstr ""
 
 #: modules/diagnostics.php:197 modules/diagnostics.php:245
@@ -311,7 +383,7 @@ msgstr ""
 msgid "Duplicate order"
 msgstr ""
 
-#: modules/reading/bootstrap.php:266
+#: modules/reading/bootstrap.php:400
 msgid "Edit text"
 msgstr ""
 
@@ -319,16 +391,24 @@ msgstr ""
 msgid "Enable JavaScript to load notifications."
 msgstr ""
 
-#: modules/reading/bootstrap.php:41
+#: modules/reading/bootstrap.php:50
 msgid "Enable My reading"
+msgstr ""
+
+#: modules/reading/bootstrap.php:255
+msgid "Enable account reading"
 msgstr ""
 
 #: modules/content/editor.php:155
 msgid "Enable content guide"
 msgstr ""
 
-#: modules/reading/bootstrap.php:294
+#: modules/reading/bootstrap.php:428
 msgid "Enable device memory in My reading first."
+msgstr ""
+
+#: modules/reading/bootstrap.php:289
+msgid "Enable device memory with available browser storage before merging. You can still follow account links without downloading records to this device."
 msgstr ""
 
 #: modules/media/settings.php:100
@@ -339,7 +419,7 @@ msgstr ""
 msgid "Enable notifications"
 msgstr ""
 
-#: modules/reading/bootstrap.php:205
+#: modules/reading/bootstrap.php:339
 msgid "Enable the option above to keep reading here."
 msgstr ""
 
@@ -363,7 +443,7 @@ msgstr ""
 msgid "Existing shortcode and block owners take precedence. Attachment access is checked during rendering."
 msgstr ""
 
-#: modules/reading/bootstrap.php:283
+#: modules/reading/bootstrap.php:417
 msgid "Export my records as JSON"
 msgstr ""
 
@@ -375,7 +455,7 @@ msgstr ""
 msgid "Filter"
 msgstr ""
 
-#: modules/reading/bootstrap.php:216
+#: modules/reading/bootstrap.php:350
 msgid "Filter records"
 msgstr ""
 
@@ -403,8 +483,12 @@ msgstr ""
 msgid "Group title"
 msgstr ""
 
-#: modules/content/editor.php:144 modules/discovery/bootstrap.php:144 modules/media/settings.php:110 modules/reading/bootstrap.php:228 modules/settings.php:120
+#: modules/content/editor.php:144 modules/discovery/bootstrap.php:144 modules/media/settings.php:110 modules/reading/bootstrap.php:362 modules/settings.php:120
 msgid "How this works"
+msgstr ""
+
+#: modules/reading/bootstrap.php:251
+msgid "I agree to save public reading positions to my account"
 msgstr ""
 
 #: modules/media/authoring.php:141
@@ -420,15 +504,15 @@ msgstr ""
 msgid "Image gap"
 msgstr ""
 
-#: modules/reading/bootstrap.php:284
+#: modules/reading/bootstrap.php:418
 msgid "Import a JSON backup"
 msgstr ""
 
-#: modules/reading/bootstrap.php:285
+#: modules/reading/bootstrap.php:419
 msgid "Import keeps records private and reuses existing UUIDs. Review per-record results; it never publishes a record."
 msgstr ""
 
-#: modules/reading/bootstrap.php:289
+#: modules/reading/bootstrap.php:423
 msgid "Import processed. Reload records to review the results."
 msgstr ""
 
@@ -448,7 +532,15 @@ msgstr ""
 msgid "Link an exact article series name to a public directory page. Clear its ID to unlink."
 msgstr ""
 
-#: modules/content/editor.php:210 modules/reading/bootstrap.php:254
+#: modules/reading/bootstrap.php:249
+msgid "Load account reading"
+msgstr ""
+
+#: modules/reading/bootstrap.php:245
+msgid "Load account records only when you choose. Nothing uploads automatically."
+msgstr ""
+
+#: modules/content/editor.php:210 modules/reading/bootstrap.php:388
 msgid "Load more"
 msgstr ""
 
@@ -456,7 +548,7 @@ msgstr ""
 msgid "Load more comments"
 msgstr ""
 
-#: modules/reading/bootstrap.php:253
+#: modules/reading/bootstrap.php:387
 msgid "Load my records"
 msgstr ""
 
@@ -468,12 +560,20 @@ msgstr ""
 msgid "Loading notifications…"
 msgstr ""
 
-#: modules/content/editor.php:293 modules/reading/bootstrap.php:261
+#: modules/content/editor.php:293 modules/reading/bootstrap.php:395
 msgid "Loading…"
 msgstr ""
 
-#: modules/reading/bootstrap.php:209
+#: modules/reading/bootstrap.php:269
+msgid "Manage account records"
+msgstr ""
+
+#: modules/reading/bootstrap.php:343
 msgid "Manage device records"
+msgstr ""
+
+#: modules/reading/bootstrap.php:317
+msgid "Manual sync only. Keeps the 100 most recent public articles."
 msgstr ""
 
 #: modules/notifications/presentation.php:185
@@ -502,6 +602,10 @@ msgstr ""
 
 #: modules/media/quality.php:573
 msgid "Media quality pages"
+msgstr ""
+
+#: modules/reading/bootstrap.php:264
+msgid "Merge device and account records"
 msgstr ""
 
 #: modules/media/quality.php:395
@@ -544,15 +648,15 @@ msgstr ""
 msgid "Move up"
 msgstr ""
 
-#: modules/reading/bootstrap.php:247
+#: modules/reading/bootstrap.php:381
 msgid "My comments and private notes"
 msgstr ""
 
-#: admin-design.php:19 modules/diagnostics.php:44 modules/reading/bootstrap.php:20 modules/reading/bootstrap.php:201 modules/reading/bootstrap.php:21 modules/reading/bootstrap.php:29 modules/reading/bootstrap.php:75 modules/reading/bootstrap.php:94
+#: admin-design.php:19 modules/diagnostics.php:44 modules/reading/bootstrap.php:103 modules/reading/bootstrap.php:122 modules/reading/bootstrap.php:29 modules/reading/bootstrap.php:30 modules/reading/bootstrap.php:335 modules/reading/bootstrap.php:38
 msgid "My reading"
 msgstr ""
 
-#: modules/reading/bootstrap.php:64
+#: modules/reading/bootstrap.php:92
 msgid "My reading requires JavaScript for device storage and private record access."
 msgstr ""
 
@@ -616,7 +720,7 @@ msgstr ""
 msgid "No recent notifications to show."
 msgstr ""
 
-#: modules/reading/bootstrap.php:246
+#: modules/reading/bootstrap.php:380
 msgid "No records to show."
 msgstr ""
 
@@ -660,11 +764,15 @@ msgstr ""
 msgid "Notify article authors about new public paragraph comments"
 msgstr ""
 
-#: modules/reading/bootstrap.php:30
+#: modules/reading/bootstrap.php:39
 msgid "Offer device reading history and access to the signed-in reader’s own records."
 msgstr ""
 
-#: modules/reading/bootstrap.php:222
+#: modules/reading/bootstrap.php:66
+msgid "Offer manual account reading sync"
+msgstr ""
+
+#: modules/reading/bootstrap.php:356
 msgid "On this device"
 msgstr ""
 
@@ -676,11 +784,11 @@ msgstr ""
 msgid "Only this scan page was checked: up to 1 MB, 500 blocks and 30 nested levels per readable post/page. Other content, templates and external uses remain unchecked. No matches does not mean unused."
 msgstr ""
 
-#: modules/reading/bootstrap.php:248
+#: modules/reading/bootstrap.php:382
 msgid "Only your own records are shown. Private text stays in page memory and is cleared when you leave or hide the page."
 msgstr ""
 
-#: modules/reading/bootstrap.php:275
+#: modules/reading/bootstrap.php:409
 msgid "Open article location"
 msgstr ""
 
@@ -688,8 +796,8 @@ msgstr ""
 msgid "Open images in a viewer"
 msgstr ""
 
-#: modules/reading/bootstrap.php:229
-msgid "Optional browser storage. No account history or device sync. Article IDs are checked with the site before display. Reading position does not mark an article as read."
+#: modules/reading/bootstrap.php:363
+msgid "Optional browser storage. Device records stay independent unless you explicitly merge them with account reading. Article IDs are checked with the site before display. Reading position does not mark an article as read."
 msgstr ""
 
 #: modules/diagnostics.php:111
@@ -780,7 +888,7 @@ msgstr ""
 msgid "Previous saved quotation"
 msgstr ""
 
-#: modules/reading/bootstrap.php:257
+#: modules/reading/bootstrap.php:391
 msgid "Private notes"
 msgstr ""
 
@@ -788,7 +896,7 @@ msgstr ""
 msgid "Provider"
 msgstr ""
 
-#: modules/reading/bootstrap.php:256
+#: modules/reading/bootstrap.php:390
 msgid "Public comments"
 msgstr ""
 
@@ -804,11 +912,11 @@ msgstr ""
 msgid "Read"
 msgstr ""
 
-#: modules/reading/bootstrap.php:244
+#: modules/reading/bootstrap.php:378
 msgid "Read later"
 msgstr ""
 
-#: modules/reading/bootstrap.php:130
+#: modules/reading/bootstrap.php:158
 msgid "Read later on this device"
 msgstr ""
 
@@ -828,7 +936,7 @@ msgstr ""
 msgid "Recent comment replies and public paragraph comments on your articles."
 msgstr ""
 
-#: modules/reading/bootstrap.php:243
+#: modules/reading/bootstrap.php:377
 msgid "Recent reading"
 msgstr ""
 
@@ -844,7 +952,7 @@ msgstr ""
 msgid "Record text"
 msgstr ""
 
-#: modules/reading/bootstrap.php:258
+#: modules/reading/bootstrap.php:392
 msgid "Reference needs review"
 msgstr ""
 
@@ -853,23 +961,39 @@ msgstr ""
 msgid "References to attachment #%d"
 msgstr ""
 
+#: modules/reading/bootstrap.php:250
+msgid "Refresh account reading"
+msgstr ""
+
 #: modules/notifications/presentation.php:163
 msgid "Refresh notifications"
 msgstr ""
 
-#: modules/reading/bootstrap.php:204
+#: modules/reading/bootstrap.php:338
 msgid "Refresh records"
 msgstr ""
 
-#: modules/reading/bootstrap.php:223
+#: modules/reading/bootstrap.php:357
 msgid "Remember my reading on this device"
 msgstr ""
 
-#: modules/content/editor.php:290 modules/reading/bootstrap.php:245
+#: modules/content/editor.php:290 modules/reading/bootstrap.php:379
 msgid "Remove"
 msgstr ""
 
-#: modules/reading/bootstrap.php:281
+#: modules/reading/bootstrap.php:274
+msgid "Remove from account"
+msgstr ""
+
+#: modules/reading/bootstrap.php:277
+msgid "Remove this account record? Device records will remain."
+msgstr ""
+
+#: modules/reading/bootstrap.php:270
+msgid "Removing account records does not delete device records. A later manual merge can add them again."
+msgstr ""
+
+#: modules/reading/bootstrap.php:415
 msgid "Replace saved reference"
 msgstr ""
 
@@ -877,11 +1001,15 @@ msgstr ""
 msgid "Replies to signed-in readers’ ordinary comments. Email settings are separate."
 msgstr ""
 
+#: modules/reading/bootstrap.php:265
+msgid "Requires device memory. Combines both lists, uses the newer reading position and keeps Read later from either list. Only the 100 most recent public articles are kept. Comments and private notes are excluded."
+msgstr ""
+
 #: modules/notifications/presentation.php:59
 msgid "Requires notifications and paragraph comments to be enabled. Existing records are not backfilled."
 msgstr ""
 
-#: modules/reading/bootstrap.php:242
+#: modules/reading/bootstrap.php:376
 msgid "Retry"
 msgstr ""
 
@@ -901,7 +1029,7 @@ msgstr ""
 msgid "Save chapter orders"
 msgstr ""
 
-#: modules/reading/bootstrap.php:267
+#: modules/reading/bootstrap.php:401
 msgid "Save text"
 msgstr ""
 
@@ -913,7 +1041,7 @@ msgstr ""
 msgid "Save this page, with a result for each attachment"
 msgstr ""
 
-#: modules/reading/bootstrap.php:293
+#: modules/reading/bootstrap.php:427
 msgid "Saved for later on this device."
 msgstr ""
 
@@ -953,7 +1081,7 @@ msgstr ""
 msgid "Search modules"
 msgstr ""
 
-#: modules/reading/bootstrap.php:259
+#: modules/reading/bootstrap.php:393
 msgid "Search my text and references"
 msgstr ""
 
@@ -961,7 +1089,7 @@ msgstr ""
 msgid "Search public articles and pages"
 msgstr ""
 
-#: modules/reading/bootstrap.php:260
+#: modules/reading/bootstrap.php:394
 msgid "Search records"
 msgstr ""
 
@@ -1037,11 +1165,15 @@ msgstr ""
 msgid "Show notifications"
 msgstr ""
 
+#: modules/reading/bootstrap.php:321
+msgid "Sign in again before loading account reading."
+msgstr ""
+
 #: modules/notifications/presentation.php:173
 msgid "Sign in to view your notifications."
 msgstr ""
 
-#: modules/reading/bootstrap.php:252
+#: modules/reading/bootstrap.php:386
 msgid "Sign in to view your records"
 msgstr ""
 
@@ -1065,8 +1197,12 @@ msgstr ""
 msgid "Status"
 msgstr ""
 
-#: modules/reading/bootstrap.php:224
-msgid "Stored on this device only. No device sync."
+#: modules/reading/bootstrap.php:285
+msgid "Stop account reading and clear its records? Device records will remain."
+msgstr ""
+
+#: modules/reading/bootstrap.php:358
+msgid "Stored on this device. Account sync requires a separate explicit manual merge."
 msgstr ""
 
 #: modules/privacy.php:162 modules/privacy.php:96
@@ -1075,6 +1211,10 @@ msgstr ""
 
 #: modules/media/quality.php:377
 msgid "Text is invalid or too long."
+msgstr ""
+
+#: modules/reading/bootstrap.php:309
+msgid "The account merge succeeded, but device records could not be updated because consent, records or browser storage changed. Review the account list before merging again."
 msgstr ""
 
 #: modules/series-maintenance.php:268
@@ -1097,11 +1237,11 @@ msgstr ""
 msgid "The latest 100 eligible notifications are shown. Filters apply within this recent window."
 msgstr ""
 
-#: modules/reading/bootstrap.php:276
+#: modules/reading/bootstrap.php:410
 msgid "The original paragraph changed or is ambiguous. The saved reference is preserved; review it before choosing a replacement."
 msgstr ""
 
-#: modules/reading/bootstrap.php:271
+#: modules/reading/bootstrap.php:405
 msgid "The record changed. Reload and compare before saving. Your input is retained in this open page."
 msgstr ""
 
@@ -1235,6 +1375,10 @@ msgstr ""
 msgid "Visibility"
 msgstr ""
 
+#: modules/reading/bootstrap.php:276
+msgid "Withdraw consent and clear account records"
+msgstr ""
+
 #: modules/diagnostics.php:8
 msgid "WordPress setting"
 msgstr ""
@@ -1259,7 +1403,7 @@ msgstr ""
 msgid "You have unsaved guide changes."
 msgstr ""
 
-#: modules/reading/bootstrap.php:218
+#: modules/reading/bootstrap.php:352
 msgid "Your records load only when you choose to view them."
 msgstr ""
 
