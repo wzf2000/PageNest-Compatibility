@@ -1,6 +1,6 @@
 # 使用 PageNest Companion
 
-本文对应 Companion **1.12.1**；安装包与发行状态以仓库 **Releases** 为准。
+本文对应 Companion **1.12.2**；安装包与发行状态以仓库 **Releases** 为准。
 
 ## 安装与启用
 

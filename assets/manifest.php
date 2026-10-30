@@ -21,7 +21,7 @@ return [
     'social_share_js' => 'social-share-c78a9aa1e506.js',
     'social_ui_css' => 'social-ui-eb67fbc9b00c.css',
     'content_css' => 'content-f19ccb8ef1f7.css',
-    'content_js' => 'content-ef60a2ae5fd1.js',
+    'content_js' => 'content-1cf84da731d3.js',
     'content_spacing_js' => 'content-spacing-b8aac2d39119.js',
     'media_js' => 'media-compatibility-45fc2cce05e8.js',
     'media_css' => 'media-compatibility-9d5a9f92b2f9.css',

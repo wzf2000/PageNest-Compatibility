@@ -18,6 +18,62 @@
       '<rect x="4" y="5" width="24" height="22" rx="4"/><circle cx="11" cy="12" r="2"/><path d="m5 23 7-7 5 5 4-4 7 6"/>',
     cloud:
       '<path d="M9 24H7a5 5 0 0 1-1-10 8 8 0 0 1 15-4 7 7 0 0 1 4 14h-2m-7 4V16m-4 4 4-4 4 4"/>',
+    braces: '<path d="M12 5H9v8l-4 3 4 3v8h3m8-22h3v8l4 3-4 3v8h-3M14 12l4 8m0-8-4 8"/>',
+    clock: '<circle cx="16" cy="16" r="12"/><path d="M16 8v8l6 4M6 5l-2 3m22-3 2 3"/>',
+    mine: '<circle cx="16" cy="16" r="7"/><path d="M16 3v4m0 18v4M3 16h4m18 0h4M7 7l3 3m12 12 3 3M7 25l3-3M22 10l3-3"/><circle cx="14" cy="13" r="1"/>',
+    puzzle:
+      '<rect x="4" y="4" width="24" height="24" rx="3"/><path d="M12 4v24m8-24v16M4 12h24M4 20h16m3 4h2M7 8h2m6 0h2m6 0h2M7 16h2m6 0h2m6 0h2M7 24h2m6 0h2"/>',
+    encoding:
+      '<path d="m10 5-6 5 6 5m12 2 6 5-6 5M15 8h11m-4-4 4 4-4 4M17 24H6m4-4-4 4 4 4M18 13l-4 6"/>',
+    qr: '<path d="M4 4h9v9H4Zm15 0h9v9h-9ZM4 19h9v9H4ZM19 19h4v4h5v5h-9v-5m9-6v2M8 8h1m14 0h1M8 23h1"/>',
+    sudoku:
+      '<rect x="4" y="4" width="24" height="24" rx="2"/><path d="M12 4v24m8-24v24M4 12h24M4 20h24m-5-12h2M7 16h2m6 8h2m-2-8h2"/>',
+    snake:
+      '<path d="M5 25h17a5 5 0 0 0 0-10H11a5 5 0 0 1 0-10h10v7h-5m-7 8H5"/><circle cx="24" cy="7" r="1"/><path d="m28 6 2-1m-2 3h2"/>',
+    tiers:
+      '<rect x="5" y="5" width="9" height="5" rx="1"/><rect x="5" y="14" width="16" height="5" rx="1"/><rect x="5" y="23" width="23" height="5" rx="1"/>',
+    heart:
+      '<path d="M4 5h6v7H4m0 8h6v7H4m6-19h5v16h-5m5-8h5m0-2c0-4 4-5 6-2 3-3 7 0 4 4l-5 5-5-5Z"/>',
+    shield:
+      '<path d="M16 4c-4 4-8 4-11 4v10c0 5 5 8 11 11 6-3 11-6 11-11v-5M5 28 26 7l3-4-5 1L4 25m5-4 5 5"/>',
+    evidence:
+      '<path d="M18 4H6v24h19V16M10 10h6m-6 6h4m-4 6h9"/><circle cx="23" cy="9" r="5"/><path d="m27 13 3 3"/>',
+    cards:
+      '<path d="m9 5 17 3-3 20-17-3Z"/><rect x="4" y="9" width="18" height="19" rx="2"/><path d="M8 14h10m-10 5h7m-7 5h5"/>',
+    flasks:
+      '<path d="M4 4h8M6 4v9l-4 11c-1 3 1 4 3 4h7c3 0 4-2 3-4l-5-11V4m10 0h8m-6 0v9l-5 11c-1 3 1 4 3 4h7c2 0 4-2 3-4l-4-11V4M4 19h9m7 0h8"/>',
+    bug: '<rect x="10" y="10" width="12" height="17" rx="6"/><path d="M13 10V6h6v4m-9 6H5m17 0h5M10 22l-5 4m17-4 5 4M10 12 5 8m17 4 5-4m-11 8v10"/>',
+    route:
+      '<circle cx="7" cy="25" r="3"/><circle cx="24" cy="7" r="3"/><path d="M10 25h10a5 5 0 0 0 0-10h-8a4 4 0 0 1 0-8h9m-4-3 4 3-4 3"/>',
+    book: '<path d="M16 8C12 5 7 4 3 5v21c5-1 9 0 13 3 4-3 8-4 13-3V5c-4-1-9 0-13 3v21M7 11h5m-5 5h5m8-5h5m-5 5h5"/>',
+    sliders:
+      '<path d="M5 8h22M5 16h22M5 24h22"/><rect x="10" y="5" width="4" height="6" rx="1"/><rect x="20" y="13" width="4" height="6" rx="1"/><rect x="7" y="21" width="4" height="6" rx="1"/>',
+    crop: '<path d="M8 3v21h21M3 8h21v21M12 12h8v8"/>',
+    diff: '<path d="M4 5h10v22H4Zm14 0h10v22H18ZM7 11h4m-4 6h4m10-6h4m-2-2v4m-2 8h4"/>',
+    nonogram:
+      '<rect x="10" y="10" width="18" height="18" rx="1"/><path d="M16 10v18m6-18v18M10 16h18M10 22h18M5 12v2m0 4v2m0 4v2M12 5h2m4 0h2m4 0h2m-14 8 2 2m4 4 2 2m4-8 2 2m-14 10 2 2"/>',
+    bulb: '<path d="M11 22c0-5-5-6-5-12a10 10 0 0 1 20 0c0 6-5 7-5 12ZM11 26h10m-8 4h6m-3-9v-7m-4-2 4 3 4-3"/>',
+    markdown:
+      '<rect x="3" y="6" width="26" height="21" rx="3"/><path d="M7 22V12l4 5 4-5v10m5-6 3 4 3-4m-3-5v9"/>',
+    table:
+      '<rect x="4" y="5" width="24" height="22" rx="2"/><path d="M4 12h24M4 20h24M12 12v15m8-15v15"/>',
+    mask: '<path d="M3 11c5 2 8-5 13 1 5-6 8 1 13-1-1 10-5 14-13 10C8 25 4 21 3 11Z"/><path d="M7 15c2-2 4-2 6 0-2 3-4 3-6 0Zm12 0c2-2 4-2 6 0-2 3-4 3-6 0Z"/>',
+    moon: '<path d="M19 3a13 13 0 1 0 10 21A13 13 0 0 1 19 3Z"/><path d="m18 22 1-7 3-3 1 5 4 3-1 4-4-1-2 2Z"/>',
+    wolf: '<path d="m6 21 4-7 1-9 7 8 5 2 4 5-3 4-7-1-1 6-5-3-4 1-1-4-3-1Z"/><circle cx="18" cy="17" r=".7"/><path d="M26 3a4 4 0 1 0 3 6 4 4 0 0 1-3-6Z"/>',
+    broom: '<path d="m24 3-9 14m-3-2 8 5-5 9-12-8 6-8Zm-5 5-2 5m6-2-2 5m6-2-2 5"/>',
+    compare:
+      '<path d="M3 5h10v22H3Zm16 0h10v22H19ZM3 12h10m6 0h10M3 20h10m6 0h10m-9-4h6m-4-2-2 2 2 2m2-4 2 2-2 2"/>',
+    merge:
+      '<path d="M4 4h9v8H4Zm15 0h9v8h-9ZM4 8h9m6 0h9M8 12v5h16v-5m-8 5v5m-3-3 3 3 3-3M8 24h16v5H8Z"/>',
+    pivot:
+      '<path d="M4 5h14v12H4Zm0 6h14M11 5v12m11-9h6v18H10v-5m12 5V14m-7 12v-5m12-11 1-2-2-1"/>',
+    database:
+      '<ellipse cx="16" cy="7" rx="11" ry="4"/><path d="M5 7v18c0 6 22 6 22 0V7M5 16c0 6 22 6 22 0m-14 6 3 2 3-2"/>',
+    sprout:
+      '<path d="M16 28V15M16 20C6 20 4 14 4 8c8 0 12 4 12 12Zm0-5C16 7 21 4 28 4c0 7-4 11-12 11ZM8 28h16"/>',
+    constellation:
+      '<path d="m6 24 9-17 11 9-8 11-12-3"/><circle cx="6" cy="24" r="2"/><circle cx="15" cy="7" r="2"/><circle cx="26" cy="16" r="2"/><circle cx="18" cy="27" r="2"/>',
+    sand: '<path d="M10 20l2 9h12l2-9M13 25h10M4 11l9 4m9-5 6-3M12 3v2m3 3v2m2 5v2m3 1v3"/><circle cx="15" cy="4" r=".6"/><circle cx="18" cy="12" r=".6"/>',
     tool: '<rect x="5" y="5" width="22" height="22" rx="5"/><path d="M10 11h12m-12 5h12m-12 5h8"/>',
   };
   const badges = {
@@ -151,6 +207,14 @@
     const cardsBySlug = new Map();
     const grouped = new Set();
     for (const item of items) {
+      item.introductions = [];
+      for (
+        let node = item.heading.nextElementSibling;
+        node && node !== item.list;
+        node = node.nextElementSibling
+      ) {
+        if (node.tagName === 'P') item.introductions.push({ node, hidden: node.hidden });
+      }
       item.list.classList.add('pagenest-resource-grid');
       item.heading.dataset.category = item.index;
       item.list.dataset.category = item.index;
@@ -262,6 +326,8 @@
           if (show) shown++;
         }
         item.heading.hidden = item.list.hidden = shown === 0;
+        for (const introduction of item.introductions)
+          introduction.node.hidden = introduction.hidden || shown === 0;
         visible += shown;
       }
       const automatic = words.length > 0 || select.value !== '';
