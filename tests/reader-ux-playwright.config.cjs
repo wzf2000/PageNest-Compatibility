@@ -7,6 +7,7 @@ module.exports = defineConfig({
   testDir: __dirname,
   testMatch: [
     'reading-center.spec.cjs',
+    'reading-article-scope.spec.cjs',
     'account-reading.spec.cjs',
     'reading-sync.spec.cjs',
     'admin-design.spec.cjs',
