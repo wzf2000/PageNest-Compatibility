@@ -24,7 +24,7 @@
     "test:performance-browser": "node tools/performance-runner/browser.test.cjs && node tools/performance-runner/lifecycle.browser.test.cjs && node tools/performance-runner/resource.browser.test.cjs",
     "test:performance-kernel": "node tools/performance-runner/resource.kernel.test.cjs",
     "test:performance-ui": "playwright test --config tests/performance-ui-playwright.config.cjs",
-    "test:reading": "php tests/reading-sync-contracts.php",
+    "test:reading": "php tests/reading-article-scope.php && php tests/reading-sync-contracts.php",
     "i18n": "python3 tools/i18n.py",
     "i18n:check": "python3 tools/i18n.py --check",
     "test:reader-ux-webkit": "playwright test --config tests/reader-ux-playwright.config.cjs",
@@ -40,6 +40,6 @@
     "@playwright/test": "1.55.1",
     "prismjs": "1.30.0"
   },
-  "version": "1.12.0",
+  "version": "1.12.2",
   "license": "GPL-2.0-or-later"
 }

@@ -90,6 +90,7 @@ function pagenest_companion_content_sections_apply(
     DOMXPath $xp,
     DOMElement $root,
     array $sections,
+    bool $allowIntroductions = false,
 ): array {
     $found = [];
     foreach ($sections as $index => $section) {
@@ -136,6 +137,7 @@ function pagenest_companion_content_sections_apply(
                     } elseif (
                         $listHeadingSeen &&
                         $scan->tagName !== 'span' &&
+                        !($allowIntroductions && strtolower($scan->tagName) === 'p') &&
                         trim($scan->textContent) !== ''
                     ) {
                         if (!isset($section['list_heading'])) {
@@ -369,7 +371,13 @@ function pagenest_companion_content_render(string $html, int $id): string
             $config['name'] === 'resources',
         );
     }
-    $found = pagenest_companion_content_sections_apply($dom, $xp, $root, $page['sections'] ?? []);
+    $found = pagenest_companion_content_sections_apply(
+        $dom,
+        $xp,
+        $root,
+        $page['sections'] ?? [],
+        $config['name'] === 'resources',
+    );
     if ($config['name'] === 'reading_links' && $found) {
         $nav = $dom->createElement('nav');
         $nav->setAttribute('class', 'pagenest-content-nav');

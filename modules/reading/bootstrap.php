@@ -144,12 +144,14 @@ add_action('template_redirect', static function () {
 add_filter(
     'the_content',
     static function ($html) {
+        $post = get_post();
         if (
             !pagenest_reading_enabled() ||
-            !is_singular(['post', 'page']) ||
+            !is_singular('post') ||
             !in_the_loop() ||
             !is_main_query() ||
-            !pagenest_discovery_public_post(get_post())
+            !pagenest_discovery_public_post($post) ||
+            $post->post_type !== 'post'
         ) {
             return $html;
         }
@@ -212,7 +214,7 @@ add_action('wp_enqueue_scripts', static function () {
         [],
         null,
     );
-    $post = is_singular(['post', 'page']) ? get_queried_object() : null;
+    $post = is_singular('post') ? get_queried_object() : null;
     wp_localize_script('pagenest-reading-center', 'PageNestReading', [
         'accountApi' => pagenest_account_reading_offered()
             ? rest_url('pagenest/v1/reading/account')
@@ -222,7 +224,7 @@ add_action('wp_enqueue_scripts', static function () {
         'nonce' => is_user_logged_in() ? wp_create_nonce('wp_rest') : '',
         'login' => wp_login_url(get_permalink()),
         'current' =>
-            $post && pagenest_discovery_public_post($post)
+            $post && $post->post_type === 'post' && pagenest_discovery_public_post($post)
                 ? [
                     'id' => (int) $post->ID,
                     'headings' => array_column(pagenest_discovery_sections($post), 'id'),
