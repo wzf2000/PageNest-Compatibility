@@ -177,6 +177,65 @@ $input = json_decode(
 $profile = pagenest_companion_content_validate($input);
 $GLOBALS['pagenest_companion_content_profile'] = $profile;
 check($profile['invalid_modules'] === [], 'Synthetic profile valid');
+$iconProfile = $input;
+$iconNames = [
+    'dice',
+    'text',
+    'dinosaur',
+    'tiles',
+    'fibonacci',
+    'graduate',
+    'medal',
+    'dinosaur-medal',
+    'tiles-calendar',
+    'tiles-trophy',
+    'fibonacci-calendar',
+    'fibonacci-trophy',
+    'graduate-trophy',
+    'image',
+    'cloud',
+    'braces',
+    'clock',
+    'mine',
+    'puzzle',
+    'encoding',
+    'qr',
+    'sudoku',
+    'snake',
+    'tiers',
+    'heart',
+    'shield',
+    'evidence',
+    'cards',
+    'flasks',
+    'bug',
+    'route',
+    'book',
+    'sliders',
+    'crop',
+    'diff',
+    'nonogram',
+    'bulb',
+    'markdown',
+    'table',
+    'mask',
+    'moon',
+    'wolf',
+    'broom',
+    'compare',
+    'merge',
+    'pivot',
+    'database',
+    'sprout',
+    'constellation',
+    'sand',
+];
+$iconProfile['modules']['resources']['pages'][0]['icons'] = array_combine($iconNames, $iconNames);
+check(
+    pagenest_companion_content_validate($iconProfile)['invalid_modules'] === [],
+    'All built-in resource icons remain selectable',
+);
+
 $conflicting = $input;
 $conflicting['modules']['guide']['pages'][0]['selector'] =
     $input['modules']['resources']['pages'][0]['selector'];
@@ -205,6 +264,8 @@ foreach (
         ['sections', [['heading' => ['regex' => '.*', 'level' => 2]]]],
         ['provider', 'arbitrary'],
         ['icons', ['hall' => '<svg>']],
+        ['icons', ['hall' => 'unknown']],
+        ['icons', ['hall' => ['svg' => '<svg onload=alert(1)>']]],
         ['external_links', ['https://user:secret@external.example/']],
         ['groups', ['a' => [['slug' => 'a', 'label' => 'Self']]]],
         ['selector', ['meta' => '_fixture', 'value' => '<script>']],
@@ -294,7 +355,7 @@ $meta[10] = [
     ],
 ];
 $source =
-    '<h2>Facilities</h2><ul><li><a href="https://fixture.example/hall">Hall</a> — Public facility</li><li><a href="https://external.example/facility">External</a></li><li><a href="https://external.example/facility/">Wrong slash</a></li><li><a href="https://fixture.example/private">Private</a></li><li><a href="https://fixture.example/password">Password</a></li><li><a href="https://fixture.example/draft">Draft</a></li><li><a href="https://invented.example/">Unmapped</a></li></ul><h2>Events</h2><ul><li><a href="https://fixture.example/event">Event</a> — Festival</li></ul><h2>Results</h2><ul><li><a href="https://fixture.example/result">Result</a></li></ul>';
+    '<h2>Facilities</h2><p id="facility-introduction">Public facility services.</p><p id="hidden-introduction" hidden>Hidden facility detail.</p><ul><li><a href="https://fixture.example/hall">Hall</a> — Public facility</li><li><a href="https://external.example/facility">External</a></li><li><a href="https://external.example/facility/">Wrong slash</a></li><li><a href="https://fixture.example/private">Private</a></li><li><a href="https://fixture.example/password">Password</a></li><li><a href="https://fixture.example/draft">Draft</a></li><li><a href="https://invented.example/">Unmapped</a></li></ul><h2>Events</h2><ul><li><a href="https://fixture.example/event">Event</a> — Festival</li></ul><h2>Results</h2><ul><li><a href="https://fixture.example/result">Result</a></li></ul>';
 add_filter(
     'pagenest_companion_resource_entries',
     static fn($entries) => [
@@ -305,6 +366,24 @@ add_filter(
     ],
 );
 $rendered = pagenest_companion_content_render($source, 10);
+check(
+    str_contains($rendered, 'data-pagenest-list="0"') &&
+        str_contains($rendered, 'id="facility-introduction"') &&
+        substr_count($rendered, 'data-pagenest-list=') === 3,
+    'Resource list pairs across its introduction paragraphs',
+);
+[$sectionDom, $sectionXp, $sectionRoot] = pagenest_companion_content_dom($source);
+pagenest_companion_content_sections_apply(
+    $sectionDom,
+    $sectionXp,
+    $sectionRoot,
+    $input['modules']['resources']['pages'][0]['sections'],
+);
+check(
+    $sectionXp->query('.//*[@data-pagenest-list="0"]', $sectionRoot)->length === 0,
+    'Guide/default section matching keeps its native introduction boundary',
+);
+
 check(
     str_contains($rendered, 'data-resource-icon="image"'),
     'Trusted resource icon decorates approved link',

@@ -7,10 +7,20 @@ for (const width of [390, 1440]) {
       await expect(page.locator('.pagenest-resource-card:visible')).toHaveCount(3);
       await expect(page.locator('.pagenest-resource-related')).toBeVisible();
       await expect(page.locator('.pagenest-resource-icon svg')).toHaveCount(4);
+      const introduction = page.locator('#facility-introduction');
+      await expect(introduction).toBeVisible();
+      await expect(page.locator('#hidden-introduction')).toBeHidden();
       await page.getByRole('searchbox').fill('festival');
+      await expect(introduction).toBeHidden();
       await expect(page.locator('.pagenest-resource-card:visible')).toHaveCount(1);
       await page.getByRole('button', { name: 'Reset filters' }).click();
       await expect(page.getByRole('searchbox')).toBeFocused();
+      await expect(introduction).toBeVisible();
+      await expect(page.locator('#hidden-introduction')).toBeHidden();
+      await page.getByRole('combobox').selectOption('2');
+      await expect(introduction).toBeHidden();
+      await page.getByRole('combobox').selectOption('0');
+      await expect(introduction).toBeVisible();
       await page.getByRole('combobox').selectOption('2');
       await expect(page.locator('.pagenest-resource-card:visible')).toHaveCount(1);
       await page.goto('/resources.html#results');
@@ -81,6 +91,7 @@ for (const width of [390, 1440]) {
       const page = await context.newPage();
       await page.goto('http://127.0.0.1:18783/resources.html');
       await expect(page.locator('li')).toHaveCount(4);
+      await expect(page.locator('#facility-introduction')).toBeVisible();
       await expect(page.getByRole('link', { name: 'Result', exact: true })).toBeVisible();
       await expect(page.getByRole('link', { name: 'Private', exact: true })).toHaveCount(0);
       await page.goto('http://127.0.0.1:18783/guide.html#arrival');
