@@ -4,6 +4,7 @@ defined('ABSPATH') || exit();
 require_once __DIR__ . '/providers.php';
 require_once __DIR__ . '/identities.php';
 require_once __DIR__ . '/routes.php';
+require_once __DIR__ . '/navigation.php';
 require_once __DIR__ . '/account-security.php';
 require_once __DIR__ . '/flash.php';
 require_once __DIR__ . '/pending-registration.php';
@@ -42,6 +43,7 @@ add_filter('get_avatar_data', 'pagenest_social_avatar', 100, 2);
 require_once __DIR__ . '/share.php';
 add_filter('the_content', 'pagenest_social_share', 30);
 add_action('wp_enqueue_scripts', 'pagenest_social_share_assets');
+add_action('login_enqueue_scripts', 'pagenest_social_share_assets');
 require_once __DIR__ . '/placeholder-mail.php';
 
 add_action('login_enqueue_scripts', 'pagenest_social_ui_assets');

@@ -485,14 +485,15 @@ pre.pagenest-paragraph-block > .pagenest-paragraph-bubble {
   display: none !important;
 }
 .pagenest-paragraph-dialog::backdrop {
-  background: rgb(25 35 45 / 42%);
+  background: rgb(25 35 45 / 22%);
 }
 .pagenest-paragraph-dialog .pagenest-paragraph-panel {
   position: absolute;
   left: 0;
   bottom: 0;
   width: 100%;
-  height: 77%;
+  height: min(58%, 640px);
+  min-height: min(380px, 100%);
   max-height: 100%;
   border: 0;
   border-radius: 21px 21px 0 0;
@@ -541,11 +542,11 @@ html.pagenest-pc-modal-open,
 body.pagenest-pc-modal-open {
   overflow: hidden !important;
 }
+html.pagenest-pc-modal-open {
+  scroll-behavior: auto !important;
+}
 body.pagenest-pc-modal-open {
-  position: fixed;
-  left: 0;
-  right: 0;
-  width: 100%;
+  overscroll-behavior: none;
 }
 @media (max-width: 420px) {
   .pagenest-paragraph-bubble {
@@ -556,5 +557,49 @@ body.pagenest-pc-modal-open {
   }
   .pagenest-paragraph-composer .pagenest-paragraph-input {
     font-size: 16px;
+  }
+}
+
+/* Math renderers own their inner DOM and horizontal scrolling. The action gets its own line. */
+.pagenest-paragraph-math-wrap {
+  min-width: 0;
+  max-width: 100%;
+}
+.pagenest-paragraph-math-wrap > .pagenest-paragraph-bubble {
+  display: flex;
+  margin: 2px 0 10px auto;
+  min-width: 44px;
+  min-height: 44px;
+}
+.pagenest-paragraph-math-wrap > pre {
+  margin-bottom: 0;
+}
+@media (hover: hover) {
+  .pagenest-paragraph-math-wrap:hover > .pagenest-paragraph-bubble,
+  .pagenest-paragraph-math-wrap:focus-within > .pagenest-paragraph-bubble {
+    opacity: 1;
+  }
+}
+.pagenest-paragraph-panel .pagenest-paragraph-quote:has(.mbb-math-reference) {
+  display: block;
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+  max-height: 28vh;
+  overflow: auto;
+  font-size: 16px;
+  color: var(--pagenest-text, #293630);
+  white-space: normal;
+}
+.pagenest-paragraph-quote .mbb-math-reference {
+  line-height: 1.75;
+}
+.pagenest-paragraph-panel :is(.pagenest-paragraph-close, .pagenest-paragraph-back) {
+  min-width: 44px;
+  min-height: 44px;
+}
+@media (pointer: coarse) {
+  .pagenest-paragraph-bubble {
+    min-width: 44px;
+    min-height: 44px;
   }
 }

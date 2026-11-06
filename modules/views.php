@@ -261,7 +261,9 @@ function pagenest_companion_views_footer($id)
             number_format_i18n(pagenest_companion_views_get($id)),
             $settings['template'],
         );
-        echo '<span>' . esc_html($text) . '</span>';
+        echo '<span class="pagenest-article-views"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg><span>' .
+            esc_html($text) .
+            '</span></span>';
     } catch (Throwable $error) {
         error_log('PageNest Companion view display unavailable.');
     }

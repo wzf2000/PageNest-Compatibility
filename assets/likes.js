@@ -17,9 +17,14 @@
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.message || '点赞失败，请重试。');
-        button.querySelector('span').textContent = String(data.count);
+        (
+          button.querySelector('[data-pagenest-like-count]') || button.querySelector('span')
+        ).textContent = String(data.count);
         button.setAttribute('aria-pressed', 'true');
-        button.firstChild.textContent = '已点赞 ';
+        const label = button.querySelector('[data-pagenest-like-label]');
+        if (label) label.textContent = '已点赞';
+        else button.firstChild.textContent = '已点赞 ';
+        button.setAttribute('aria-label', '已点赞这篇文章');
       } catch (error) {
         button.disabled = false;
         button.title = error.message;

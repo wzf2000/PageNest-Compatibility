@@ -7,6 +7,7 @@
   const slot = document.querySelector('[data-pagenest-reading-panel]');
   const wide = matchMedia('(min-width: 1280px)');
   const blocks = new Map();
+  const bubbles = new Map();
   chapter.querySelectorAll('[data-pagenest-block]').forEach((node) => {
     const id = node.dataset.pagenestBlock;
     if (id && !blocks.has(id)) blocks.set(id, node);
@@ -24,13 +25,10 @@
     sequence: 0,
     refresh: null,
     refreshedAt: null,
-    historyEntry: false,
-    historyReturning: false,
     pageY: 0,
     tocScroll: 0,
     opener: null,
     openerBlock: null,
-    afterClose: null,
     loaded: false,
     status: '',
     tone: 'neutral',
@@ -230,12 +228,19 @@
   }
   function updateBubbles() {
     blocks.forEach((node, id) => {
-      let bubble = node.querySelector(':scope > .pagenest-paragraph-bubble');
+      let bubble = bubbles.get(id);
       if (!bubble) {
         node.classList.add('pagenest-paragraph-block');
         bubble = button('', () => openPanel(id, bubble), 'pagenest-paragraph-bubble');
         bubble.dataset.block = id;
-        node.append(bubble);
+        if (node.matches('pre.wp-block-mbb-math')) {
+          const wrapper = el('div', 'pagenest-paragraph-math-wrap');
+          node.before(wrapper);
+          wrapper.append(node, bubble);
+        } else {
+          node.append(bubble);
+        }
+        bubbles.set(id, bubble);
       }
       const count = state.comments.filter((c) => c.block_id === id).length;
       bubble.replaceChildren(icon('bubble'));
@@ -259,12 +264,12 @@
     const node = blocks.get(id);
     if (!node) return;
     close(() => {
-      // Finish all history/dialog view restoration before revealing and focusing the author node.
+      // Only an explicit return-to-paragraph action changes the reading position.
       requestAnimationFrame(() => {
         if (!node.isConnected) return;
         window.MarkBridgeTeaching?.revealTarget(node);
         node.scrollIntoView({ block: 'center', behavior: 'auto' });
-        node.querySelector('.pagenest-paragraph-bubble')?.focus({ preventScroll: true });
+        bubbles.get(id)?.focus({ preventScroll: true });
       });
     });
   }
@@ -340,6 +345,7 @@
     title.textContent = `评论 ${comments.length}${state.nextCursor ? '+' : ''}`;
     back.hidden = !state.active;
     const node = blocks.get(state.active);
+    quote.style.removeProperty('font-size');
     quote.textContent = state.active
       ? node
         ? quoteFrom(node)
@@ -347,6 +353,20 @@
       : '围绕文章里的每一段，留下你的理解与疑问。';
     quote.classList.toggle('pagenest-paragraph-chapter-context', !state.active);
     quote.title = quote.textContent;
+    if (node && window.MBB_MATH?.createReference) {
+      const reference = window.MBB_MATH.createReference(node);
+      quote.replaceChildren(reference);
+      quote.style.fontSize = getComputedStyle(node).fontSize;
+      quote.removeAttribute('title');
+      requestAnimationFrame(() => {
+        if (!state.open || !reference.isConnected) return;
+        window.MBB_MATH.typeset(reference).catch(() => {
+          // Source TeX remains readable; no global rerender or article mutation.
+          reference.dataset.mathUnavailable = 'true';
+        });
+      });
+    }
+
     content.replaceChildren();
     if (!comments.length) {
       const empty = el('div', 'pagenest-paragraph-empty');
@@ -603,7 +623,8 @@
     return node ? { node, top: node.getBoundingClientRect().top } : null;
   }
   function restoreReadingAnchor(anchor) {
-    if (anchor) scrollBy(0, anchor.node.getBoundingClientRect().top - anchor.top);
+    if (anchor)
+      scrollBy({ top: anchor.node.getBoundingClientRect().top - anchor.top, behavior: 'instant' });
   }
   function dockHeight() {
     if (!wide.matches || !rail || !slot || rail.classList.contains('pagenest-reading-short'))
@@ -619,12 +640,16 @@
       state.pageY = scrollY;
       document.documentElement.classList.add('pagenest-pc-modal-open');
       document.body.classList.add('pagenest-pc-modal-open');
-      document.body.style.top = `${-state.pageY}px`;
+      document.dispatchEvent(
+        new CustomEvent('pagenest-overlay-change', { detail: { open: true } }),
+      );
     } else {
       document.documentElement.classList.remove('pagenest-pc-modal-open');
       document.body.classList.remove('pagenest-pc-modal-open');
-      document.body.style.top = '';
-      scrollTo(0, state.pageY);
+      if (scrollY !== state.pageY) scrollTo({ top: state.pageY, behavior: 'instant' });
+      document.dispatchEvent(
+        new CustomEvent('pagenest-overlay-change', { detail: { open: false } }),
+      );
     }
   }
   function fitDialog() {
@@ -637,7 +662,7 @@
     resizeInput();
   }
   function place() {
-    if (!state.open || state.historyReturning) return;
+    if (!state.open) return;
     const height = dockHeight(),
       docked = height >= 380;
     const wasDocked = rail?.classList.contains('pagenest-panel-active');
@@ -650,11 +675,6 @@
       if (dialog.open) {
         dialog.close();
         lockPage(false);
-        if (state.historyEntry) {
-          state.historyEntry = false;
-          state.historyReturning = true;
-          history.back();
-        }
       }
       if (panel.parentElement !== slot) slot.append(panel);
       slot.hidden = false;
@@ -684,10 +704,6 @@
         });
         document.querySelector('.pagenest-mobile-toc')?.removeAttribute('open');
         document.querySelector('.pagenest-nav-open')?.classList.remove('pagenest-nav-open');
-        if (!state.historyEntry) {
-          history.pushState({ ...history.state, pagenestPcDrawer: true }, '', location.href);
-          state.historyEntry = true;
-        }
         lockPage(true);
         dialog.showModal();
         if (!focus) closeButton.focus({ preventScroll: true });
@@ -736,31 +752,11 @@
     restoreReadingAnchor(anchor);
     const target = state.opener?.isConnected
       ? state.opener
-      : blocks.get(state.openerBlock)?.querySelector('.pagenest-paragraph-bubble') || opener;
+      : bubbles.get(state.openerBlock) || opener;
     target?.focus({ preventScroll: true });
     updateBubbles();
-    if (state.historyEntry) {
-      state.historyEntry = false;
-      state.historyReturning = true;
-      state.afterClose = typeof after === 'function' ? after : null;
-      history.back();
-    } else if (typeof after === 'function') {
-      if (state.historyReturning) state.afterClose = after;
-      else after();
-    }
+    if (typeof after === 'function') after();
   }
-  addEventListener('popstate', () => {
-    const returning = state.historyReturning;
-    state.historyReturning = false;
-    if (state.historyEntry) {
-      state.historyEntry = false;
-      close();
-    }
-    const after = state.afterClose;
-    state.afterClose = null;
-    after?.();
-    if (returning && state.open) place();
-  });
   dialog.addEventListener('cancel', (event) => {
     event.preventDefault();
     close();

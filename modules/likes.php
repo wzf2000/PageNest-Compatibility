@@ -165,7 +165,7 @@ function pagenest_companion_like_button($id)
     }
     echo '<button type="button" class="pagenest-like" data-pagenest-like="' .
         absint($id) .
-        '">点赞 <span>' .
+        '" aria-label="点赞这篇文章"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg><span data-pagenest-like-label>点赞</span> <span data-pagenest-like-count>' .
         absint(get_post_meta($id, pagenest_companion_config('likes', 'counter_meta'), true)) .
         '</span></button>';
 }
