@@ -19,7 +19,9 @@ for (const width of [1440, 390]) {
       );
       const fixture = await page.evaluate(() => window.fixture);
       expect(fixture.math_handles).toEqual(
-        mode === 'existing' ? ['mbb-math'] : ['pagenest-mathjax'],
+        mode === 'existing'
+          ? ['mbb-math', 'pagenest-social-share']
+          : ['pagenest-social-share', 'pagenest-mathjax'],
       );
       if (mode === 'standalone') {
         expect(fixture.math_sources['pagenest-mathjax']).toContain('/mathjax/2.7.7/');
