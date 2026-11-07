@@ -199,7 +199,9 @@ pagenest_companion_views_footer(1);
 $output = ob_get_clean();
 verify(
     'render only reads',
-    $output === '<span>11 次浏览</span>' && pagenest_companion_views_get(1) === 11,
+    strip_tags($output) === '11 次浏览' &&
+        str_contains($output, 'aria-hidden="true"') &&
+        pagenest_companion_views_get(1) === 11,
 );
 $options['pagenest_companion_views_settings']['template'] = '&lt;script&gt;%VIEW_COUNT%';
 ob_start();

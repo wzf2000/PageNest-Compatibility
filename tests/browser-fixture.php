@@ -80,6 +80,10 @@ function get_post($id)
 {
     return false;
 }
+function plugin_dir_url($file)
+{
+    return '/';
+}
 function plugins_url($path, $file)
 {
     return $path;

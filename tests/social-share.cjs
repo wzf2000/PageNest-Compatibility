@@ -1,41 +1,25 @@
+// The QR encoder is local. Dialog interaction is exercised by social-browser.cjs.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const encoder = fs.readFileSync(path.join(__dirname, '../assets/social-qrcode.js'), 'utf8');
-const behavior = fs.readFileSync(path.join(__dirname, '../assets/social-share.js'), 'utf8');
-const url = 'https://example.test/reading/%E7%AB%A0%E8%8A%82/?topic=math&part=1';
-const fills = [];
-let canvas;
-const target = {
-  dataset: { pagenestSocialQr: url },
-  append: (value) => {
-    canvas = value;
-  },
-};
-const context = vm.createContext({
-  document: {
-    querySelectorAll: () => [target],
-    createElement: () => ({
-      setAttribute: () => {},
-      getContext: () => ({ fillRect: (...args) => fills.push(args) }),
-    }),
-  },
-});
+const context = vm.createContext({});
 vm.runInContext(encoder, context);
-vm.runInContext(behavior, context);
-assert(canvas.width === canvas.height && canvas.width > 100);
-assert(fills.length > 100);
-assert.equal(fills[0][2], canvas.width);
-assert.equal(fills[0][3], canvas.height);
-assert.equal(target.textContent, undefined);
-// Encoder is local and exposes no external transport APIs.
-assert(!/fetch\(|XMLHttpRequest|https?:\/\//.test(behavior));
-const failed = { dataset: { pagenestSocialQr: url } };
-context.document.querySelectorAll = () => [failed];
-context.qrcode = () => {
-  throw new Error('Capacity exceeded');
+const matrix = (url) => {
+  const code = context.qrcode(0, 'M');
+  code.addData(url, 'Byte');
+  code.make();
+  const size = code.getModuleCount();
+  assert(size >= 21 && (size - 21) % 4 === 0);
+  return Array.from({ length: size }, (_, row) =>
+    Array.from({ length: size }, (_, column) => code.isDark(row, column)),
+  );
 };
-vm.runInContext(behavior, context);
-assert.equal(failed.textContent, '请复制文章链接到微信。');
-console.log('Social sharing: local QR generation and accessible fallback passed.');
+const url = 'https://example.test/reading/%E7%AB%A0%E8%8A%82/?topic=math&part=1';
+const first = matrix(url);
+assert.deepEqual(first, matrix(url));
+assert.notDeepEqual(first, matrix(url + '#stage-2'));
+assert(first.flat().filter(Boolean).length > 100);
+assert(!/fetch\(|XMLHttpRequest/.test(encoder));
+console.log('Local QR encoder: deterministic link encoding and distinct fragment passed.');

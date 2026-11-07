@@ -30,7 +30,11 @@ function pagenest_social_same_origin($url)
 }
 function pagenest_social_return($url)
 {
-    return is_string($url) && pagenest_social_same_origin($url) ? esc_url_raw($url) : home_url('/');
+    if (!is_string($url) || preg_match('/[\x00-\x20\x7f]/', $url) || str_contains($url, '\\')) {
+        return home_url('/');
+    }
+    $safe = esc_url_raw($url);
+    return pagenest_social_same_origin($safe) ? $safe : home_url('/');
 }
 function pagenest_social_provider_config($provider)
 {

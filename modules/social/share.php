@@ -47,11 +47,13 @@ function pagenest_social_share($content)
             ),
         ],
     ];
-    $html = '<aside class="pagenest-social-share" aria-label="分享文章"><span>分享：</span>';
+    $id = wp_unique_id('pagenest-share-wechat-');
+    $html =
+        '<aside class="pagenest-social-share" data-pagenest-generated="social-share" aria-label="分享文章"><span>分享：</span>';
     foreach ($config['providers'] ?? [] as $provider) {
         if (isset($links[$provider])) {
             $html .=
-                '<a href="' .
+                '<a class="pagenest-social-share-action" href="' .
                 esc_url($links[$provider][1]) .
                 '" target="_blank" rel="noopener noreferrer">' .
                 esc_html($links[$provider][0]) .
@@ -59,34 +61,50 @@ function pagenest_social_share($content)
         }
         if ($provider === 'wechat') {
             $html .=
-                '<details class="pagenest-social-qr"><summary>微信</summary><div data-pagenest-social-qr="' .
+                '<button type="button" class="pagenest-social-share-action" data-pagenest-share-open="' .
+                esc_attr($id) .
+                '" aria-controls="' .
+                esc_attr($id) .
+                '" aria-haspopup="dialog" aria-expanded="false">微信</button>' .
+                '<dialog id="' .
+                esc_attr($id) .
+                '" class="pagenest-social-qr" aria-labelledby="' .
+                esc_attr($id) .
+                '-title">' .
+                '<div class="pagenest-social-qr-heading"><p class="pagenest-social-qr-title" id="' .
+                esc_attr($id) .
+                '-title">分享到微信</p>' .
+                '<button type="button" data-pagenest-share-close aria-label="关闭微信分享">×</button></div>' .
+                '<div data-pagenest-social-qr="' .
                 esc_attr($url) .
-                '"></div><p>使用微信扫描二维码打开文章。</p><a href="' .
-                esc_url($url) .
-                '">文章链接</a></details>';
+                '"></div>' .
+                '<p>使用微信扫一扫打开文章，再分享给朋友。</p>' .
+                '<label for="' .
+                esc_attr($id) .
+                '-url">文章链接</label>' .
+                '<div class="pagenest-social-copy"><input id="' .
+                esc_attr($id) .
+                '-url" data-pagenest-share-url readonly value="' .
+                esc_attr($url) .
+                '">' .
+                '<button type="button" data-pagenest-share-copy>复制链接</button></div><p role="status" aria-live="polite"></p></dialog>';
         }
     }
     return $content . $html . '</aside>';
 }
 function pagenest_social_share_assets()
 {
-    $config = pagenest_social_config()['share'] ?? [];
-    if (
-        !pagenest_social_active() ||
-        ($config['enabled'] ?? false) !== true ||
-        !is_singular(['post', 'page'])
-    ) {
-        return;
-    }
-    if (
-        (is_page() && ($config['pages'] ?? false) !== true) ||
-        (is_single() && ($config['posts'] ?? true) !== true)
-    ) {
-        return;
-    }
+    // Also used by front-end login links to preserve the current fragment.
     $base = plugin_dir_url(dirname(__DIR__, 2) . '/pagenest-compatibility.php');
     $manifest = require dirname(__DIR__, 2) . '/assets/manifest.php';
-    if (in_array('wechat', $config['providers'] ?? [], true)) {
+    $config = pagenest_social_config()['share'] ?? [];
+    $dependencies = [];
+    if (
+        pagenest_social_active() &&
+        ($config['enabled'] ?? false) === true &&
+        is_singular(['post', 'page']) &&
+        in_array('wechat', $config['providers'] ?? [], true)
+    ) {
         wp_enqueue_script(
             'pagenest-social-qrcode',
             $base . 'assets/' . $manifest['social_qrcode_js'],
@@ -94,14 +112,15 @@ function pagenest_social_share_assets()
             null,
             true,
         );
-        wp_enqueue_script(
-            'pagenest-social-share',
-            $base . 'assets/' . $manifest['social_share_js'],
-            ['pagenest-social-qrcode'],
-            null,
-            true,
-        );
+        $dependencies[] = 'pagenest-social-qrcode';
     }
+    wp_enqueue_script(
+        'pagenest-social-share',
+        $base . 'assets/' . $manifest['social_share_js'],
+        $dependencies,
+        null,
+        true,
+    );
 }
 
 function pagenest_social_ui_assets()
